@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.2.1",
+    "flow-bin": "^0.43.1",
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
     "now": "^4.10.3",
