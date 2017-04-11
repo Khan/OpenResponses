@@ -6,9 +6,7 @@ import sharedStyles from "../lib/styles.js";
 export default () => (
   <div>
     <Heading text="Testing 1, 2, 3!" />
-    <Paragraph text="What _what_ **what**" />
-    <RichEditor />
-    <RichEditor />
+    <Paragraph text="What _what_ $x + 3 = 10$" />
     <RichEditor />
   </div>
 );

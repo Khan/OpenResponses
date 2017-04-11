@@ -12,6 +12,10 @@ export default class AphroditeDocument extends Document {
       <html>
         <Head>
           <title>Open-ended Responses</title>
+          <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"
+          />
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
         </Head>
         <body>
