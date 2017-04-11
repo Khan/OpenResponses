@@ -14,12 +14,17 @@
     ]
   },
   "dependencies": {
+    "@types/aphrodite": "^0.5.5",
+    "@types/react-portal": "^3.0.1",
+    "aphrodite": "^1.2.0",
     "next": "^2.0.1",
     "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react-dom": "^15.4.2",
+    "react-portal": "^3.0.0",
+    "slate": "^0.19.16"
   },
   "devDependencies": {
-    "eslint": "^3.19.0",
+    "babel-eslint": "^7.2.1",
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
     "now": "^4.10.3",
