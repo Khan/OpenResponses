@@ -5,17 +5,31 @@ import Paragraph from "../lib/components/paragraph.js";
 import RichEditor from "../lib/components/rich-editor.js";
 import sharedStyles from "../lib/styles.js";
 
-export default () => (
-  <BasePrompt>
-    <Heading text="Testing 1, 2, 3!" />
-    <Paragraph text="What _what_ $x^2 + 30 = 100$" />
-    <MultipleChoice
-      choices={[
-        "This is a choice",
-        "And this is another choice",
-        "But this is actually a bee"
-      ]}
-    />
-    <RichEditor />
-  </BasePrompt>
-);
+// TODO(andy): Next up, keep moving the data management outwards.
+export default class SimpleInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { data: {} };
+  }
+
+  onChange = newData => {
+    this.setState({ data: newData });
+  };
+
+  render() {
+    return (
+      <BasePrompt data={this.state.data} onChange={this.onChange}>
+        <Heading text="Testing 1, 2, 3!" />
+        <Paragraph text="What _what_ $x^2 + 30 = 100$" />
+        <MultipleChoice
+          choices={[
+            "This is a choice",
+            "And this is another choice",
+            "But this is actually a bee"
+          ]}
+        />
+        <RichEditor />
+      </BasePrompt>
+    );
+  }
+}
