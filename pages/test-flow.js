@@ -12,19 +12,22 @@ import sharedStyles from "../lib/styles";
 export default class SimpleInput extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { data: {} };
+    this.state = { data: [{}, {}] };
   }
 
-  onChange = newData => {
-    this.setState({ data: newData });
+  onChange = (index, newData) => {
+    const { data } = this.state;
+    this.setState({
+      data: [...data.slice(0, index), newData, ...data.slice(index + 1)]
+    });
   };
 
   render() {
     return (
       <ModuleFlow>
         <TwoUpPrompt
-          data={this.state.data}
-          onChange={this.onChange}
+          data={this.state.data[0]}
+          onChange={newData => this.onChange(0, newData)}
           referenceComponent={
             <div>
               <p>
@@ -47,7 +50,10 @@ export default class SimpleInput extends React.Component {
           <LikertChoice leftLabel="not dog" rightLabel="very dog" />
         </TwoUpPrompt>
 
-        <BasePrompt data={this.state.data} onChange={this.onChange}>
+        <BasePrompt
+          data={this.state.data[1]}
+          onChange={newData => this.onChange(1, newData)}
+        >
           <Heading text="Testing 1, 2, 3--the second!" />
           <Paragraph text="This is a second prompt $x^2$" />
           <MultipleChoice
