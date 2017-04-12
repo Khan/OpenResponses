@@ -1,5 +1,6 @@
 {
   "editor.formatOnSave": true,
   "eslint.enable": true,
-  "javascript.validate.enable": false
+  "javascript.validate.enable": false,
+  "prettier.trailingComma": true
 }

@@ -18,7 +18,7 @@ export default class TestFlow extends React.Component {
   onChange = (index, newData) => {
     const { data } = this.state;
     this.setState({
-      data: [...data.slice(0, index), newData, ...data.slice(index + 1)]
+      data: [...data.slice(0, index), newData, ...data.slice(index + 1)],
     });
   };
 
@@ -65,7 +65,7 @@ export default class TestFlow extends React.Component {
             choices={[
               "This is a choice",
               "And this is another choice",
-              "But this is actually a bee"
+              "But this is actually a bee",
             ]}
           />
           <RichEditor dataKey="response" />

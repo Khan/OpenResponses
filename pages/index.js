@@ -8,6 +8,6 @@ export default () => {
 
 const styles = StyleSheet.create({
   header: {
-    ...sharedStyles.typography.subjectHeadingDesktop
-  }
+    ...sharedStyles.typography.subjectHeadingDesktop,
+  },
 });
