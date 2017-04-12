@@ -24,6 +24,7 @@
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-portal": "^3.0.0",
+    "react-radio-group": "^3.0.1",
     "slate": "^0.19.16"
   },
   "devDependencies": {
