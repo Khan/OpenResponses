@@ -17,6 +17,15 @@ export default class AphroditeDocument extends Document {
             href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"
           />
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
+          <style>
+            {
+              `
+              body {
+                margin: 0;
+              }
+              `
+            }
+          </style>
         </Head>
         <body>
           <Main />
