@@ -9,7 +9,7 @@ import TwoUpPrompt from "../lib/components/modules/two-up-prompt";
 import sharedStyles from "../lib/styles";
 
 // TODO(andy): Next up, keep moving the data management outwards.
-export default class SimpleInput extends React.Component {
+export default class TestFlow extends React.Component {
   constructor(props) {
     super(props);
     this.state = { data: [{}, {}] };
@@ -47,7 +47,11 @@ export default class SimpleInput extends React.Component {
         >
           <Heading text="Testing 1, 2, 3!" />
           <Paragraph text="What _what_ $x^2 + 30 = 100$" />
-          <LikertChoice leftLabel="not dog" rightLabel="very dog" />
+          <LikertChoice
+            dataKey="dogChoice"
+            leftLabel="not dog"
+            rightLabel="very dog"
+          />
         </TwoUpPrompt>
 
         <BasePrompt
@@ -57,13 +61,14 @@ export default class SimpleInput extends React.Component {
           <Heading text="Testing 1, 2, 3--the second!" />
           <Paragraph text="This is a second prompt $x^2$" />
           <MultipleChoice
+            dataKey="choice"
             choices={[
               "This is a choice",
               "And this is another choice",
               "But this is actually a bee"
             ]}
           />
-          <RichEditor />
+          <RichEditor dataKey="response" />
         </BasePrompt>
       </ModuleFlow>
     );
