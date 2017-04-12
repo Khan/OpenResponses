@@ -15,9 +15,11 @@
   },
   "dependencies": {
     "@types/aphrodite": "^0.5.5",
+    "@types/firebase": "^2.4.31",
     "@types/markdown-it": "0.0.2",
     "@types/react-portal": "^3.0.1",
     "aphrodite": "^1.2.0",
+    "firebase": "^3.7.6",
     "markdown-it": "^8.3.1",
     "markdown-it-katex": "^2.0.3",
     "next": "^2.0.1",
