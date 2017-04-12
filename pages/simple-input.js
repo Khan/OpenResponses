@@ -1,5 +1,6 @@
 import BasePrompt from "../lib/components/modules/base-prompt.js";
 import Heading from "../lib/components/heading.js";
+import LikertChoice from "../lib/components/likert-choice.js";
 import MultipleChoice from "../lib/components/multiple-choice.js";
 import Paragraph from "../lib/components/paragraph.js";
 import RichEditor from "../lib/components/rich-editor.js";
@@ -29,6 +30,7 @@ export default class SimpleInput extends React.Component {
           ]}
         />
         <RichEditor />
+        <LikertChoice leftLabel="not dog" rightLabel="very dog" />
       </BasePrompt>
     );
   }
