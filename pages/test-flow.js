@@ -7,9 +7,15 @@ import Paragraph from "../lib/components/paragraph";
 import RichEditor from "../lib/components/rich-editor";
 import TwoUpPrompt from "../lib/components/modules/two-up-prompt";
 import sharedStyles from "../lib/styles";
+import { signIn } from "../lib/auth";
+import { saveData } from "../lib/db";
 
 // TODO(andy): Next up, keep moving the data management outwards.
 export default class TestFlow extends React.Component {
+  static async getInitialProps() {
+    return { userID: await signIn() };
+  }
+
   constructor(props) {
     super(props);
     this.state = { data: [{}, {}] };
@@ -20,6 +26,8 @@ export default class TestFlow extends React.Component {
     this.setState({
       data: [...data.slice(0, index), newData, ...data.slice(index + 1)],
     });
+
+    saveData("test", "default", this.props.userID, index, newData);
   };
 
   render() {

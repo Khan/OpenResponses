@@ -1,11 +1,10 @@
 import firebase from "firebase";
 import React from "react";
 
-import { initialize, signOut } from "../lib/db/db";
+import { signOut } from "../lib/auth";
 
 export default class SignOutPage extends React.Component {
   static async getInitialProps({ req }) {
-    initialize();
     await signOut();
     return {};
   }
