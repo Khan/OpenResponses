@@ -8,17 +8,21 @@ import RichEditor from "../lib/components/rich-editor";
 import TwoUpPrompt from "../lib/components/modules/two-up-prompt";
 import sharedStyles from "../lib/styles";
 import { signIn } from "../lib/auth";
-import { saveData } from "../lib/db";
+import { loadData, saveData } from "../lib/db";
 
 // TODO(andy): Next up, keep moving the data management outwards.
+// TODO(andy): Extract flow and cohort constants.
+
 export default class TestFlow extends React.Component {
   static async getInitialProps() {
-    return { userID: await signIn() };
+    const userID = await signIn();
+    const data = await loadData("test", "default", userID);
+    return { userID, data };
   }
 
   constructor(props) {
     super(props);
-    this.state = { data: [{}, {}] };
+    this.state = { data: props.data || [] };
   }
 
   onChange = (index, newData) => {
@@ -34,7 +38,7 @@ export default class TestFlow extends React.Component {
     return (
       <ModuleFlow>
         <TwoUpPrompt
-          data={this.state.data[0]}
+          data={this.state.data[0] || {}}
           onChange={newData => this.onChange(0, newData)}
           referenceComponent={
             <div>
@@ -63,7 +67,7 @@ export default class TestFlow extends React.Component {
         </TwoUpPrompt>
 
         <BasePrompt
-          data={this.state.data[1]}
+          data={this.state.data[1] || {}}
           onChange={newData => this.onChange(1, newData)}
         >
           <Heading text="Testing 1, 2, 3--the second!" />
