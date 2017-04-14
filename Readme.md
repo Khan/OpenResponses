@@ -19,7 +19,7 @@ This is a [Khan Academy Long-term Research](https://khanacademy.org/research) pr
 
 Warning: these are early scratches, very unlikely useful outside our group.
 
-To get a local server going, first copy `env-config.sample.js` to `env-config.js` and fill in the keys. Then:
+To get a local server going, first copy `env-config.sample.js` to `env-config.js` and fill in the keys (if you're a Khan Academy employee, [you can get our info from Phabricator](https://phabricator.khanacademy.org/K227)). Then:
 
 ```
 yarn install
