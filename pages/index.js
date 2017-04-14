@@ -1,21 +1,44 @@
-import { StyleSheet, css } from "aphrodite";
+import React from "react";
 
-import sharedStyles from "../lib/styles.js";
+import flowLookupTable from "../lib/flows/index";
+import ModuleFlow from "../lib/components/modules/module-flow";
 import { signIn } from "../lib/auth";
+import { loadData, saveData } from "../lib/db";
 
-const IndexPage = props => {
-  return <h1 className={css(styles.header)}>Hello, {props.uid}</h1>;
+const getFlowIDFromQuery = query => {
+  const defaultFlowID = "test";
+  return query.flowID || defaultFlowID;
 };
 
-IndexPage.getInitialProps = async () => {
-  const uid = await signIn();
-  return { uid };
-};
+// TODO(andy): Extract cohort constants.
+const cohort = "default";
 
-const styles = StyleSheet.create({
-  header: {
-    ...sharedStyles.typography.subjectHeadingDesktop,
-  },
-});
+export default class FlowPage extends React.Component {
+  static async getInitialProps({ query }) {
+    const userID = await signIn();
+    const data = await loadData(getFlowIDFromQuery(query), cohort, userID);
+    return { userID, data };
+  }
 
-export default IndexPage;
+  constructor(props: { data: any, userID: string }) {
+    super(props);
+    this.state = { data: props.data || [] };
+  }
+
+  getFlowID = () => getFlowIDFromQuery(this.props.url.query);
+
+  onChange = (index, newData) => {
+    saveData(this.getFlowID(), cohort, this.props.userID, index, newData);
+
+    const { data } = this.state;
+    this.setState({
+      data: [...data.slice(0, index), newData, ...data.slice(index + 1)],
+    });
+  };
+
+  render = () => (
+    <ModuleFlow onChange={this.onChange} data={this.state.data}>
+      {flowLookupTable[this.getFlowID()]}
+    </ModuleFlow>
+  );
+}
