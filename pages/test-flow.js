@@ -22,7 +22,8 @@ export default class TestFlow extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { data: props.data || [] };
+    // TODO(andy): Find a way to not require the encoding of the number of modules here.
+    this.state = { data: props.data || [{}, {}] };
   }
 
   onChange = (index, newData) => {
@@ -71,7 +72,11 @@ export default class TestFlow extends React.Component {
           onChange={newData => this.onChange(1, newData)}
         >
           <Heading text="Testing 1, 2, 3--the second!" />
-          <Paragraph text="This is a second prompt $x^2$" />
+          <Paragraph
+            text={
+              `Your answer to the Likert prompt was: ${this.state.data[0].dogChoice}`
+            }
+          />
           <MultipleChoice
             dataKey="choice"
             choices={[
