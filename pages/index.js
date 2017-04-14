@@ -1,6 +1,6 @@
 import React from "react";
 
-import flowLookupTable from "../lib/flows/index";
+import flowLookupTable from "../lib/flows";
 import ModuleFlow from "../lib/components/modules/module-flow";
 import { signIn } from "../lib/auth";
 import { loadData, saveData } from "../lib/db";
