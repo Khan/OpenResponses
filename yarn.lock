@@ -12,6 +12,10 @@
   dependencies:
     "@types/react" "*"
 
+"@types/firebase@^2.4.31":
+  version "2.4.31"
+  resolved "https://registry.yarnpkg.com/@types/firebase/-/firebase-2.4.31.tgz#8a8dfdb602bcd790b99691701f872124a14cd778"
+
 "@types/markdown-it@0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@types/markdown-it/-/markdown-it-0.0.2.tgz#5d9ad19e6e6508cdd2f2596df86fd0aade598660"
