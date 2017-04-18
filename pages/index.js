@@ -16,15 +16,15 @@ const cohort = "default";
 export default class FlowPage extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { signedIn: false };
+    this.state = { ready: false, data: [] };
   }
 
-  // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip. Or at least have the server render the initial page, without data, and with disabled controls.
+  // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip.
   fetchInitialData = async () => {
     const userID = await signIn();
     const data = await loadData(this.getFlowID(), cohort, userID);
     console.log(userID, data);
-    this.setState({ signedIn: true, data: data || [], userID });
+    this.setState({ ready: true, data: data || [], userID });
   };
 
   componentDidMount = () => {
@@ -47,14 +47,14 @@ export default class FlowPage extends React.Component {
   };
 
   render = () => {
-    if (this.state.signedIn) {
-      return (
-        <ModuleFlow onChange={this.onChange} data={this.state.data}>
-          {flowLookupTable[this.getFlowID()]}
-        </ModuleFlow>
-      );
-    } else {
-      return <p>Loading...</p>;
-    }
+    return (
+      <ModuleFlow
+        ready={this.state.ready}
+        onChange={this.onChange}
+        data={this.state.data}
+      >
+        {flowLookupTable[this.getFlowID()]}
+      </ModuleFlow>
+    );
   };
 }
