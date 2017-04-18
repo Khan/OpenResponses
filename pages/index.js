@@ -27,7 +27,7 @@ export default class FlowPage extends React.Component {
     this.setState({ signedIn: true, data: data || [], userID });
   };
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     this.fetchInitialData();
   };
 
