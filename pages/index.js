@@ -1,4 +1,5 @@
 import React from "react";
+import Router from "next/router";
 import KeyPath from "key-path";
 
 import flowLookupTable from "../lib/flows";
@@ -14,10 +15,14 @@ const getFlowIDFromQuery = query => {
 // TODO(andy): Extract cohort constants.
 const cohort = "default";
 
+const pageNumberFromURL = url => {
+  return Number.parseInt(url.query.page || "0");
+};
+
 export default class FlowPage extends React.Component {
   constructor(props) {
     super(props);
-    const initialPage = Number.parseInt(this.props.url.query.page || "0");
+    const initialPage = pageNumberFromURL(props.url);
     this.state = {
       ready: false,
       data: [],
@@ -59,13 +64,18 @@ export default class FlowPage extends React.Component {
 
   onPageChange = newPage => {
     this.setState({ currentPage: newPage });
-    this.props.url.push({
+    Router.push({
       ...this.props.url,
       query: { ...this.props.url.query, page: newPage },
     });
   };
 
   componentWillUpdate = (nextProps, nextState) => {
+    const nextPageNumber = pageNumberFromURL(nextProps.url);
+    if (nextPageNumber !== nextState.currentPage) {
+      this.setState({ currentPage: nextPageNumber });
+    }
+
     // If our flow has any remote data requirements, we'll see if any of those requirements' data has changed. If so, we'll run the remote fetcher associated with that data requirement.
     const flow = flowLookupTable[this.getFlowID()];
     for (let remoteDataKey in flow.remoteDataRequirements || {}) {
@@ -82,7 +92,7 @@ export default class FlowPage extends React.Component {
           (this.remoteDataGenerationCounts[remoteDataKey] || 0);
         this.remoteDataGenerationCounts[remoteDataKey] = newGenerationCount;
         const updateRemoteData = async () => {
-          const remoteData = await fetcher(newData);
+          const remoteData = await fetcher(newData, this.state.userID);
           if (
             this.remoteDataGenerationCounts[remoteDataKey] == newGenerationCount
           ) {
