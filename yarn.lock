@@ -2911,6 +2911,10 @@ katex@^0.6.0:
   dependencies:
     match-at "^0.1.0"
 
+key-path@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/key-path/-/key-path-0.3.2.tgz#56ecf95d7780f7fe3ad30c8763d06e05357661be"
+
 keycode@^2.1.2:
   version "2.1.8"
   resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.1.8.tgz#94d2b7098215eff0e8f9a8931d5a59076c4532fb"
