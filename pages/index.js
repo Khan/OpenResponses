@@ -17,7 +17,13 @@ const cohort = "default";
 export default class FlowPage extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { ready: false, data: [], remoteData: {} };
+    const initialPage = Number.parseInt(this.props.url.query.page || "0");
+    this.state = {
+      ready: false,
+      data: [],
+      remoteData: {},
+      currentPage: initialPage,
+    };
     this.remoteDataGenerationCounts = {};
   }
 
@@ -48,6 +54,14 @@ export default class FlowPage extends React.Component {
     const { data } = this.state;
     this.setState({
       data: [...data.slice(0, index), newData, ...data.slice(index + 1)],
+    });
+  };
+
+  onPageChange = newPage => {
+    this.setState({ currentPage: newPage });
+    this.props.url.push({
+      ...this.props.url,
+      query: { ...this.props.url.query, page: newPage },
     });
   };
 
@@ -94,6 +108,8 @@ export default class FlowPage extends React.Component {
         onChange={this.onChange}
         data={this.state.data}
         remoteData={this.state.remoteData}
+        moduleIndex={this.state.currentPage}
+        onPageChange={this.onPageChange}
       >
         {modules}
       </ModuleFlow>
