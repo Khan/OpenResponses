@@ -29,3 +29,9 @@ npm run dev
 # Adding content
 
 See `lib/flows/humanitiesA.js` for an example of a flow using this system. To add a new flow, add a new file to that folder, add an entry for it in `index.js` (copy the pattern that's already there), and navigate to `/?flowID=NAME_GIVEN_IN_INDEX`.
+
+# Identity
+
+You'll be automatically assigned a user ID when you visit a page. When developing flows, it might be helpful to pose as multiple users to enter various responses.
+
+You can get a new ID by visiting `/signOut` then refreshing the flow page.
