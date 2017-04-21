@@ -37,6 +37,7 @@
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
     "now": "^4.10.3",
-    "prettier": "^0.22.0"
+    "prettier": "^0.22.0",
+    "react-no-ssr": "^1.1.0"
   }
 }
