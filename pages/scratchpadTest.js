@@ -1,3 +1,3 @@
 import Scratchpad from "../lib/components/scratchpad";
 
-export default () => <Scratchpad width={500} height={500} />;
+export default () => <Scratchpad width={1000} height={1000} />;
