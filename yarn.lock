@@ -3773,6 +3773,10 @@ pend@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
 
+pepjs@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/pepjs/-/pepjs-0.4.2.tgz#13264eea894984ff423c83e40d2fa4e1dec1c9fa"
+
 performance-now@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-0.2.0.tgz#33ef30c5c77d4ea21c5a53869d91b56d8f2555e5"
@@ -3964,6 +3968,10 @@ react-no-ssr@^1.1.0:
   resolved "https://registry.yarnpkg.com/react-no-ssr/-/react-no-ssr-1.1.0.tgz#313b48d2e26020f969ed98e472f10481604e3cc8"
   dependencies:
     babel-runtime "6.x.x"
+
+react-pointable@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/react-pointable/-/react-pointable-0.1.0.tgz#98c7dd5412494a441efac4241957844ad7a02a80"
 
 react-portal@^3.0.0:
   version "3.0.0"

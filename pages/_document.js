@@ -1,6 +1,14 @@
 import Document, { Head, Main, NextScript } from "next/document";
 import { StyleSheetServer } from "aphrodite";
 
+if (
+  !!(typeof window !== "undefined" &&
+    window.document &&
+    window.document.createElement)
+) {
+  require("pepjs");
+}
+
 export default class AphroditeDocument extends Document {
   static async getInitialProps({ renderPage }) {
     const { html, css } = StyleSheetServer.renderStatic(() => renderPage());
