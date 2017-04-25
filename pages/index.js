@@ -2,6 +2,7 @@ import React from "react";
 import Router from "next/router";
 import KeyPath from "key-path";
 
+import cohortName from "../lib/cohort";
 import flowLookupTable from "../lib/flows";
 import ModuleFlow from "../lib/components/modules/module-flow";
 import { signIn } from "../lib/auth";
@@ -11,9 +12,6 @@ const getFlowIDFromQuery = query => {
   const defaultFlowID = "test";
   return query.flowID || defaultFlowID;
 };
-
-// TODO(andy): Extract cohort constants.
-const cohort = "default";
 
 const pageNumberFromURL = url => {
   return Number.parseInt(url.query.page || "0");
@@ -35,7 +33,7 @@ export default class FlowPage extends React.Component {
   // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip.
   fetchInitialData = async () => {
     const userID = await signIn();
-    const data = await loadData(this.getFlowID(), cohort, userID);
+    const data = await loadData(this.getFlowID(), cohortName, userID);
     this.setState({
       ready: true,
       data: data || [],
@@ -52,7 +50,7 @@ export default class FlowPage extends React.Component {
   onChange = (index, newData) => {
     const saveToServer = async () => {
       await signIn();
-      saveData(this.getFlowID(), cohort, this.state.userID, index, newData);
+      saveData(this.getFlowID(), cohortName, this.state.userID, index, newData);
     };
     saveToServer();
 
