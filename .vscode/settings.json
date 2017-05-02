@@ -3,5 +3,9 @@
   "editor.tabSize": 2,
   "eslint.enable": true,
   "javascript.validate.enable": false,
-  "prettier.trailingComma": "all"
+  "prettier.trailingComma": "all",
+  "files.exclude": {
+    ".next": true,
+    "node_modules": true,
+  }
 }
