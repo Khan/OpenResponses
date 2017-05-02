@@ -35,3 +35,9 @@ See `lib/flows/humanitiesA.js` for an example of a flow using this system. To ad
 You'll be automatically assigned a user ID when you visit a page. When developing flows, it might be helpful to pose as multiple users to enter various responses.
 
 You can get a new ID by visiting `/signOut` then refreshing the flow page.
+
+You can isolate one group of students from another group of students by passing an `classCode` argument in the URL, like this:
+
+```
+http://localhost:3000/?flowID=myFlow&classCode=OaklandHigh
+```

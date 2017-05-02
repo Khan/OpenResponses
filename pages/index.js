@@ -13,14 +13,18 @@ const getFlowIDFromQuery = query => {
   return query.flowID || defaultFlowID;
 };
 
-const pageNumberFromURL = url => {
+const getPageNumberFromURL = url => {
   return Number.parseInt(url.query.page || "0");
+};
+
+const getCohortFromURL = url => {
+  return url.query.classCode || cohortName;
 };
 
 export default class FlowPage extends React.Component {
   constructor(props) {
     super(props);
-    const initialPage = pageNumberFromURL(props.url);
+    const initialPage = getPageNumberFromURL(props.url);
     this.state = {
       ready: false,
       data: [],
@@ -33,7 +37,11 @@ export default class FlowPage extends React.Component {
   // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip.
   fetchInitialData = async () => {
     const userID = await signIn();
-    const data = await loadData(this.getFlowID(), cohortName, userID);
+    const data = await loadData(
+      this.getFlowID(),
+      getCohortFromURL(this.props.url),
+      userID,
+    );
     this.setState({
       ready: true,
       data: data || [],
@@ -50,7 +58,13 @@ export default class FlowPage extends React.Component {
   onChange = (index, newData) => {
     const saveToServer = async () => {
       await signIn();
-      saveData(this.getFlowID(), cohortName, this.state.userID, index, newData);
+      saveData(
+        this.getFlowID(),
+        getCohortFromURL(this.props.url),
+        this.state.userID,
+        index,
+        newData,
+      );
     };
     saveToServer();
 
@@ -69,7 +83,7 @@ export default class FlowPage extends React.Component {
   };
 
   componentWillUpdate = (nextProps, nextState) => {
-    const nextPageNumber = pageNumberFromURL(nextProps.url);
+    const nextPageNumber = getPageNumberFromURL(nextProps.url);
     if (nextPageNumber !== nextState.currentPage) {
       this.setState({ currentPage: nextPageNumber });
     }
@@ -90,7 +104,11 @@ export default class FlowPage extends React.Component {
           (this.remoteDataGenerationCounts[remoteDataKey] || 0);
         this.remoteDataGenerationCounts[remoteDataKey] = newGenerationCount;
         const updateRemoteData = async () => {
-          const remoteData = await fetcher(newData, this.state.userID);
+          const remoteData = await fetcher(
+            newData,
+            this.state.userID,
+            getCohortFromURL(this.props.url),
+          );
           if (
             this.remoteDataGenerationCounts[remoteDataKey] == newGenerationCount
           ) {
