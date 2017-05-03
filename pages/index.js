@@ -6,7 +6,7 @@ import cohortName from "../lib/cohort";
 import flowLookupTable from "../lib/flows";
 import ModuleFlow from "../lib/components/modules/module-flow";
 import { signIn } from "../lib/auth";
-import { loadData, saveData } from "../lib/db";
+import { loadData, saveData, saveUserState } from "../lib/db";
 
 const getFlowIDFromQuery = query => {
   const defaultFlowID = "test";
@@ -27,7 +27,8 @@ export default class FlowPage extends React.Component {
     const initialPage = getPageNumberFromURL(props.url);
     this.state = {
       ready: false,
-      data: [],
+      inputs: [],
+      userState: {},
       remoteData: {},
       currentPage: initialPage,
     };
@@ -37,25 +38,29 @@ export default class FlowPage extends React.Component {
   // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip.
   fetchInitialData = async () => {
     const userID = await signIn();
-    const data = await loadData(
+    const { inputs, userState } = (await loadData(
       this.getFlowID(),
       getCohortFromURL(this.props.url),
       userID,
-    );
+    )) || {};
     this.setState({
       ready: true,
-      data: data || [],
+      inputs: inputs || [],
+      userState: userState || {},
       userID,
     });
   };
 
   componentDidMount = () => {
-    this.fetchInitialData();
+    (async () => {
+      await this.fetchInitialData();
+      this.recordPageLoad(this.state.currentPage);
+    })();
   };
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
 
-  onChange = (index, newData) => {
+  onChange = (index, newInputs) => {
     const saveToServer = async () => {
       await signIn();
       saveData(
@@ -63,25 +68,49 @@ export default class FlowPage extends React.Component {
         getCohortFromURL(this.props.url),
         this.state.userID,
         index,
-        newData,
+        newInputs,
       );
     };
     saveToServer();
 
-    let { data } = this.state;
-    if (data.length < index) {
-      data = [...data, Array(index - data.length).fill(null)];
+    let { inputs } = this.state;
+    if (inputs.length < index) {
+      inputs = [...inputs, Array(index - inputs.length).fill({})];
     }
     this.setState({
-      data: [...data.slice(0, index), newData, ...data.slice(index + 1)],
+      inputs: [
+        ...inputs.slice(0, index),
+        newInputs,
+        ...inputs.slice(index + 1),
+      ],
     });
   };
 
-  onPageChange = newPage => {
-    this.setState({ currentPage: newPage });
+  recordPageLoad = newPageIndex => {
+    if (newPageIndex > (this.state.userState.furthestPageLoaded || -1)) {
+      const newUserState = {
+        ...this.state.userState,
+        furthestPageLoaded: newPageIndex,
+      };
+      this.setState({ userState: newUserState });
+      (async () => {
+        await signIn();
+        saveUserState(
+          this.getFlowID(),
+          getCohortFromURL(this.props.url),
+          this.state.userID,
+          newUserState,
+        );
+      })();
+    }
+  };
+
+  onPageChange = newPageIndex => {
+    this.recordPageLoad(newPageIndex);
+    this.setState({ currentPage: newPageIndex });
     Router.push({
       ...this.props.url,
-      query: { ...this.props.url.query, page: newPage },
+      query: { ...this.props.url.query, page: newPageIndex },
     });
   };
 
@@ -97,8 +126,8 @@ export default class FlowPage extends React.Component {
       const { inputs, fetcher } = flow.remoteDataRequirements[remoteDataKey];
       const oldAndNewData = inputs.map(keyPathString => {
         const keyPath = KeyPath.get(keyPathString);
-        const oldState = keyPath.getValueFrom(this.state.data);
-        const newState = keyPath.getValueFrom(nextState.data);
+        const oldState = keyPath.getValueFrom(this.state.inputs);
+        const newState = keyPath.getValueFrom(nextState.inputs);
         return [oldState, newState];
       });
       if (oldAndNewData.some(([oldState, newState]) => oldState !== newState)) {
@@ -135,10 +164,11 @@ export default class FlowPage extends React.Component {
       <ModuleFlow
         ready={this.state.ready}
         onChange={this.onChange}
-        data={this.state.data}
+        data={this.state.inputs}
         query={this.props.url.query}
         remoteData={this.state.remoteData}
         moduleIndex={this.state.currentPage}
+        furthestPageLoaded={this.state.userState.furthestPageLoaded || 0}
         onPageChange={this.onPageChange}
       >
         {modules}
