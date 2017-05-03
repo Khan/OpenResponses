@@ -41,5 +41,8 @@
     "now": "^4.10.3",
     "prettier": "^0.22.0",
     "react-no-ssr": "^1.1.0"
+  },
+  "now": {
+    "dotenv": "env.production"
   }
 }
