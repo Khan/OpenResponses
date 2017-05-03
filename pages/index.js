@@ -136,6 +136,7 @@ export default class FlowPage extends React.Component {
         ready={this.state.ready}
         onChange={this.onChange}
         data={this.state.data}
+        query={this.props.url.query}
         remoteData={this.state.remoteData}
         moduleIndex={this.state.currentPage}
         onPageChange={this.onPageChange}
