@@ -68,7 +68,10 @@ export default class FlowPage extends React.Component {
     };
     saveToServer();
 
-    const { data } = this.state;
+    let { data } = this.state;
+    if (data.length < index) {
+      data = [...data, Array(index - data.length).fill(null)];
+    }
     this.setState({
       data: [...data.slice(0, index), newData, ...data.slice(index + 1)],
     });
