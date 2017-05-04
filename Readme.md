@@ -45,5 +45,15 @@ You can get a new ID by visiting `/signOut` then refreshing the flow page.
 You can isolate one group of students from another group of students by passing an `classCode` argument in the URL, like this:
 
 ```
-http://localhost:3000/?flowID=myFlow&classCode=OaklandHigh
+http://YOUR-SERVER.com/?flowID=myFlow&classCode=OaklandHigh
 ```
+
+# Managing students
+
+You can control the range of pages students are permitted to reach by visiting this URL:
+
+```
+http://YOUR-SERVER.com/manage?flowID=myFlow&classCode=OaklandHigh
+```
+
+Changing the value on this page will push an update to students currently on the site, so they'll immediately be able to advance.

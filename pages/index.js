@@ -6,7 +6,12 @@ import cohortName from "../lib/cohort";
 import flowLookupTable from "../lib/flows";
 import ModuleFlow from "../lib/components/modules/module-flow";
 import { signIn } from "../lib/auth";
-import { loadData, saveData, saveUserState } from "../lib/db";
+import {
+  loadData,
+  saveData,
+  saveUserState,
+  loadManagementData,
+} from "../lib/db";
 
 const getFlowIDFromQuery = query => {
   const defaultFlowID = "test";
@@ -30,6 +35,7 @@ export default class FlowPage extends React.Component {
       inputs: [],
       userState: {},
       remoteData: {},
+      maximumPageNumber: -1,
       currentPage: initialPage,
     };
     this.remoteDataGenerationCounts = {};
@@ -38,16 +44,32 @@ export default class FlowPage extends React.Component {
   // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip.
   fetchInitialData = async () => {
     const userID = await signIn();
+    const classCode = getCohortFromURL(this.props.url);
     const { inputs, userState } = (await loadData(
       this.getFlowID(),
-      getCohortFromURL(this.props.url),
+      classCode,
       userID,
     )) || {};
+
+    const managementSubscriptionCancelFunction = loadManagementData(
+      this.getFlowID(),
+      classCode,
+      newManagementData => {
+        const data = newManagementData || {};
+        this.setState({
+          maximumPageNumber: typeof data.maximumPageNumber === "number"
+            ? data.maximumPageNumber
+            : Number.MAX_VALUE,
+        });
+      },
+    );
+
     this.setState({
       ready: true,
       inputs: inputs || [],
       userState: userState || {},
       userID,
+      managementSubscriptionCancelFunction,
     });
   };
 
@@ -56,6 +78,11 @@ export default class FlowPage extends React.Component {
       await this.fetchInitialData();
       this.recordPageLoad(this.state.currentPage);
     })();
+  };
+
+  componentWillUnmount = () => {
+    this.state.managementSubscriptionCancelFunction &&
+      this.state.managementSubscriptionCancelFunction();
   };
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
@@ -169,6 +196,7 @@ export default class FlowPage extends React.Component {
         remoteData={this.state.remoteData}
         moduleIndex={this.state.currentPage}
         furthestPageLoaded={this.state.userState.furthestPageLoaded || 0}
+        maximumPageNumber={this.state.maximumPageNumber}
         onPageChange={this.onPageChange}
       >
         {modules}
