@@ -29,7 +29,7 @@ npm run dev
 To deploy, just run this command, and you'll get a unique accessible URL:
 
 ```
-now
+npm run deploy
 ```
 
 # Adding content

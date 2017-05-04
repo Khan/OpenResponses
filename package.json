@@ -5,6 +5,7 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
+    "deploy": "node_modules/.bin/now",
     "precommit": "lint-staged"
   },
   "lint-staged": {
