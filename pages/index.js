@@ -87,6 +87,23 @@ export default class FlowPage extends React.Component {
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
 
+  setUserState = newUserState => {
+    this.setState({ userState: { ...this.state.userState, ...newUserState } });
+
+    (async () => {
+      await signIn();
+      const latestUserState = await saveUserState(
+        this.getFlowID(),
+        getCohortFromURL(this.props.url),
+        this.state.userID,
+        newUserState,
+      );
+      if (latestUserState) {
+        this.setState({ userState: latestUserState });
+      }
+    })();
+  };
+
   onChange = (index, newInputs) => {
     const saveToServer = async () => {
       await signIn();
@@ -115,20 +132,9 @@ export default class FlowPage extends React.Component {
 
   recordPageLoad = newPageIndex => {
     if (newPageIndex > (this.state.userState.furthestPageLoaded || -1)) {
-      const newUserState = {
-        ...this.state.userState,
+      this.setUserState({
         furthestPageLoaded: newPageIndex,
-      };
-      this.setState({ userState: newUserState });
-      (async () => {
-        await signIn();
-        saveUserState(
-          this.getFlowID(),
-          getCohortFromURL(this.props.url),
-          this.state.userID,
-          newUserState,
-        );
-      })();
+      });
     }
   };
 
@@ -153,8 +159,8 @@ export default class FlowPage extends React.Component {
       const { inputs, fetcher } = flow.remoteDataRequirements[remoteDataKey];
       const oldAndNewData = inputs.map(keyPathString => {
         const keyPath = KeyPath.get(keyPathString);
-        const oldState = keyPath.getValueFrom(this.state.inputs);
-        const newState = keyPath.getValueFrom(nextState.inputs);
+        const oldState = keyPath.getValueFrom(this.state);
+        const newState = keyPath.getValueFrom(nextState);
         return [oldState, newState];
       });
       if (oldAndNewData.some(([oldState, newState]) => oldState !== newState)) {
@@ -163,20 +169,27 @@ export default class FlowPage extends React.Component {
           (this.remoteDataGenerationCounts[remoteDataKey] || 0);
         this.remoteDataGenerationCounts[remoteDataKey] = newGenerationCount;
         const updateRemoteData = async () => {
-          const remoteData = await fetcher(
+          const fetcherResponse = await fetcher(
             newData,
-            this.state.userID,
+            nextState.userID,
             getCohortFromURL(this.props.url),
+            { inputs: nextState.inputs, userState: nextState.userState },
           );
           if (
+            fetcherResponse &&
             this.remoteDataGenerationCounts[remoteDataKey] == newGenerationCount
           ) {
+            const remoteData = fetcherResponse.remoteData || fetcherResponse;
+            const newUserState = fetcherResponse.newUserState;
             this.setState({
               remoteData: {
                 ...this.state.remoteData,
                 [remoteDataKey]: remoteData,
               },
             });
+            if (newUserState) {
+              this.setUserState(newUserState);
+            }
           }
         };
         updateRemoteData();

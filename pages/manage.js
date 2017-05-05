@@ -120,13 +120,12 @@ export default class ManagePage extends React.Component {
             }
             const getUserInput = index => userData[index] || {};
             const children = modules(getUserInput, key => {});
+            const userState = this.state.userData[userID].userState;
             return (
               <div key={userID}>
                 <h2>{userID}</h2>
                 <p>
-                  Furthest page visited:
-                  {" "}
-                  {this.state.userData[userID].userState.furthestPageLoaded}
+                  {JSON.stringify(userState, undefined, 1)}
                 </p>
                 {children.map((module, moduleIndex) => {
                   const currentModuleData = getUserInput(moduleIndex);

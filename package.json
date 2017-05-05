@@ -37,6 +37,7 @@
   "devDependencies": {
     "babel-eslint": "^7.2.1",
     "babel-plugin-transform-define": "^1.2.0",
+    "babel-preset-stage-3": "^6.24.1",
     "flow-bin": "^0.43.1",
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
