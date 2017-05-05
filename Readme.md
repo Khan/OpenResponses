@@ -50,7 +50,7 @@ http://YOUR-SERVER.com/?flowID=myFlow&classCode=OaklandHigh
 
 # Managing students
 
-You can control the range of pages students are permitted to reach by visiting this URL:
+You can control the range of pages students are permitted to reach (and see their work live) by visiting this URL:
 
 ```
 http://YOUR-SERVER.com/manage?flowID=myFlow&classCode=OaklandHigh

@@ -2,12 +2,15 @@
 import React from "react";
 import NumericInput from "react-numeric-input";
 
+import flowLookupTable from "../lib/flows";
 import { signIn } from "../lib/auth";
-import { loadManagementData, saveManagementData } from "../lib/db";
+import { loadData, loadManagementData, saveManagementData } from "../lib/db";
 
 type State = {
   ready: boolean,
   maximumPageNumber: ?number,
+  userData: { [key: string]: any },
+  dataSubscriptionCancelFunction: ?() => void,
 };
 
 // TODO(andy): For now, no security around this whatsoever. If we deploy this in public, we'll want to change that.
@@ -23,15 +26,34 @@ export default class ManagePage extends React.Component {
   componentDidMount = () => {
     (async () => {
       await signIn();
-      const managementData = (await loadManagementData(
-        this.getFlowID(),
-        this.getClassCode(),
-      )) || {};
+
+      const flowID = this.getFlowID();
+      const classCode = this.getClassCode();
+      const managementData = (await loadManagementData(flowID, classCode)) || {
+      };
+
+      const dataSubscriptionCancelFunction = loadData(
+        flowID,
+        classCode,
+        null,
+        userData => {
+          this.setState({
+            userData: userData || {},
+            ready: true,
+          });
+        },
+      );
+
       this.setState({
-        ready: true,
         maximumPageNumber: managementData.maximumPageNumber || null,
+        dataSubscriptionCancelFunction,
       });
     })();
+  };
+
+  componentWillUnmount = () => {
+    this.state.dataSubscriptionCancelFunction &&
+      this.state.dataSubscriptionCancelFunction();
   };
 
   setMaximumPageNumber = (newMaximumPageNumber: ?number) => {
@@ -64,27 +86,68 @@ export default class ManagePage extends React.Component {
       return null;
     }
 
+    const flow = flowLookupTable[this.getFlowID()];
+    const modules = flow.modules || flow;
+
     return (
-      <p>
-        <label>
-          <input
-            type="checkbox"
-            checked={this.state.maximumPageNumber !== null}
-            onChange={this.onCheckMaximumPageNumber}
+      <div>
+        <p>
+          <label>
+            <input
+              type="checkbox"
+              checked={this.state.maximumPageNumber !== null}
+              onChange={this.onCheckMaximumPageNumber}
+            />
+            {" "}
+            limit students to pages up to and including page
+            {" "}
+          </label>
+          <NumericInput
+            min={0}
+            value={this.state.maximumPageNumber}
+            disabled={this.state.maximumPageNumber === null}
+            onChange={this.onChangeMaximumPageNumber}
           />
           {" "}
-          limit students to pages up to and including page
-          {" "}
-        </label>
-        <NumericInput
-          min={0}
-          value={this.state.maximumPageNumber}
-          disabled={this.state.maximumPageNumber === null}
-          onChange={this.onChangeMaximumPageNumber}
-        />
-        {" "}
-        (0-indexed)
-      </p>
+          (0-indexed)
+        </p>
+        <hr />
+        <div>
+          {Object.keys(this.state.userData).map(userID => {
+            const userData = this.state.userData[userID].inputs;
+            if (!userData) {
+              return null;
+            }
+            const getUserInput = index => userData[index] || {};
+            const children = modules(getUserInput, key => {});
+            return (
+              <div key={userID}>
+                <h2>{userID}</h2>
+                <p>
+                  Furthest page visited:
+                  {" "}
+                  {this.state.userData[userID].userState.furthestPageLoaded}
+                </p>
+                {children.map((module, moduleIndex) => {
+                  const currentModuleData = getUserInput(moduleIndex);
+                  const dataMappedElement = React.cloneElement(module, {
+                    ...module.props,
+                    editable: false,
+                    data: currentModuleData,
+                    query: this.props.url.query,
+                  });
+                  return (
+                    <div key={moduleIndex}>
+                      {dataMappedElement}
+                      <hr />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     );
   };
 }
