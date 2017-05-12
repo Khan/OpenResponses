@@ -18,6 +18,7 @@ export default class AphroditeDocument extends Document {
           />
           <script src="https://code.jquery.com/pep/0.4.2/pep.js" />
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
+          <meta name="mobile-web-app-capable" content="yes" />
           <style>
             {
               `
