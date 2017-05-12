@@ -2,6 +2,7 @@
 import KeyPath from "key-path";
 import NumericInput from "react-numeric-input";
 import React from "react";
+import { css, StyleSheet } from "aphrodite";
 
 import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
@@ -130,7 +131,7 @@ export default class ManagePage extends React.Component {
     const modules = flow.modules || flow;
 
     return (
-      <div>
+      <div className={css(styles.container)}>
         <p>
           <label>
             <input
@@ -153,7 +154,7 @@ export default class ManagePage extends React.Component {
         </p>
         <hr />
         <div>
-          {Object.keys(this.state.userData).map(userID => {
+          {Object.keys(this.state.userData).map((userID, index) => {
             const userData = this.state.userData[userID].inputs;
             if (!userData) {
               return null;
@@ -165,7 +166,7 @@ export default class ManagePage extends React.Component {
             const userState = this.state.userData[userID].userState;
             return (
               <div key={userID}>
-                <h2>{userID}</h2>
+                <h2>Student {index + 1} ({userID})</h2>
                 <p>
                   {JSON.stringify(userState, undefined, 1)}
                 </p>
@@ -189,6 +190,7 @@ export default class ManagePage extends React.Component {
                   }
                   return (
                     <div key={moduleIndex}>
+                      <h3>Student {index + 1}: Page {moduleIndex + 1}</h3>
                       {dataMappedElement}
                       <hr />
                     </div>
@@ -202,3 +204,9 @@ export default class ManagePage extends React.Component {
     );
   };
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 24,
+  },
+});
