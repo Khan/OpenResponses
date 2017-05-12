@@ -1,6 +1,7 @@
 // @flow
-import React from "react";
+import KeyPath from "key-path";
 import NumericInput from "react-numeric-input";
+import React from "react";
 
 import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
@@ -50,6 +51,44 @@ export default class ManagePage extends React.Component {
         dataSubscriptionCancelFunction,
       });
     })();
+  };
+
+  componentWillUpdate = (nextProps, nextState) => {
+    if (!this.state.ready && nextState.ready) {
+      // If our flow has any remote data requirements, we'll see if any of those requirements' data has changed. If so, we'll run the remote fetcher associated with that data requirement.
+      (async nextState => {
+        const flow = flowLookupTable[this.getFlowID()];
+        const remoteData = {};
+        for (let userID in nextState.userData) {
+          remoteData[userID] = {};
+          const userData = nextState.userData[userID];
+          if (!userData.inputs) {
+            continue;
+          }
+          for (let remoteDataKey in flow.remoteDataRequirements || {}) {
+            const { inputs, fetcher } = flow.remoteDataRequirements[
+              remoteDataKey
+            ];
+            const fetcherInputs = inputs.map(keyPathString => {
+              const keyPath = KeyPath.get(keyPathString);
+              return keyPath.getValueFrom(userData);
+            });
+            const fetcherResponse = await fetcher(
+              fetcherInputs,
+              userID,
+              this.getClassCode(),
+              userData,
+            );
+            if (fetcherResponse) {
+              const studentRemoteData = fetcherResponse.remoteData ||
+                fetcherResponse;
+              remoteData[userID][remoteDataKey] = studentRemoteData;
+            }
+          }
+        }
+        this.setState({ remoteData });
+      })(nextState);
+    }
   };
 
   componentWillUnmount = () => {
@@ -120,7 +159,9 @@ export default class ManagePage extends React.Component {
               return null;
             }
             const getUserInput = index => userData[index] || {};
-            const children = modules(getUserInput, key => {});
+            const getRemoteData = key =>
+              this.state.remoteData && this.state.remoteData[userID][key];
+            const children = modules(getUserInput, getRemoteData);
             const userState = this.state.userData[userID].userState;
             return (
               <div key={userID}>
