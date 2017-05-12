@@ -2,6 +2,7 @@
 import React from "react";
 import NumericInput from "react-numeric-input";
 
+import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
 import { signIn } from "../lib/auth";
 import { loadData, loadManagementData, saveManagementData } from "../lib/db";
@@ -129,12 +130,22 @@ export default class ManagePage extends React.Component {
                 </p>
                 {children.map((module, moduleIndex) => {
                   const currentModuleData = getUserInput(moduleIndex);
-                  const dataMappedElement = React.cloneElement(module, {
+                  const extraProps = {
                     ...module.props,
                     editable: false,
                     data: currentModuleData,
                     query: this.props.url.query,
-                  });
+                  };
+                  let dataMappedElement = null;
+                  if (module.props.passThroughInManagerUI) {
+                    dataMappedElement = (
+                      <BasePrompt {...extraProps}>
+                        {module.props.children}
+                      </BasePrompt>
+                    );
+                  } else {
+                    dataMappedElement = React.cloneElement(module, extraProps);
+                  }
                   return (
                     <div key={moduleIndex}>
                       {dataMappedElement}
