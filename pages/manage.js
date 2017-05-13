@@ -175,6 +175,7 @@ export default class ManagePage extends React.Component {
                   const extraProps = {
                     ...module.props,
                     editable: false,
+                    inManagerInterface: true,
                     data: currentModuleData,
                     query: this.props.url.query,
                   };
