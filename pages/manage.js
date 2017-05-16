@@ -35,21 +35,12 @@ export default class ManagePage extends React.Component {
       const managementData = (await loadManagementData(flowID, classCode)) || {
       };
 
-      const dataSubscriptionCancelFunction = loadData(
-        flowID,
-        classCode,
-        null,
-        userData => {
-          this.setState({
-            userData: userData || {},
-            ready: true,
-          });
-        },
-      );
+      const userData = await loadData(flowID, classCode, null);
 
       this.setState({
+        userData: userData || {},
+        ready: true,
         maximumPageNumber: managementData.maximumPageNumber || null,
-        dataSubscriptionCancelFunction,
       });
     })();
   };
