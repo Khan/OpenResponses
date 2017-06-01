@@ -56,10 +56,11 @@ export default class FlowPage extends React.Component {
       classCode,
       newManagementData => {
         const data = newManagementData || {};
+        const maximumPageNumber = Number.parseInt(data.maximumPageNumber); // It's a text field in the management UI, so stray spaces or whatever can get in there, making this a string sometimes...
         this.setState({
-          maximumPageNumber: typeof data.maximumPageNumber === "number"
-            ? data.maximumPageNumber
-            : Number.MAX_VALUE,
+          maximumPageNumber: Number.isNaN(maximumPageNumber)
+            ? Number.MAX_VALUE
+            : maximumPageNumber,
         });
       },
     );
