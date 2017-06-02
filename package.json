@@ -32,6 +32,7 @@
     "react-pointable": "^0.1.0",
     "react-portal": "^3.0.0",
     "react-radio-group": "^3.0.1",
+    "react-visibility-sensor": "^3.9.0",
     "slate": "^0.19.16"
   },
   "devDependencies": {
