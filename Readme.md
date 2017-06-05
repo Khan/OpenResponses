@@ -4,7 +4,7 @@ How can technology go beyond multiple choice and numerical input to support and 
 
 We hope to provide access to these elements for students who don’t have access to a great classroom, and enhance these elements for the teachers and students who do. We’ve designed students’ interactions to help surface patterns in their ideas to teachers, authors, and researchers.
 
-This is a [Khan Academy Long-term Research](https://khanacademy.org/research) project. For more, here are some posts on this topic from [our blog](https://klr.tumblr.com):
+This is a [Khan Academy Long-term Research](https://khanacademy.org/r/research) project. For more, here are some posts on this topic from [our blog](https://klr.tumblr.com):
 
 * [Amplifying open-ended questions](http://klr.tumblr.com/post/153878272318/amplifying-open-ended-questions)
 * [Messy thought, neat thought](http://klr.tumblr.com/post/154784481858/messy-thought-neat-thought)
