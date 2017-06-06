@@ -5,6 +5,7 @@ import KeyPath from "key-path";
 import cohortName from "../lib/cohort";
 import flowLookupTable from "../lib/flows";
 import ModuleFlow from "../lib/components/modules/module-flow";
+import reportError from "../lib/error";
 import { signIn } from "../lib/auth";
 import {
   loadData,
@@ -78,7 +79,7 @@ export default class FlowPage extends React.Component {
     (async () => {
       await this.fetchInitialData();
       this.recordPageLoad(this.state.currentPage);
-    })();
+    })().catch(reportError);
   };
 
   componentWillUnmount = () => {
@@ -102,7 +103,7 @@ export default class FlowPage extends React.Component {
       if (latestUserState) {
         this.setState({ userState: latestUserState });
       }
-    })();
+    })().catch(reportError);
   };
 
   onChange = (index, newInputs) => {
@@ -116,7 +117,7 @@ export default class FlowPage extends React.Component {
         newInputs,
       );
     };
-    saveToServer();
+    saveToServer().catch(reportError);
 
     let { inputs } = this.state;
     if (inputs.length < index) {
@@ -193,7 +194,7 @@ export default class FlowPage extends React.Component {
             }
           }
         };
-        updateRemoteData();
+        updateRemoteData().catch(reportError);
       }
     }
   };
