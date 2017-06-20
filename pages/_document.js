@@ -8,6 +8,7 @@ export default class AphroditeDocument extends Document {
   }
 
   render() {
+    const shouldEnableRaven = nodeEnvironment === "production";
     return (
       <html>
         <Head>
@@ -21,11 +22,13 @@ export default class AphroditeDocument extends Document {
             src="https://cdn.ravenjs.com/3.15.0/raven.min.js"
             crossorigin="anonymous"
           />
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `Raven.config("${sentryDSN}").install(); window.onunhandledrejection = function(evt) { Raven.captureException(evt.reason); };`,
-            }}
-          />
+          {shouldEnableRaven
+            ? <script
+                dangerouslySetInnerHTML={{
+                  __html: `Raven.config("${sentryDSN}").install(); window.onunhandledrejection = function(evt) { Raven.captureException(evt.reason); };`,
+                }}
+              />
+            : null}
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
           <meta name="mobile-web-app-capable" content="yes" />
           <style>
