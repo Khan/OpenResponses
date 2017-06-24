@@ -16,11 +16,13 @@ const runSimulation = (
   numberOfStudents,
   maxTimesPicked,
   maxFeedbackGiven,
+  studentsPerDay,
 ) => {
   const students = [];
   for (let i = 0; i < numberOfStudents; i++) {
     const newStudent = {
       timesPicked: 0,
+      pickedBy: [],
       choice: Math.random() < choiceAProbability ? "A" : "B",
     };
 
@@ -48,7 +50,10 @@ const runSimulation = (
 
     if (eligibleStudents.length >= 1) {
       const selectedStudents = eligibleStudents.slice(0, maxFeedbackGiven);
-      selectedStudents.forEach(s => s.timesPicked++);
+      selectedStudents.forEach(s => {
+        s.pickedBy.push(i);
+        s.timesPicked++;
+      });
       newStudent.choices = selectedStudents.map(s => s.choice);
     } else {
       newStudent.choices = ["dummy"];
@@ -59,6 +64,9 @@ const runSimulation = (
   return students;
 };
 
+const bucketSize = 60;
+const bucketCount = 24;
+
 export default class DistributionTestPage extends React.Component {
   constructor(props) {
     super(props);
@@ -66,15 +74,21 @@ export default class DistributionTestPage extends React.Component {
       choiceAProbability: 0.5,
       maxTimesPicked: 2,
       maxFeedbackGiven: 2,
+      studentsPerDay: 100,
     };
   }
 
   render() {
-    const simulationResults = runSimulation(
+    let simulationResults = runSimulation(
       this.state.choiceAProbability,
-      1000,
+      this.state.studentsPerDay * 10 + this.state.maxFeedbackGiven * 2,
       this.state.maxTimesPicked,
       this.state.maxFeedbackGiven,
+      this.state.studentsPerDay,
+    );
+    simulationResults = simulationResults.slice(
+      this.state.maxFeedbackGiven,
+      simulationResults.length - this.state.maxFeedbackGiven,
     );
     console.log(simulationResults);
     return (
@@ -128,6 +142,22 @@ export default class DistributionTestPage extends React.Component {
             />
           </label>
         </div>
+        <div>
+          <label>
+            # of students per day
+            {" "}
+            <input
+              type="text"
+              inputMode="numeric"
+              value={this.state.studentsPerDay}
+              onChange={e => {
+                this.setState({
+                  studentsPerDay: Number.parseFloat(e.target.value),
+                });
+              }}
+            />
+          </label>
+        </div>
         <h4>
           Response distribution
         </h4>
@@ -169,6 +199,92 @@ export default class DistributionTestPage extends React.Component {
               ))}
           </tbody>
         </table>
+
+        <h4>
+          Feedback time distribution
+        </h4>
+        <p>
+          How long a student has to wait before getting feedback
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <td />
+              {Array(bucketCount).fill(0).map((unused, index) => {
+                const style = { paddingRight: "1em" };
+                const thisBucket = (index + 1) * bucketSize / 60;
+                if (index === 0) {
+                  return <td style={style}>{"< "}{thisBucket} hr</td>;
+                } else if (index === bucketCount - 1) {
+                  return (
+                    <td style={style}>{">= "}{index * bucketSize / 60} hr</td>
+                  );
+                } else {
+                  return (
+                    <td style={style}>
+                      {index * bucketSize / 60}-{thisBucket}hr
+                    </td>
+                  );
+                }
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(
+              simulationResults.reduce(
+                (a, s, index) => {
+                  let output = { ...a };
+                  s.pickedBy.forEach((pickerIndex, responseIndex) => {
+                    const studentsPassed = pickerIndex - index;
+                    const daysPassed = studentsPassed /
+                      this.state.studentsPerDay;
+                    const minutesPassed = daysPassed * 24 * 60; // lazy definition of day here
+                    const minutesByBucket = Math.ceil(
+                      minutesPassed / bucketSize,
+                    ) * bucketSize;
+                    output[responseIndex] = {
+                      ...output[responseIndex],
+                      [minutesByBucket]: ((output[responseIndex] || {})[
+                        minutesByBucket
+                      ] || 0) + 1,
+                    };
+                  });
+                  return output;
+                },
+                {},
+              ),
+            ).map(([responseIndex, histogram]) => (
+              <tr key={responseIndex.toString()}>
+                <td>
+                  Feedback #
+                  {Number.parseInt(responseIndex) + 1}
+                  :
+                </td>
+                {Array(bucketCount).fill(0).map((unused, index) => {
+                  const bucket = (index + 1) * bucketSize;
+                  let value = histogram[bucket.toString()] || 0;
+                  if (index === bucketCount - 1) {
+                    value = simulationResults.length -
+                      Object.entries(histogram).reduce(
+                        (a, [sumBucket, count], sumIndex) =>
+                          a + (sumIndex >= index ? 0 : count),
+                        0,
+                      );
+                  }
+                  return (
+                    <td key={index.toString()}>
+                      {Number.parseFloat(
+                        value / simulationResults.length * 100,
+                      ).toFixed(1)}
+                      %
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
         <h4>
           Feedback distribution
         </h4>
@@ -188,7 +304,9 @@ export default class DistributionTestPage extends React.Component {
               <tr key={timesPicked.toString()}>
                 <td>{timesPicked}:</td>
                 <td>
-                  {count / simulationResults.length * 100}
+                  {Number.parseFloat(
+                    count / simulationResults.length * 100,
+                  ).toFixed(1)}
                   % (
                   {count}
                   {" "}
