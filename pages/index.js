@@ -44,12 +44,20 @@ export default class FlowPage extends React.Component {
 
   // TODO(andy): Maybe have the server do the anonymous login to avoid the double round trip.
   fetchInitialData = async () => {
-    const userID = await signIn();
+    // TODO(andy): So... we really don't have any semblance of security, but this sure does make the lack of security more easily manipulated. At some point we'll want to think about actually restraining what users are able to modify in the database, but that's not appropriate in this prototyping stage.
+    let activeUserID = this.props.url.query.userID;
+    if (!activeUserID) {
+      activeUserID = await signIn();
+      Router.replace({
+        ...this.props.url,
+        query: { ...this.props.url.query, userID: activeUserID },
+      });
+    }
     const classCode = getCohortFromURL(this.props.url);
     const { inputs, userState } = (await loadData(
       this.getFlowID(),
       classCode,
-      userID,
+      activeUserID,
     )) || {};
 
     const managementSubscriptionCancelFunction = loadManagementData(
@@ -70,7 +78,7 @@ export default class FlowPage extends React.Component {
       ready: true,
       inputs: inputs || [],
       userState: userState || {},
-      userID,
+      userID: activeUserID,
       managementSubscriptionCancelFunction,
     });
   };
@@ -93,7 +101,6 @@ export default class FlowPage extends React.Component {
     this.setState({ userState: { ...this.state.userState, ...newUserState } });
 
     (async () => {
-      await signIn();
       const latestUserState = await saveUserState(
         this.getFlowID(),
         getCohortFromURL(this.props.url),
@@ -108,7 +115,6 @@ export default class FlowPage extends React.Component {
 
   onChange = (index, newInputs) => {
     const saveToServer = async () => {
-      await signIn();
       saveData(
         this.getFlowID(),
         getCohortFromURL(this.props.url),
