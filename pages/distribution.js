@@ -17,6 +17,7 @@ const runSimulation = (
   maxTimesPicked,
   maxFeedbackGiven,
   studentsPerDay,
+  bufferSize,
 ) => {
   const students = [];
   for (let i = 0; i < numberOfStudents; i++) {
@@ -27,7 +28,9 @@ const runSimulation = (
     };
 
     const eligibleStudents = [...students].filter(
-      s => s.timesPicked < maxTimesPicked,
+      (s, filterIndex) =>
+        s.timesPicked < maxTimesPicked &&
+        filterIndex < Math.floor(students.length / bufferSize) * bufferSize,
     );
 
     eligibleStudents.sort((a, b) => {
@@ -75,6 +78,7 @@ export default class DistributionTestPage extends React.Component {
       maxTimesPicked: 2,
       maxFeedbackGiven: 2,
       studentsPerDay: 100,
+      bufferSize: 10,
     };
   }
 
@@ -85,6 +89,7 @@ export default class DistributionTestPage extends React.Component {
       this.state.maxTimesPicked,
       this.state.maxFeedbackGiven,
       this.state.studentsPerDay,
+      this.state.bufferSize,
     );
     simulationResults = simulationResults.slice(
       this.state.maxFeedbackGiven,
@@ -158,6 +163,23 @@ export default class DistributionTestPage extends React.Component {
             />
           </label>
         </div>
+        <div>
+          <label>
+            Buffer students into groups of size
+            {" "}
+            <input
+              type="text"
+              inputMode="numeric"
+              value={this.state.bufferSize}
+              onChange={e => {
+                this.setState({
+                  bufferSize: Number.parseFloat(e.target.value),
+                });
+              }}
+            />
+          </label>
+        </div>
+
         <h4>
           Response distribution
         </h4>
