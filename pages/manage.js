@@ -1,5 +1,5 @@
 // @flow
-import KeyPath from "key-path";
+import { default as KeyPather } from "keypather";
 import NumericInput from "react-numeric-input";
 import React from "react";
 import { css, StyleSheet } from "aphrodite";
@@ -8,6 +8,8 @@ import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
 import { signIn } from "../lib/auth";
 import { loadData, loadManagementData, saveManagementData } from "../lib/db";
+
+const keypather = new KeyPather();
 
 type State = {
   ready: boolean,
@@ -61,10 +63,8 @@ export default class ManagePage extends React.Component {
             const { inputs, fetcher } = flow.remoteDataRequirements[
               remoteDataKey
             ];
-            const fetcherInputs = inputs.map(keyPathString => {
-              const keyPath = KeyPath.get(keyPathString);
-              return keyPath.getValueFrom(userData);
-            });
+            const fetcherInputs = inputs.map(keyPathString =>
+              keypather.get(userData, keyPathString));
             const fetcherResponse = await fetcher(
               fetcherInputs,
               userID,

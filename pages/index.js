@@ -1,6 +1,7 @@
 import React from "react";
 import Router from "next/router";
-import KeyPath from "key-path";
+import { default as KeyPather } from "keypather";
+const keypather = new KeyPather();
 
 import cohortName from "../lib/cohort";
 import flowLookupTable from "../lib/flows";
@@ -166,9 +167,8 @@ export default class FlowPage extends React.Component {
     for (let remoteDataKey in flow.remoteDataRequirements || {}) {
       const { inputs, fetcher } = flow.remoteDataRequirements[remoteDataKey];
       const oldAndNewData = inputs.map(keyPathString => {
-        const keyPath = KeyPath.get(keyPathString);
-        const oldState = keyPath.getValueFrom(this.state);
-        const newState = keyPath.getValueFrom(nextState);
+        const oldState = keypather.get(this.state, keyPathString);
+        const newState = keypather.get(nextState, keyPathString);
         return [oldState, newState];
       });
       if (oldAndNewData.some(([oldState, newState]) => oldState !== newState)) {

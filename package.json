@@ -21,7 +21,7 @@
     "@types/react-portal": "^3.0.1",
     "aphrodite": "^1.2.0",
     "firebase": "^3.7.6",
-    "key-path": "^0.3.2",
+    "keypather": "^2.0.1",
     "markdown-it": "^8.3.1",
     "markdown-it-katex": "^2.0.3",
     "next": "^2.0.1",
