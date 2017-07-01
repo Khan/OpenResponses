@@ -86,6 +86,10 @@ export default class FlowPage extends React.Component {
       userID: activeUserID,
       managementSubscriptionCancelFunction,
     });
+
+    if (this.props.url.query.fallbackUser) {
+      this.setUserState({ isFallbackUser: true });
+    }
   };
 
   componentDidMount = () => {

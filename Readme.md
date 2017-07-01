@@ -48,6 +48,8 @@ You can isolate one group of students from another group of students by passing 
 http://YOUR-SERVER.com/?flowID=myFlow&classCode=OaklandHigh
 ```
 
+Add `&fallbackUser=true` to the URL to become a user whose answer can be shown multiple times to another user, but only as a last resort. This is important for setting up new cohorts.
+
 # Managing students
 
 You can control the range of pages students are permitted to reach (and see their work live) by visiting this URL:
