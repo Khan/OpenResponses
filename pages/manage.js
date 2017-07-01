@@ -34,8 +34,8 @@ export default class ManagePage extends React.Component {
 
       const flowID = this.getFlowID();
       const classCode = this.getClassCode();
-      const managementData = (await loadManagementData(flowID, classCode)) || {
-      };
+      const managementData =
+        (await loadManagementData(flowID, classCode)) || {};
 
       const userData = await loadData(flowID, classCode, null);
 
@@ -59,12 +59,14 @@ export default class ManagePage extends React.Component {
           if (!userData.inputs) {
             continue;
           }
+          remoteData[userID]["_inbox"] = userData.inbox;
           for (let remoteDataKey in flow.remoteDataRequirements || {}) {
             const { inputs, fetcher } = flow.remoteDataRequirements[
               remoteDataKey
             ];
             const fetcherInputs = inputs.map(keyPathString =>
-              keypather.get(userData, keyPathString));
+              keypather.get(userData, keyPathString),
+            );
             const fetcherResponse = await fetcher(
               fetcherInputs,
               userID,
@@ -72,8 +74,8 @@ export default class ManagePage extends React.Component {
               userData,
             );
             if (fetcherResponse) {
-              const studentRemoteData = fetcherResponse.remoteData ||
-                fetcherResponse;
+              const studentRemoteData =
+                fetcherResponse.remoteData || fetcherResponse;
               remoteData[userID][remoteDataKey] = studentRemoteData;
             }
           }
@@ -129,18 +131,15 @@ export default class ManagePage extends React.Component {
               type="checkbox"
               checked={this.state.maximumPageNumber !== null}
               onChange={this.onCheckMaximumPageNumber}
-            />
-            {" "}
-            limit students to pages up to and including page
-            {" "}
+            />{" "}
+            limit students to pages up to and including page{" "}
           </label>
           <NumericInput
             min={0}
             value={this.state.maximumPageNumber}
             disabled={this.state.maximumPageNumber === null}
             onChange={this.onChangeMaximumPageNumber}
-          />
-          {" "}
+          />{" "}
           (0-indexed)
         </p>
         <hr />
@@ -157,7 +156,9 @@ export default class ManagePage extends React.Component {
             const userState = this.state.userData[userID].userState;
             return (
               <div key={userID}>
-                <h2>Student {index + 1} ({userID})</h2>
+                <h2>
+                  Student {index + 1} ({userID})
+                </h2>
                 <p>
                   {JSON.stringify(userState, undefined, 1)}
                 </p>
@@ -182,7 +183,9 @@ export default class ManagePage extends React.Component {
                   }
                   return (
                     <div key={moduleIndex}>
-                      <h3>Student {index + 1}: Page {moduleIndex + 1}</h3>
+                      <h3>
+                        Student {index + 1}: Page {moduleIndex + 1}
+                      </h3>
                       {dataMappedElement}
                       <hr />
                     </div>

@@ -14,6 +14,7 @@ import {
   commitData,
   saveUserState,
   loadManagementData,
+  watchInbox,
 } from "../lib/db";
 
 const getFlowIDFromQuery = query => {
@@ -40,6 +41,7 @@ export default class FlowPage extends React.Component {
       remoteData: {},
       maximumPageNumber: -1,
       currentPage: initialPage,
+      inbox: {},
     };
     this.remoteDataGenerationCounts = {};
   }
@@ -59,11 +61,8 @@ export default class FlowPage extends React.Component {
       });
     }
     const classCode = getCohortFromURL(this.props.url);
-    const { inputs, userState } = (await loadData(
-      this.getFlowID(),
-      classCode,
-      activeUserID,
-    )) || {};
+    const { inputs, userState } =
+      (await loadData(this.getFlowID(), classCode, activeUserID)) || {};
 
     const managementSubscriptionCancelFunction = loadManagementData(
       this.getFlowID(),
@@ -96,12 +95,22 @@ export default class FlowPage extends React.Component {
     (async () => {
       await this.fetchInitialData();
       this.recordPageLoad(this.state.currentPage);
+      const inboxSubscriptionCancelFunction = watchInbox(
+        this.getFlowID(),
+        getCohortFromURL(this.props.url),
+        this.state.userID,
+        inbox => this.setState({ inbox }),
+      );
+      this.setState({ inboxSubscriptionCancelFunction });
     })().catch(reportError);
   };
 
   componentWillUnmount = () => {
     this.state.managementSubscriptionCancelFunction &&
       this.state.managementSubscriptionCancelFunction();
+
+    this.state.inboxSubscriptionCancelFunction &&
+      this.state.inboxSubscriptionCancelFunction();
   };
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
@@ -195,8 +204,8 @@ export default class FlowPage extends React.Component {
       });
       if (oldAndNewData.some(([oldState, newState]) => oldState !== newState)) {
         const newData = oldAndNewData.map(([oldState, newState]) => newState);
-        const newGenerationCount = 1 +
-          (this.remoteDataGenerationCounts[remoteDataKey] || 0);
+        const newGenerationCount =
+          1 + (this.remoteDataGenerationCounts[remoteDataKey] || 0);
         this.remoteDataGenerationCounts[remoteDataKey] = newGenerationCount;
         const updateRemoteData = async () => {
           const fetcherResponse = await fetcher(
@@ -236,7 +245,7 @@ export default class FlowPage extends React.Component {
         onChange={this.onChange}
         data={this.state.inputs}
         query={this.props.url.query}
-        remoteData={this.state.remoteData}
+        remoteData={{ ...this.state.remoteData, _inbox: this.state.inbox }}
         moduleIndex={this.state.currentPage}
         furthestPageLoaded={this.state.userState.furthestPageLoaded || 0}
         maximumPageNumber={this.state.maximumPageNumber}
