@@ -11,6 +11,7 @@ import { signIn } from "../lib/auth";
 import {
   loadData,
   saveData,
+  commitData,
   saveUserState,
   loadManagementData,
 } from "../lib/db";
@@ -47,7 +48,10 @@ export default class FlowPage extends React.Component {
   fetchInitialData = async () => {
     // TODO(andy): So... we really don't have any semblance of security, but this sure does make the lack of security more easily manipulated. At some point we'll want to think about actually restraining what users are able to modify in the database, but that's not appropriate in this prototyping stage.
     let activeUserID = this.props.url.query.userID;
-    if (!activeUserID) {
+    if (activeUserID) {
+      // Sign in anonymously anyway. This will be a throwaway user; we'll still write to the UID in the query string.
+      await signIn();
+    } else {
       activeUserID = await signIn();
       Router.replace({
         ...this.props.url,
@@ -98,6 +102,9 @@ export default class FlowPage extends React.Component {
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
 
+  getDatabaseVersion = () =>
+    flowLookupTable[this.getFlowID()].databaseVersion || 1;
+
   setUserState = newUserState => {
     this.setState({ userState: { ...this.state.userState, ...newUserState } });
 
@@ -117,6 +124,7 @@ export default class FlowPage extends React.Component {
   onChange = (index, newInputs) => {
     const saveToServer = async () => {
       saveData(
+        this.getDatabaseVersion(),
         this.getFlowID(),
         getCohortFromURL(this.props.url),
         this.state.userID,
@@ -141,6 +149,16 @@ export default class FlowPage extends React.Component {
 
   recordPageLoad = newPageIndex => {
     if (newPageIndex > (this.state.userState.furthestPageLoaded || -1)) {
+      if (newPageIndex > 0) {
+        commitData(
+          this.getDatabaseVersion(),
+          this.getFlowID(),
+          getCohortFromURL(this.props.url),
+          this.state.userID,
+          newPageIndex - 1,
+          this.state.inputs[newPageIndex - 1],
+        );
+      }
       this.setUserState({
         furthestPageLoaded: newPageIndex,
       });
