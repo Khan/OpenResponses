@@ -6,7 +6,11 @@
     "build": "next build",
     "start": "next start",
     "deploy": "node_modules/.bin/now",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "prepackage-functions": "rimraf dist-functions",
+    "package-functions": "babel 'functions' --out-dir 'dist-functions' --presets=stage-3 --copy-files --ignore 'node_modules'",
+    "postpackage-functions": "cd dist-functions && yarn",
+    "deploy-functions": "yarn run package-functions && firebase deploy --only functions"
   },
   "lint-staged": {
     "*.js": [
@@ -36,6 +40,8 @@
     "slate": "^0.19.16"
   },
   "devDependencies": {
+    "@types/rimraf": "0.0.28",
+    "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.1",
     "babel-plugin-transform-define": "^1.2.0",
     "babel-preset-stage-3": "^6.24.1",
@@ -43,8 +49,9 @@
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
     "now": "^4.10.3",
-    "prettier": "^0.22.0",
-    "react-no-ssr": "^1.1.0"
+    "prettier": "prettier/prettier",
+    "react-no-ssr": "^1.1.0",
+    "rimraf": "^2.6.1"
   },
   "now": {
     "dotenv": "env.production"

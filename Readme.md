@@ -26,10 +26,16 @@ yarn install
 npm run dev
 ```
 
-To deploy, just run this command, and you'll get a unique accessible URL:
+To deploy the primary webserver, just run this command, and you'll get a unique accessible URL:
 
 ```
 npm run deploy
+```
+
+To deploy the Google Cloud Functions associated with this app, run:
+
+```
+npm run deploy-functions
 ```
 
 # Adding content
