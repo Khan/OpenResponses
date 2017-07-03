@@ -42,6 +42,7 @@ For email notifications to work, you'll have to run:
 
 ```
 firebase functions:config:set smtp.url="smtp://user:password@your.smtpserver.net"
+firebase functions:config:set host.origin="https://your.webserver.com"
 ```
 
 # Adding content
