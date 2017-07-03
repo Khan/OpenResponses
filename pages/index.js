@@ -16,6 +16,7 @@ import {
   loadManagementData,
   watchInbox,
 } from "../lib/db";
+import Welcome from "../lib/components/modules/welcome";
 
 const getFlowIDFromQuery = query => {
   const defaultFlowID = "test";
@@ -187,6 +188,10 @@ export default class FlowPage extends React.Component {
     });
   };
 
+  onSubmitEmail = email => {
+    this.setUserState({ email });
+  };
+
   componentWillUpdate = (nextProps, nextState) => {
     const nextPageNumber = getPageNumberFromURL(nextProps.url);
     if (nextPageNumber !== nextState.currentPage) {
@@ -237,7 +242,17 @@ export default class FlowPage extends React.Component {
   };
 
   render = () => {
+    if (!this.state.ready) {
+      // TODO(andy): Implement loading page.
+      return null;
+    }
+
     const flow = flowLookupTable[this.getFlowID()];
+
+    if (flow.requiresEmail && !this.state.userState.email) {
+      return <Welcome onSubmit={this.onSubmitEmail} />;
+    }
+
     const modules = flow.modules || flow;
     return (
       <ModuleFlow
