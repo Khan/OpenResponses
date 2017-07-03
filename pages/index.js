@@ -65,6 +65,13 @@ export default class FlowPage extends React.Component {
     const { inputs, userState } =
       (await loadData(this.getFlowID(), classCode, activeUserID)) || {};
 
+    if (
+      userState.furthestPageLoaded &&
+      this.props.url.query.page === undefined
+    ) {
+      this.setCurrentPage(Number.parseInt(userState.furthestPageLoaded));
+    }
+
     const managementSubscriptionCancelFunction = loadManagementData(
       this.getFlowID(),
       classCode,
@@ -179,13 +186,17 @@ export default class FlowPage extends React.Component {
     }
   };
 
-  onPageChange = newPageIndex => {
-    this.recordPageLoad(newPageIndex);
+  setCurrentPage = newPageIndex => {
     this.setState({ currentPage: newPageIndex });
     Router.push({
       ...this.props.url,
       query: { ...this.props.url.query, page: newPageIndex },
     });
+  };
+
+  onPageChange = newPageIndex => {
+    this.recordPageLoad(newPageIndex);
+    this.setCurrentPage(newPageIndex);
   };
 
   onSubmitEmail = email => {
