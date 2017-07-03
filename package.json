@@ -23,6 +23,7 @@
     "@types/firebase": "^2.4.31",
     "@types/markdown-it": "0.0.2",
     "@types/react-portal": "^3.0.1",
+    "@types/validator": "^6.2.0",
     "aphrodite": "^1.2.0",
     "firebase": "^3.7.6",
     "keypather": "^2.0.1",
@@ -37,7 +38,8 @@
     "react-portal": "^3.0.0",
     "react-radio-group": "^3.0.1",
     "react-visibility-sensor": "^3.9.0",
-    "slate": "^0.19.16"
+    "slate": "^0.19.16",
+    "validator": "^7.2.0"
   },
   "devDependencies": {
     "@types/rimraf": "0.0.28",
