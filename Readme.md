@@ -47,7 +47,7 @@ firebase functions:config:set host.origin="https://your.webserver.com"
 
 # Adding content
 
-See `lib/flows/humanitiesA.js` for an example of a flow using this system. To add a new flow, add a new file to that folder, add an entry for it in `index.js` (copy the pattern that's already there), and navigate to `/?flowID=NAME_GIVEN_IN_INDEX`.
+See `lib/flows/humanities_ham_async.js` for an example of a flow using this system. To add a new flow, add a new file to that folder, add an entry for it in `index.js` (copy the pattern that's already there), and navigate to `/?flowID=NAME_GIVEN_IN_INDEX`.
 
 # Identity
 

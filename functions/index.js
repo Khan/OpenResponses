@@ -2,6 +2,11 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 
+// TODO(andy): This is a pretty hacky way to specify the human-readable flow names, but it'll do for now.
+const humanReadableFlowNames = {
+  humanities_ham_async: "The Cabinet Battle: State Debt",
+};
+
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
 
 exports.transferFeedback = functions.database
@@ -52,6 +57,9 @@ exports.transferFeedback = functions.database
                   `Emailing ${otherStudentUserID} at ${userEmailAddress} in response to feedback from ${event
                     .params.userID}`,
                 );
+
+                const humanReadableFlowName =
+                  humanReadableFlowNames[event.params.flowID];
                 // TODO(andy): Include a human-readable name of the flow.
                 // TODO(andy): Shorten the flow URL?
                 returnURL = `${functions.config().host.origin}/?flowID=${event
@@ -60,9 +68,15 @@ exports.transferFeedback = functions.database
                 return transporter.sendMail({
                   from: "Khan Academy <noreply@khanacademy.org>",
                   to: userEmailAddress,
-                  subject: "You have new feedback available!",
-                  text: `Another student has left you feedback on your work.\n\nRead it and continue the activity here: ${returnURL}`,
-                  html: `<p>Another student has left you feedback on your work.</p><p><a href="${returnURL}">Click here</a> to read it and continue the activity.</p>`,
+                  subject: `You have new feedback available${humanReadableFlowName
+                    ? ` on “${humanReadableFlowName}”`
+                    : ""}!`,
+                  text: `Another student has left you feedback on your work${humanReadableFlowName
+                    ? ` for "${humanReadableFlowName}"`
+                    : ""}.\n\nRead it and continue the activity here: ${returnURL}`,
+                  html: `<p>Another student has left you feedback on your work${humanReadableFlowName
+                    ? ` for &ldquo;${humanReadableFlowName}.&rdquo;`
+                    : "."}</p><p><a href="${returnURL}">Click here</a> to read it and continue the activity.</p>`,
                 });
               },
               reason => {
