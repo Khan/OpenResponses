@@ -17,6 +17,7 @@ const runSimulation = (
   maxTimesPicked,
   maxFeedbackGiven,
   studentsPerDay,
+  rejectProbability,
 ) => {
   const students = [];
   for (let i = 0; i < numberOfStudents; i++) {
@@ -34,7 +35,8 @@ const runSimulation = (
       if (a.choice === newStudent.choice && b.choice !== newStudent.choice) {
         return 1;
       } else if (
-        b.choice === newStudent.choice && a.choice !== newStudent.choice
+        b.choice === newStudent.choice &&
+        a.choice !== newStudent.choice
       ) {
         return -1;
       }
@@ -49,11 +51,21 @@ const runSimulation = (
     });
 
     if (eligibleStudents.length >= 1) {
-      const selectedStudents = eligibleStudents.slice(0, maxFeedbackGiven);
-      selectedStudents.forEach(s => {
-        s.pickedBy.push(i);
-        s.timesPicked++;
-      });
+      const selectedStudents = [];
+      while (selectedStudents.length < maxFeedbackGiven) {
+        const prospectiveStudent = eligibleStudents.shift();
+        if (!prospectiveStudent) {
+          break;
+        }
+        prospectiveStudent.timesPicked++;
+        if (Math.random() > rejectProbability) {
+          prospectiveStudent.pickedBy.push(i);
+          selectedStudents.push(prospectiveStudent);
+        } else {
+          console.log("Rejecting", eligibleStudents.length);
+        }
+      }
+      console.log(selectedStudents.length, eligibleStudents.length);
       newStudent.choices = selectedStudents.map(s => s.choice);
     } else {
       newStudent.choices = ["dummy"];
@@ -71,10 +83,11 @@ export default class DistributionTestPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      choiceAProbability: 0.5,
-      maxTimesPicked: 2,
+      choiceAProbability: 0.6,
+      maxTimesPicked: 3,
       maxFeedbackGiven: 2,
       studentsPerDay: 100,
+      rejectProbability: 0.02,
     };
   }
 
@@ -85,6 +98,7 @@ export default class DistributionTestPage extends React.Component {
       this.state.maxTimesPicked,
       this.state.maxFeedbackGiven,
       this.state.studentsPerDay,
+      this.state.rejectProbability,
     );
     simulationResults = simulationResults.slice(
       this.state.maxFeedbackGiven,
@@ -96,8 +110,7 @@ export default class DistributionTestPage extends React.Component {
         <p>Assume students are picking between two choices, A and B:</p>
         <div>
           <label>
-            Probability of choice A:
-            {" "}
+            Probability of choice A:{" "}
             <input
               type="text"
               inputMode="numeric"
@@ -112,8 +125,7 @@ export default class DistributionTestPage extends React.Component {
         </div>
         <div>
           <label>
-            # of times a response can be shown to another student:
-            {" "}
+            # of times a response can be shown to another student:{" "}
             <input
               type="text"
               inputMode="numeric"
@@ -128,8 +140,7 @@ export default class DistributionTestPage extends React.Component {
         </div>
         <div>
           <label>
-            # of peers' work a student gives feedback on:
-            {" "}
+            # of peers' work a student gives feedback on:{" "}
             <input
               type="text"
               inputMode="numeric"
@@ -144,8 +155,7 @@ export default class DistributionTestPage extends React.Component {
         </div>
         <div>
           <label>
-            # of students per day
-            {" "}
+            # of students per day{" "}
             <input
               type="text"
               inputMode="numeric"
@@ -158,54 +168,64 @@ export default class DistributionTestPage extends React.Component {
             />
           </label>
         </div>
-        <h4>
-          Response distribution
-        </h4>
+        <div>
+          <label>
+            Probability of student hitting "show me another student's work"
+            button
+            <input
+              type="text"
+              inputMode="numeric"
+              value={this.state.rejectProbability}
+              onChange={e => {
+                this.setState({
+                  rejectProbability: Number.parseFloat(e.target.value),
+                });
+              }}
+            />
+          </label>
+        </div>
+        <h4>Response distribution</h4>
         <p>
-          The percentage of students who saw other students' work paired with theirs in a given way:
+          The percentage of students who saw other students' work paired with
+          theirs in a given way:
         </p>
         <table>
           <tbody>
             {Object.entries(
-              simulationResults.reduce(
-                (a, s) => {
-                  const sortedChoices = [
-                    ...s.choices.map(c => {
-                      if (c === "dummy") {
-                        return "dummy";
-                      } else if (c === s.choice) {
-                        return "agree";
-                      } else {
-                        return "disagree";
-                      }
-                    }),
-                  ].sort();
-                  return { ...a, [sortedChoices]: (a[sortedChoices] || 0) + 1 };
-                },
-                {},
-              ),
+              simulationResults.reduce((a, s) => {
+                const sortedChoices = [
+                  ...s.choices.map(c => {
+                    if (c === "dummy") {
+                      return "dummy";
+                    } else if (c === s.choice) {
+                      return "agree";
+                    } else {
+                      return "disagree";
+                    }
+                  }),
+                ].sort();
+                return { ...a, [sortedChoices]: (a[sortedChoices] || 0) + 1 };
+              }, {}),
             )
               .sort()
-              .map(([distribution, count]) => (
+              .map(([distribution, count]) =>
                 <tr key={distribution}>
-                  <td>{distribution}:</td>
+                  <td>
+                    {distribution}:
+                  </td>
                   <td>
                     {Number.parseFloat(
                       count / simulationResults.length * 100,
                     ).toFixed(2)}
                     % ({count} student{count > 1 ? "s" : ""})
                   </td>
-                </tr>
-              ))}
+                </tr>,
+              )}
           </tbody>
         </table>
 
-        <h4>
-          Feedback time distribution
-        </h4>
-        <p>
-          How long a student has to wait before getting feedback
-        </p>
+        <h4>Feedback time distribution</h4>
+        <p>How long a student has to wait before getting feedback</p>
         <table>
           <thead>
             <tr>
@@ -214,10 +234,18 @@ export default class DistributionTestPage extends React.Component {
                 const style = { paddingRight: "1em" };
                 const thisBucket = (index + 1) * bucketSize / 60;
                 if (index === 0) {
-                  return <td style={style}>{"< "}{thisBucket} hr</td>;
+                  return (
+                    <td style={style}>
+                      {"< "}
+                      {thisBucket} hr
+                    </td>
+                  );
                 } else if (index === bucketCount - 1) {
                   return (
-                    <td style={style}>{">= "}{index * bucketSize / 60} hr</td>
+                    <td style={style}>
+                      {">= "}
+                      {index * bucketSize / 60} hr
+                    </td>
                   );
                 } else {
                   return (
@@ -231,29 +259,23 @@ export default class DistributionTestPage extends React.Component {
           </thead>
           <tbody>
             {Object.entries(
-              simulationResults.reduce(
-                (a, s, index) => {
-                  let output = { ...a };
-                  s.pickedBy.forEach((pickerIndex, responseIndex) => {
-                    const studentsPassed = pickerIndex - index;
-                    const daysPassed = studentsPassed /
-                      this.state.studentsPerDay;
-                    const minutesPassed = daysPassed * 24 * 60; // lazy definition of day here
-                    const minutesByBucket = Math.ceil(
-                      minutesPassed / bucketSize,
-                    ) * bucketSize;
-                    output[responseIndex] = {
-                      ...output[responseIndex],
-                      [minutesByBucket]: ((output[responseIndex] || {})[
-                        minutesByBucket
-                      ] || 0) + 1,
-                    };
-                  });
-                  return output;
-                },
-                {},
-              ),
-            ).map(([responseIndex, histogram]) => (
+              simulationResults.reduce((a, s, index) => {
+                let output = { ...a };
+                s.pickedBy.forEach((pickerIndex, responseIndex) => {
+                  const studentsPassed = pickerIndex - index;
+                  const daysPassed = studentsPassed / this.state.studentsPerDay;
+                  const minutesPassed = daysPassed * 24 * 60; // lazy definition of day here
+                  const minutesByBucket =
+                    Math.ceil(minutesPassed / bucketSize) * bucketSize;
+                  output[responseIndex] = {
+                    ...output[responseIndex],
+                    [minutesByBucket]:
+                      ((output[responseIndex] || {})[minutesByBucket] || 0) + 1,
+                  };
+                });
+                return output;
+              }, {}),
+            ).map(([responseIndex, histogram]) =>
               <tr key={responseIndex.toString()}>
                 <td>
                   Feedback #
@@ -264,7 +286,8 @@ export default class DistributionTestPage extends React.Component {
                   const bucket = (index + 1) * bucketSize;
                   let value = histogram[bucket.toString()] || 0;
                   if (index === bucketCount - 1) {
-                    value = simulationResults.length -
+                    value =
+                      simulationResults.length -
                       Object.entries(histogram).reduce(
                         (a, [sumBucket, count], sumIndex) =>
                           a + (sumIndex >= index ? 0 : count),
@@ -280,42 +303,8 @@ export default class DistributionTestPage extends React.Component {
                     </td>
                   );
                 })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <h4>
-          Feedback distribution
-        </h4>
-        <p>
-          The percentage of students who got feedback from a given number of students:
-        </p>
-        <table>
-          <tbody>
-            {Object.entries(
-              simulationResults.reduce(
-                (a, s) => {
-                  return { ...a, [s.timesPicked]: (a[s.timesPicked] || 0) + 1 };
-                },
-                {},
-              ),
-            ).map(([timesPicked, count]) => (
-              <tr key={timesPicked.toString()}>
-                <td>{timesPicked}:</td>
-                <td>
-                  {Number.parseFloat(
-                    count / simulationResults.length * 100,
-                  ).toFixed(1)}
-                  % (
-                  {count}
-                  {" "}
-                  student
-                  {count > 1 ? "s" : ""}
-                  )
-                </td>
-              </tr>
-            ))}
+              </tr>,
+            )}
           </tbody>
         </table>
       </div>
