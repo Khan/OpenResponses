@@ -66,6 +66,7 @@ export default class FlowPage extends React.Component {
       (await loadData(this.getFlowID(), classCode, activeUserID)) || {};
 
     if (
+      userState &&
       userState.furthestPageLoaded &&
       this.props.url.query.page === undefined
     ) {
