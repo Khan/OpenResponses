@@ -7,7 +7,12 @@ import { css, StyleSheet } from "aphrodite";
 import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
 import { signIn } from "../lib/auth";
-import { loadData, loadManagementData, saveManagementData } from "../lib/db";
+import {
+  copyFallbackUsers,
+  loadData,
+  loadManagementData,
+  saveManagementData,
+} from "../lib/db";
 
 const keypather = new KeyPather();
 
@@ -108,6 +113,17 @@ export default class ManagePage extends React.Component {
     this.setMaximumPageNumber(newValue);
   };
 
+  onClickPopulateFallbackUsers = () => {
+    const sourceClassCode = window.prompt(
+      "Enter the class code from which the fallback users should be copied:",
+    );
+    copyFallbackUsers(
+      this.getFlowID(),
+      sourceClassCode,
+      this.props.url.query.classCode,
+    );
+  };
+
   render = () => {
     const { flowID, classCode } = this.props.url.query;
     if (!this.getClassCode()) {
@@ -141,6 +157,11 @@ export default class ManagePage extends React.Component {
             onChange={this.onChangeMaximumPageNumber}
           />{" "}
           (0-indexed)
+        </p>
+        <p>
+          <button onClick={this.onClickPopulateFallbackUsers}>
+            Populate this class code with fallback users
+          </button>
         </p>
         <hr />
         <div>
