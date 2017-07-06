@@ -8,7 +8,7 @@
     "deploy": "node_modules/.bin/now",
     "precommit": "lint-staged",
     "prepackage-functions": "rimraf dist-functions",
-    "package-functions": "babel 'functions' --out-dir 'dist-functions' --presets=stage-3 --copy-files --ignore 'node_modules'",
+    "package-functions": "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
     "postpackage-functions": "cd dist-functions && yarn",
     "deploy-functions": "yarn run package-functions && firebase deploy --only functions"
   },
@@ -46,6 +46,7 @@
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.1",
     "babel-plugin-transform-define": "^1.2.0",
+    "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "flow-bin": "^0.43.1",
     "husky": "^0.13.3",
