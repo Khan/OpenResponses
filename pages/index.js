@@ -44,6 +44,24 @@ export default class FlowPage extends React.Component {
       currentPage: initialPage,
       inbox: {},
     };
+
+    this.dispatcher = (action, parameters) => {
+      switch (action) {
+        case "rejectResponse":
+          const { revieweeIndex } = parameters;
+          this.setUserState({
+            pendingRejections: [
+              ...(this.state.userState.pendingRejections || []),
+              this.state.userState.reviewees[revieweeIndex].userID,
+            ],
+          });
+          break;
+        default:
+          throw new Error(
+            `Unknown dispatcher action ${action} with parameters ${parameters}`,
+          );
+      }
+    };
     this.remoteDataGenerationCounts = {};
   }
 
@@ -277,6 +295,7 @@ export default class FlowPage extends React.Component {
         furthestPageLoaded={this.state.userState.furthestPageLoaded || 0}
         maximumPageNumber={this.state.maximumPageNumber}
         onPageChange={this.onPageChange}
+        dispatcher={this.dispatcher}
       >
         {modules}
       </ModuleFlow>
