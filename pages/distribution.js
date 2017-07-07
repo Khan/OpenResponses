@@ -48,6 +48,10 @@ const runSimulation = (
       }
 
       return 0;
+      // const stablePseudorandomFromID = id =>
+      // Math.sin(123456789 * id + 987654321 * i);
+      // return stablePseudorandomFromID(a) < stablePseudorandomFromID(b) ? -1 : 1;
+      // return a < b ? -1 : 1;
     });
 
     if (eligibleStudents.length >= 1) {
@@ -62,10 +66,10 @@ const runSimulation = (
           prospectiveStudent.pickedBy.push(i);
           selectedStudents.push(prospectiveStudent);
         } else {
-          console.log("Rejecting", eligibleStudents.length);
+          prospectiveStudent.rejectionCount =
+            (prospectiveStudent.rejectionCount || 0) + 1;
         }
       }
-      console.log(selectedStudents.length, eligibleStudents.length);
       newStudent.choices = selectedStudents.map(s => s.choice);
     } else {
       newStudent.choices = ["dummy"];
