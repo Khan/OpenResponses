@@ -9,6 +9,85 @@ const humanReadableFlowNames = {
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
 
+exports.logRejection = functions.database
+  .ref("/{flowID}/{cohortID}/{userID}/userState/pendingRejections")
+  .onWrite(event => {
+    if (!event.data.exists()) {
+      return;
+    }
+
+    const user = event.data.ref.parent.parent;
+    const log = user.child("log");
+    return log.push({
+      type: "rejection",
+      time: admin.database.ServerValue.TIMESTAMP,
+      userIDs: event.data.val(),
+    });
+  });
+
+exports.logReviewers = functions.database
+  .ref("/{flowID}/{cohortID}/{userID}/userState/reviewees")
+  .onWrite(event => {
+    if (!event.data.exists()) {
+      return;
+    }
+
+    const user = event.data.ref.parent.parent;
+    const log = user.child("log");
+    return log.push({
+      type: "revieweeChange",
+      time: admin.database.ServerValue.TIMESTAMP,
+      reviewees: event.data.val(),
+    });
+  });
+
+exports.logSubmission = functions.database
+  .ref("/{flowID}/{cohortID}/{userID}/inputs/submitted/{moduleID}")
+  .onWrite(event => {
+    // Only edit data when it is first created.
+    if (event.data.previous.exists()) {
+      console.log("Exiting because data previously existed");
+      return;
+    }
+
+    // Exit when the data is deleted.
+    if (!event.data.exists()) {
+      console.log("Exiting because new data does not exist");
+      return;
+    }
+
+    const user = event.data.ref.parent.parent.parent;
+    const log = user.child("log");
+    return log.push({
+      type: "submission",
+      moduleID: event.params.moduleID,
+      time: admin.database.ServerValue.TIMESTAMP,
+    });
+  });
+
+exports.logUserCreation = functions.database
+  .ref("/{flowID}/{cohortID}/{userID}/userState/email")
+  .onWrite(event => {
+    // Only edit data when it is first created.
+    if (event.data.previous.exists()) {
+      console.log("Exiting because data previously existed");
+      return;
+    }
+
+    // Exit when the data is deleted.
+    if (!event.data.exists()) {
+      console.log("Exiting because new data does not exist");
+      return;
+    }
+
+    const user = event.data.ref.parent.parent;
+    const log = user.child("log");
+    return log.push({
+      type: "creation",
+      time: admin.database.ServerValue.TIMESTAMP,
+    });
+  });
+
 exports.transferFeedback = functions.database
   .ref("/{flowID}/{cohortID}/{userID}/inputs/submitted/{moduleID}/feedback")
   .onWrite(event => {
