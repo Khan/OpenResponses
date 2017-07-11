@@ -135,13 +135,13 @@ exports.transferFeedback = functions.database
             // Get the user's submitted data.
             return submittedData.once("value").then(submittedValuesSnapshot => {
               const submittedValues = submittedValuesSnapshot.val();
-              console.log("Submitted values", submittedValues);
+              const otherStudentRef = event.data.ref.root.child(
+                `${event.params.flowID}/${event.params
+                  .cohortID}/${otherStudentUserID}`,
+              );
               // Save the feedback to the receiver's inbox.
-              return event.data.ref.root
-                .child(
-                  `${event.params.flowID}/${event.params
-                    .cohortID}/${otherStudentUserID}/inbox/`,
-                )
+              return otherStudentRef
+                .child("inbox")
                 .push({
                   feedback: event.data.val(),
                   submitted: submittedValues,
@@ -150,50 +150,62 @@ exports.transferFeedback = functions.database
                   fromModuleID: event.params.moduleID,
                 })
                 .then(() => {
-                  // Email the student receiving the feedback.
-                  return event.data.ref.root
-                    .child(
-                      `${event.params.flowID}/${event.params
-                        .cohortID}/${otherStudentUserID}/userState/email`,
-                    )
-                    .once("value")
-                    .then(
-                      emailAddressSnapshot => {
-                        const userEmailAddress = emailAddressSnapshot.val();
+                  // How many emails have we already sent to this student?
+                  otherStudentRef
+                    .child("userState/reviewsReceived")
+                    .transaction(value => (value || 0) + 1)
+                    .then(({ committed, snapshot }) => {
+                      if (!committed) {
+                        return;
+                      }
+                      if (snapshot.val() > 1) {
                         console.log(
-                          `Emailing ${otherStudentUserID} at ${userEmailAddress} in response to feedback from ${event
-                            .params.userID}`,
+                          `Skipping email because ${otherStudentUserID} has already received feedback.`,
                         );
+                        return;
+                      }
+                      // Email the student receiving the feedback.
+                      return otherStudentRef
+                        .child("userState/email")
+                        .once("value")
+                        .then(
+                          emailAddressSnapshot => {
+                            const userEmailAddress = emailAddressSnapshot.val();
+                            console.log(
+                              `Emailing ${otherStudentUserID} at ${userEmailAddress} in response to feedback from ${event
+                                .params.userID}`,
+                            );
 
-                        const humanReadableFlowName =
-                          humanReadableFlowNames[event.params.flowID];
-                        // TODO(andy): Include a human-readable name of the flow.
-                        // TODO(andy): Shorten the flow URL?
-                        const returnURL = `${functions.config().host
-                          .origin}/?flowID=${event.params
-                          .flowID}&classCode=${event.params
-                          .cohortID}&userID=${otherStudentUserID}`;
-                        return transporter.sendMail({
-                          from: "Khan Academy <noreply@khanacademy.org>",
-                          to: userEmailAddress,
-                          subject: `You have new feedback available${humanReadableFlowName
-                            ? ` on “${humanReadableFlowName}”`
-                            : ""}!`,
-                          text: `Another student has left you feedback on your work${humanReadableFlowName
-                            ? ` for "${humanReadableFlowName}"`
-                            : ""}.\n\nRead it and continue the activity here: ${returnURL}`,
-                          html: `<p>Another student has left you feedback on your work${humanReadableFlowName
-                            ? ` for &ldquo;${humanReadableFlowName}.&rdquo;`
-                            : "."}</p><p><a href="${returnURL}">Click here</a> to read it and continue the activity.</p>`,
-                        });
-                      },
-                      reason => {
-                        // TODO(andy): Sentry?
-                        console.error(
-                          `Couldn't read email address for ${otherStudentUserID}: ${reason}`,
+                            const humanReadableFlowName =
+                              humanReadableFlowNames[event.params.flowID];
+                            // TODO(andy): Include a human-readable name of the flow.
+                            // TODO(andy): Shorten the flow URL?
+                            const returnURL = `${functions.config().host
+                              .origin}/?flowID=${event.params
+                              .flowID}&classCode=${event.params
+                              .cohortID}&userID=${otherStudentUserID}`;
+                            return transporter.sendMail({
+                              from: "Khan Academy <noreply@khanacademy.org>",
+                              to: userEmailAddress,
+                              subject: `You have new feedback available${humanReadableFlowName
+                                ? ` on “${humanReadableFlowName}”`
+                                : ""}!`,
+                              text: `Another student has left you feedback on your work${humanReadableFlowName
+                                ? ` for "${humanReadableFlowName}"`
+                                : ""}.\n\nRead it and continue the activity here: ${returnURL}`,
+                              html: `<p>Another student has left you feedback on your work${humanReadableFlowName
+                                ? ` for &ldquo;${humanReadableFlowName}.&rdquo;`
+                                : "."}</p><p><a href="${returnURL}">Click here</a> to read it and continue the activity.</p>`,
+                            });
+                          },
+                          reason => {
+                            // TODO(andy): Sentry?
+                            console.error(
+                              `Couldn't read email address for ${otherStudentUserID}: ${reason}`,
+                            );
+                          },
                         );
-                      },
-                    );
+                    });
                 });
             });
           });
