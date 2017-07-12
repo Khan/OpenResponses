@@ -48,8 +48,14 @@ export default class FlowPage extends React.Component {
     this.dispatcher = (action, parameters) => {
       switch (action) {
         case "rejectResponse":
+          if (this.state.userState.rejectionCount >= 3) {
+            // TODO: Obviously, this isn't secure at all, but whatever.
+            return;
+          }
+
           const { revieweeIndex } = parameters;
           this.setUserState({
+            rejectionCount: (this.state.userState.rejectionCount || 0) + 1,
             pendingRejections: [
               ...(this.state.userState.pendingRejections || []),
               this.state.userState.reviewees[revieweeIndex].userID,
