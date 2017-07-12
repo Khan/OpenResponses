@@ -16,13 +16,41 @@ exports.logRejection = functions.database
       return;
     }
 
+    const promises = [];
+
+    const previousRejectedIDs = new Set(event.data.previous.val() || []);
+    const currentRejectedIDs = new Set(event.data.val() || []);
+    currentRejectedIDs.delete(previousRejectedIDs);
+    for (let rejectedID of currentRejectedIDs) {
+      console.log("New rejected user", rejectedID);
+      const rejectedUserID = event.data.ref.root.child(
+        `${event.params.flowID}/${event.params.cohortID}/${rejectedID}`,
+      );
+      promises.push(
+        rejectedUserID.child("log").push({
+          type: "rejected",
+          time: admin.database.ServerValue.TIMESTAMP,
+          rejector: event.params.userID,
+        }),
+      );
+      promises.push(
+        rejectedUserID
+          .child("userState/rejectedCount")
+          .transaction(count => (count || 0) + 1),
+      );
+    }
+
     const user = event.data.ref.parent.parent;
     const log = user.child("log");
-    return log.push({
-      type: "rejection",
-      time: admin.database.ServerValue.TIMESTAMP,
-      userIDs: event.data.val(),
-    });
+    promises.push(
+      log.push({
+        type: "rejection",
+        time: admin.database.ServerValue.TIMESTAMP,
+        userIDs: event.data.val(),
+      }),
+    );
+
+    return Promise.all(promises);
   });
 
 exports.logReviewers = functions.database
@@ -32,13 +60,41 @@ exports.logReviewers = functions.database
       return;
     }
 
+    const promises = [];
+
+    const previousRevieweeIDs = new Set(
+      (event.data.previous.val() || []).map(r => r.userID),
+    );
+    const currentRevieweeIDs = new Set(
+      (event.data.val() || []).map(r => r.userID),
+    );
+    currentRevieweeIDs.delete(previousRevieweeIDs);
+    for (let revieweeID of currentRevieweeIDs) {
+      console.log("New reviewee", revieweeID);
+      promises.push(
+        event.data.ref.root
+          .child(
+            `${event.params.flowID}/${event.params.cohortID}/${revieweeID}/log`,
+          )
+          .push({
+            type: "addReviewer",
+            time: admin.database.ServerValue.TIMESTAMP,
+            reviewer: event.params.userID,
+          }),
+      );
+    }
+
     const user = event.data.ref.parent.parent;
     const log = user.child("log");
-    return log.push({
-      type: "revieweeChange",
-      time: admin.database.ServerValue.TIMESTAMP,
-      reviewees: event.data.val(),
-    });
+    promises.push(
+      log.push({
+        type: "revieweeChange",
+        time: admin.database.ServerValue.TIMESTAMP,
+        reviewees: event.data.val(),
+      }),
+    );
+
+    return Promise.all(promises);
   });
 
 exports.logSubmission = functions.database
