@@ -13,6 +13,7 @@ import {
   loadManagementData,
   saveManagementData,
 } from "../lib/db";
+import sharedStyles from "../lib/styles";
 
 const keypather = new KeyPather();
 
@@ -299,17 +300,29 @@ export default class ManagePage extends React.Component {
                         marginRight: 24,
                       }}
                     >
-                      {(Array.isArray(spec) ? spec : [spec]).map(moduleIndex =>
-                        <div style={{ marginBottom: -64 }}>
-                          {this.renderModule(
-                            getUserInput,
-                            getRemoteData,
-                            userState,
-                            children[moduleIndex],
-                            moduleIndex,
-                          )}
-                        </div>,
-                      )}
+                      {(Array.isArray(spec)
+                        ? spec
+                        : [spec]).map(moduleIndex => {
+                        if (moduleIndex > userState.furthestPageLoaded) {
+                          return (
+                            <p className={css(styles.didNotReachNotice)}>
+                              [This student did not reach this page.]
+                            </p>
+                          );
+                        } else {
+                          return (
+                            <div style={{ marginBottom: -64 }}>
+                              {this.renderModule(
+                                getUserInput,
+                                getRemoteData,
+                                userState,
+                                children[moduleIndex],
+                                moduleIndex,
+                              )}
+                            </div>
+                          );
+                        }
+                      })}
                     </div>
                   );
                 })}
@@ -350,5 +363,9 @@ export default class ManagePage extends React.Component {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
+  },
+
+  didNotReachNotice: {
+    color: sharedStyles.colors.gray68,
   },
 });
