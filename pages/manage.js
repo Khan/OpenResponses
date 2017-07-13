@@ -6,6 +6,7 @@ import { css, StyleSheet } from "aphrodite";
 
 import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
+import PageButton from "../lib/components/page-button";
 import { signIn } from "../lib/auth";
 import {
   copyFallbackUsers,
@@ -233,6 +234,31 @@ export default class ManagePage extends React.Component {
     const { reportSpec } = flow;
     return (
       <div className={css(styles.container)}>
+        <div
+          className={css(styles.pageNumberBar)}
+          style={{ minWidth: reportSpec.length * (400 + 24) }}
+        >
+          {reportSpec.map(spec => {
+            return (
+              <div
+                style={{
+                  width: `${1 / reportSpec.length * 100}%`,
+                  minWidth: 400,
+                  display: "inline-block",
+                  margin: "0 12px",
+                  textAlign: "center",
+                }}
+              >
+                {(Array.isArray(spec) ? spec : [spec]).map(moduleIndex =>
+                  <PageButton isCompleted disabled>
+                    {moduleIndex + 1}
+                  </PageButton>,
+                )}
+              </div>
+            );
+          })}
+        </div>
+
         {Object.keys(this.state.userData).map((userID, index) => {
           const userData = this.state.userData[userID].inputs;
           if (!userData) {
@@ -301,7 +327,7 @@ export default class ManagePage extends React.Component {
                         width: `${1 / reportSpec.length * 100}%`,
                         minWidth: 400,
                         display: "inline-block",
-                        marginRight: 24,
+                        margin: "0 12px",
                       }}
                     >
                       {(Array.isArray(spec)
@@ -309,9 +335,11 @@ export default class ManagePage extends React.Component {
                         : [spec]).map(moduleIndex => {
                         if (moduleIndex > userState.furthestPageLoaded) {
                           return (
-                            <p className={css(styles.didNotReachNotice)}>
-                              [This student did not reach this page.]
-                            </p>
+                            <BasePrompt>
+                              <p className={css(styles.didNotReachNotice)}>
+                                [This student did not reach this page.]
+                              </p>
+                            </BasePrompt>
                           );
                         } else {
                           return (
@@ -367,6 +395,21 @@ export default class ManagePage extends React.Component {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
+  },
+
+  pageNumberBar: {
+    zIndex: 100,
+    margin: -24,
+    padding: "0 24px",
+    position: "sticky",
+    display: "flex",
+    alignItems: "center",
+    top: 0,
+    left: 0,
+    height: 60,
+    backgroundColor: "white",
+    borderBottom: `1px solid ${sharedStyles.colors.gray85}`,
+    marginBottom: 24,
   },
 
   didNotReachNotice: {
