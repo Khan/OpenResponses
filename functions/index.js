@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 // TODO(andy): This is a pretty hacky way to specify the human-readable flow names, but it'll do for now.
 const humanReadableFlowNames = {
   humanities_ham_async: "The Cabinet Battle: State Debt",
+  tiltedSquare_async: "Tilted Square Area",
 };
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
@@ -138,10 +139,32 @@ exports.logUserCreation = functions.database
 
     const user = event.data.ref.parent.parent;
     const log = user.child("log");
-    return log.push({
-      type: "creation",
-      time: admin.database.ServerValue.TIMESTAMP,
-    });
+    return log
+      .push({
+        type: "creation",
+        time: admin.database.ServerValue.TIMESTAMP,
+      })
+      .then(() => {
+        const humanReadableFlowName =
+          humanReadableFlowNames[event.params.flowID];
+
+        if (!humanReadableFlowName) {
+          return;
+        }
+
+        // TODO(andy): Include a human-readable name of the flow.
+        // TODO(andy): Shorten the flow URL?
+        const returnURL = `${functions.config().host.origin}/?flowID=${event
+          .params.flowID}&classCode=${event.params.cohortID}&userID=${event
+          .params.userID}`;
+        return transporter.sendMail({
+          from: "Khan Academy <noreply@khanacademy.org>",
+          to: event.data.val(),
+          subject: `Welcome to ${humanReadableFlowName}!`,
+          text: `Just in case you need to switch to a different computer, click this URL to pick up where you left off: ${returnURL}`,
+          html: `<p>Just in case you need to switch to a different computer, <a href="${returnURL}">click this link</a> to pick up where you left off.</p>`,
+        });
+      });
   });
 
 exports.transferFeedback = functions.database
