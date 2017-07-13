@@ -124,21 +124,35 @@ export default class ManagePage extends React.Component {
     );
   };
 
-  render = () => {
-    const { flowID, classCode } = this.props.url.query;
-    if (!this.getClassCode()) {
-      return <h2>Add ?classCode=XYZ to the URL</h2>;
+  renderModule = (
+    getUserInput,
+    getRemoteData,
+    userState,
+    module,
+    moduleIndex,
+  ) => {
+    const currentModuleData = getUserInput(moduleIndex);
+    const extraProps = {
+      ...module.props,
+      editable: false,
+      inManagerInterface: true,
+      data: currentModuleData,
+      query: this.props.url.query,
+    };
+    let dataMappedElement = null;
+    if (module.props.passThroughInManagerUI) {
+      dataMappedElement = (
+        <BasePrompt {...extraProps}>
+          {module.props.children}
+        </BasePrompt>
+      );
+    } else {
+      dataMappedElement = React.cloneElement(module, extraProps);
     }
-    if (!this.getFlowID()) {
-      return <h2>Add &flowID=XYZ to the URL</h2>;
-    }
-    if (!this.state.ready) {
-      return null;
-    }
+    return dataMappedElement;
+  };
 
-    const flow = flowLookupTable[this.getFlowID()];
-    const modules = flow.modules || flow;
-
+  renderAdmin = (flow, modules) => {
     return (
       <div className={css(styles.container)}>
         <p>
@@ -183,41 +197,132 @@ export default class ManagePage extends React.Component {
                 <p>
                   {JSON.stringify(userState, undefined, 1)}
                 </p>
-                {children.map((module, moduleIndex) => {
-                  const currentModuleData = getUserInput(moduleIndex);
-                  const extraProps = {
-                    ...module.props,
-                    editable: false,
-                    inManagerInterface: true,
-                    data: currentModuleData,
-                    query: this.props.url.query,
-                  };
-                  let dataMappedElement = null;
-                  if (module.props.passThroughInManagerUI) {
-                    dataMappedElement = (
-                      <BasePrompt {...extraProps}>
-                        {module.props.children}
-                      </BasePrompt>
-                    );
-                  } else {
-                    dataMappedElement = React.cloneElement(module, extraProps);
-                  }
-                  return (
-                    <div key={moduleIndex}>
-                      <h3>
-                        Student {index + 1}: Page {moduleIndex + 1}
-                      </h3>
-                      {dataMappedElement}
-                      <hr />
-                    </div>
-                  );
-                })}
+                {children.map((module, moduleIndex) =>
+                  <div key={moduleIndex}>
+                    <h3>
+                      Student {index + 1}: Page {moduleIndex + 1}
+                    </h3>
+                    {this.renderModule(
+                      getUserInput,
+                      getRemoteData,
+                      userState,
+                      module,
+                      moduleIndex,
+                    )}
+                    <hr />
+                  </div>,
+                )}
               </div>
             );
           })}
         </div>
       </div>
     );
+  };
+
+  renderReport = (flow, modules) => {
+    const { reportSpec } = flow;
+    return (
+      <div className={css(styles.container)}>
+        {Object.keys(this.state.userData).map((userID, index) => {
+          const userData = this.state.userData[userID].inputs;
+          if (!userData) {
+            return null;
+          }
+          const getUserInput = index => userData[index] || {};
+          const getRemoteData = key =>
+            this.state.remoteData && this.state.remoteData[userID][key];
+          const children = modules(getUserInput, getRemoteData);
+          const userState = this.state.userData[userID].userState;
+          const reviewingEmails =
+            userState.reviewees &&
+            userState.reviewees.map(
+              r => this.state.userData[r.userID].userState.email,
+            );
+
+          const inbox = this.state.userData[userID].inbox;
+          const reviewedByEmails =
+            inbox &&
+            Object.keys(inbox).map(k => {
+              const message = inbox[k];
+              const userID = inbox[k].fromUserID;
+              return this.state.userData[userID].userState.email;
+            });
+
+          return (
+            <div key={userID}>
+              <h1>
+                {userState.email}
+              </h1>
+              {reviewingEmails || reviewedByEmails
+                ? <p>
+                    {`${reviewingEmails
+                      ? `Reviewing: ${reviewingEmails.join(", ")}. `
+                      : ""}${reviewedByEmails
+                      ? `Reviewed by: ${reviewedByEmails[0]}.`
+                      : ""}`}
+                  </p>
+                : null}
+              <div
+                style={{
+                  display: "flex",
+                }}
+              >
+                {reportSpec.map(spec => {
+                  if (Array.isArray(spec)) {
+                  } else {
+                    const moduleIndex = spec;
+                    return (
+                      <div
+                        style={{
+                          width: `${1 / reportSpec.length * 100}%`,
+                          minWidth: 400,
+                          display: "inline-block",
+                          marginRight: 24,
+                        }}
+                      >
+                        {this.renderModule(
+                          getUserInput,
+                          getRemoteData,
+                          userState,
+                          children[moduleIndex],
+                          moduleIndex,
+                        )}
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  render = () => {
+    const { flowID, classCode } = this.props.url.query;
+    if (!this.getClassCode()) {
+      return <h2>Add ?classCode=XYZ to the URL</h2>;
+    }
+    if (!this.getFlowID()) {
+      return <h2>Add &flowID=XYZ to the URL</h2>;
+    }
+    if (!this.state.ready) {
+      return null;
+    }
+
+    const flow = flowLookupTable[this.getFlowID()];
+    const modules = flow.modules || flow;
+
+    // This doesn't actually need to be secure at the moment, so we'll just go by URL. /report for teachers, /manage for us.
+    const isAdmin = this.props.url.pathname === "/manage";
+
+    if (isAdmin) {
+      return this.renderAdmin(flow, modules);
+    } else {
+      return this.renderReport(flow, modules);
+    }
   };
 }
 
