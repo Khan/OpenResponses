@@ -72,16 +72,20 @@ export default class ManagePage extends React.Component {
             const fetcherInputs = inputs.map(keyPathString =>
               keypather.get(userData, keyPathString),
             );
-            const fetcherResponse = await fetcher(
-              fetcherInputs,
-              userID,
-              this.getClassCode(),
-              userData,
-            );
-            if (fetcherResponse) {
-              const studentRemoteData =
-                fetcherResponse.remoteData || fetcherResponse;
-              remoteData[userID][remoteDataKey] = studentRemoteData;
+            try {
+              const fetcherResponse = await fetcher(
+                fetcherInputs,
+                userID,
+                this.getClassCode(),
+                userData,
+              );
+              if (fetcherResponse) {
+                const studentRemoteData =
+                  fetcherResponse.remoteData || fetcherResponse;
+                remoteData[userID][remoteDataKey] = studentRemoteData;
+              }
+            } catch (err) {
+              console.error("Remote fetcher failed for ", userID, err);
             }
           }
         }
@@ -132,6 +136,7 @@ export default class ManagePage extends React.Component {
     moduleIndex,
   ) => {
     const currentModuleData = getUserInput(moduleIndex);
+
     const extraProps = {
       ...module.props,
       editable: false,
@@ -139,17 +144,20 @@ export default class ManagePage extends React.Component {
       data: currentModuleData,
       query: this.props.url.query,
     };
-    let dataMappedElement = null;
+
+    const filteredChildren = React.Children
+      .toArray(module.props.children)
+      .filter(child => !child.props.hideInReport);
+
     if (module.props.passThroughInManagerUI) {
-      dataMappedElement = (
+      return (
         <BasePrompt {...extraProps}>
-          {module.props.children}
+          {filteredChildren}
         </BasePrompt>
       );
     } else {
-      dataMappedElement = React.cloneElement(module, extraProps);
+      return React.cloneElement(module, extraProps, filteredChildren);
     }
-    return dataMappedElement;
   };
 
   renderAdmin = (flow, modules) => {
@@ -234,11 +242,20 @@ export default class ManagePage extends React.Component {
             this.state.remoteData && this.state.remoteData[userID][key];
           const children = modules(getUserInput, getRemoteData);
           const userState = this.state.userData[userID].userState;
+
+          if (!userState) {
+            return null;
+          }
+
           const reviewingEmails =
             userState.reviewees &&
-            userState.reviewees.map(
-              r => this.state.userData[r.userID].userState.email,
-            );
+            userState.reviewees.map(r => {
+              const reviewee = this.state.userData[r.userID];
+              return (
+                (reviewee && reviewee.userState && reviewee.userState.email) ||
+                ""
+              );
+            });
 
           const inbox = this.state.userData[userID].inbox;
           const reviewedByEmails =
@@ -246,7 +263,11 @@ export default class ManagePage extends React.Component {
             Object.keys(inbox).map(k => {
               const message = inbox[k];
               const userID = inbox[k].fromUserID;
-              return this.state.userData[userID].userState.email;
+              const reviewer = this.state.userData[userID];
+              return (
+                (reviewer && reviewer.userState && reviewer.userState.email) ||
+                ""
+              );
             });
 
           return (
@@ -269,28 +290,28 @@ export default class ManagePage extends React.Component {
                 }}
               >
                 {reportSpec.map(spec => {
-                  if (Array.isArray(spec)) {
-                  } else {
-                    const moduleIndex = spec;
-                    return (
-                      <div
-                        style={{
-                          width: `${1 / reportSpec.length * 100}%`,
-                          minWidth: 400,
-                          display: "inline-block",
-                          marginRight: 24,
-                        }}
-                      >
-                        {this.renderModule(
-                          getUserInput,
-                          getRemoteData,
-                          userState,
-                          children[moduleIndex],
-                          moduleIndex,
-                        )}
-                      </div>
-                    );
-                  }
+                  return (
+                    <div
+                      style={{
+                        width: `${1 / reportSpec.length * 100}%`,
+                        minWidth: 400,
+                        display: "inline-block",
+                        marginRight: 24,
+                      }}
+                    >
+                      {(Array.isArray(spec) ? spec : [spec]).map(moduleIndex =>
+                        <div style={{ marginBottom: -64 }}>
+                          {this.renderModule(
+                            getUserInput,
+                            getRemoteData,
+                            userState,
+                            children[moduleIndex],
+                            moduleIndex,
+                          )}
+                        </div>,
+                      )}
+                    </div>
+                  );
                 })}
               </div>
             </div>
