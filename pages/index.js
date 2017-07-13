@@ -122,6 +122,12 @@ export default class FlowPage extends React.Component {
     if (this.props.url.query.fallbackUser) {
       this.setUserState({ isFallbackUser: true });
     }
+
+    if (this.props.url.query.forceAssignReviewee) {
+      this.setUserState({
+        forceAssignReviewee: this.props.url.query.forceAssignReviewee,
+      });
+    }
   };
 
   componentDidMount = () => {

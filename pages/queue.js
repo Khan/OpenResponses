@@ -56,6 +56,11 @@ export default class QueuePage extends React.Component {
           if (userIDsAwaitingFeedback.length === 0) {
             return null;
           }
+          const fallbackUserID = Object.keys(cohortData).find(
+            userID =>
+              cohortData[userID].userState &&
+              cohortData[userID].userState.isFallbackUser,
+          );
           return (
             <div>
               <h2>
@@ -64,7 +69,11 @@ export default class QueuePage extends React.Component {
               <div>
                 {userIDsAwaitingFeedback.map(u =>
                   <p>
-                    {cohortData[u].userState.email}: last submitted{" "}
+                    <a
+                      href={`/?flowID=${flowID}&classCode=${cohortID}&userID=${fallbackUserID}&forceAssignReviewee=${u}`}
+                    >
+                      {cohortData[u].userState.email}
+                    </a>: last submitted{" "}
                     {moment(
                       cohortData[u].log[
                         Object.keys(cohortData[u].log)
