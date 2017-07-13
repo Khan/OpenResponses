@@ -248,6 +248,10 @@ export default class ManagePage extends React.Component {
             return null;
           }
 
+          if (userState.isFallbackUser) {
+            return null;
+          }
+
           const reviewingEmails =
             userState.reviewees &&
             userState.reviewees.map(r => {
