@@ -282,6 +282,12 @@ export default class ManagePage extends React.Component {
             userState.reviewees &&
             userState.reviewees.map(r => {
               const reviewee = this.state.userData[r.userID];
+              if (!reviewee || !reviewee.userState) {
+                return "";
+              }
+              if (reviewee.userState.isFallbackUser) {
+                return "[KA-provided seed student]";
+              }
               return (
                 (reviewee && reviewee.userState && reviewee.userState.email) ||
                 ""
@@ -308,11 +314,17 @@ export default class ManagePage extends React.Component {
               </h1>
               {reviewingEmails || reviewedByEmails
                 ? <p>
-                    {`${reviewingEmails
-                      ? `Reviewing: ${reviewingEmails.join(", ")}. `
-                      : ""}${reviewedByEmails
-                      ? `Reviewed by: ${reviewedByEmails[0]}.`
-                      : ""}`}
+                    {reviewingEmails
+                      ? <span>
+                          <strong>Reviewing:</strong>{" "}
+                          {reviewingEmails.join(", ")}.{" "}
+                        </span>
+                      : null}
+                    {reviewedByEmails
+                      ? <span>
+                          <strong>Reviewed by:</strong> {reviewedByEmails[0]}.
+                        </span>
+                      : null}
                   </p>
                 : null}
               <div
