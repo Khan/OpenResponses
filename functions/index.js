@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const humanReadableFlowNames = {
   humanities_ham_async: "The Cabinet Battle: State Debt",
   tiltedSquare_async: "Tilted Square Area",
+  tiltedSquare_useMethod: "Tilted Square Area",
 };
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
