@@ -80,6 +80,7 @@ export default class ManagePage extends React.Component {
                 userID,
                 this.getClassCode(),
                 userData,
+                true, // inManagerInterface
               );
               if (fetcherResponse) {
                 const studentRemoteData =
