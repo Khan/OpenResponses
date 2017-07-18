@@ -119,15 +119,27 @@ export default class FlowPage extends React.Component {
       managementSubscriptionCancelFunction,
     });
 
+    let baseUserState = {};
+
     if (this.props.url.query.fallbackUser) {
-      this.setUserState({ isFallbackUser: true });
+      baseUserState.isFallbackUser = true;
+    }
+
+    if (this.props.url.query.email) {
+      baseUserState.email = this.props.url.query.email;
+      baseUserState.prepopulatedEmail = true;
+      baseUserState.needsWelcome = true;
+    }
+
+    if (this.props.url.query.kaid) {
+      baseUserState.kaid = this.props.url.query.kaid;
     }
 
     if (this.props.url.query.forceAssignReviewee) {
-      this.setUserState({
-        forceAssignReviewee: this.props.url.query.forceAssignReviewee,
-      });
+      baseUserState.forceAssignReviewee = this.props.url.query.forceAssignReviewee;
     }
+
+    this.setUserState(baseUserState);
   };
 
   componentDidMount = () => {
@@ -292,7 +304,11 @@ export default class FlowPage extends React.Component {
     const flow = flowLookupTable[this.getFlowID()];
 
     if (flow.requiresEmail && !this.state.userState.email) {
-      return <Welcome onSubmit={this.onSubmitEmail} />;
+      return <Welcome onSubmit={this.onSubmitEmail} collectEmail />;
+    } else if (this.state.userState.needsWelcome) {
+      return (
+        <Welcome onSubmit={() => this.setUserState({ needsWelcome: null })} />
+      );
     }
 
     const modules = flow.modules || flow;

@@ -153,18 +153,27 @@ exports.logUserCreation = functions.database
           return;
         }
 
-        // TODO(andy): Include a human-readable name of the flow.
-        // TODO(andy): Shorten the flow URL?
-        const returnURL = `${functions.config().host.origin}/?flowID=${event
-          .params.flowID}&classCode=${event.params.cohortID}&userID=${event
-          .params.userID}`;
-        return transporter.sendMail({
-          from: "Khan Academy <noreply@khanacademy.org>",
-          to: event.data.val(),
-          subject: `Welcome to ${humanReadableFlowName}!`,
-          text: `Just in case you need to switch to a different computer, click this URL to pick up where you left off: ${returnURL}`,
-          html: `<p>Just in case you need to switch to a different computer, <a href="${returnURL}">click this link</a> to pick up where you left off.</p>`,
-        });
+        return event.data.ref.parent
+          .child("prepopulatedEmail")
+          .once("value")
+          .then(prepopulatedEmailSnapshot => {
+            const prepopulatedEmail = prepopulatedEmailSnapshot.val();
+            if (prepopulatedEmail) {
+              return;
+            }
+            // TODO(andy): Include a human-readable name of the flow.
+            // TODO(andy): Shorten the flow URL?
+            const returnURL = `${functions.config().host.origin}/?flowID=${event
+              .params.flowID}&classCode=${event.params.cohortID}&userID=${event
+              .params.userID}`;
+            return transporter.sendMail({
+              from: "Khan Academy <noreply@khanacademy.org>",
+              to: event.data.val(),
+              subject: `Welcome to ${humanReadableFlowName}!`,
+              text: `Just in case you need to switch to a different computer, click this URL to pick up where you left off: ${returnURL}`,
+              html: `<p>Just in case you need to switch to a different computer, <a href="${returnURL}">click this link</a> to pick up where you left off.</p>`,
+            });
+          });
       });
   });
 
