@@ -346,11 +346,15 @@ export default class ManagePage extends React.Component {
                       {(Array.isArray(spec)
                         ? spec
                         : [spec]).map(moduleIndex => {
-                        if (moduleIndex > userState.furthestPageLoaded) {
+                        if (
+                          moduleIndex > userState.furthestPageLoaded ||
+                          (moduleIndex === userState.furthestPageLoaded &&
+                            moduleIndex < children.length - 1)
+                        ) {
                           return (
                             <BasePrompt>
                               <p className={css(styles.didNotReachNotice)}>
-                                [This student did not reach this page.]
+                                [This student did not submit this page.]
                               </p>
                             </BasePrompt>
                           );
