@@ -1,5 +1,6 @@
 // @flow
 import { default as KeyPather } from "keypather";
+import moment from "moment";
 import NumericInput from "react-numeric-input";
 import React from "react";
 import { css, StyleSheet } from "aphrodite";
@@ -261,21 +262,30 @@ export default class ManagePage extends React.Component {
         </div>
 
         {Object.keys(this.state.userData).map((userID, index) => {
-          const userData = this.state.userData[userID].inputs;
-          if (!userData) {
+          const userInputs = this.state.userData[userID].inputs;
+          if (!userInputs) {
             return null;
           }
-          const getUserInput = index => userData[index] || {};
+          const getUserInput = index => userInputs[index] || {};
           const getRemoteData = key =>
             this.state.remoteData && this.state.remoteData[userID][key];
           const children = modules(getUserInput, getRemoteData);
-          const userState = this.state.userData[userID].userState;
+          const userData = this.state.userData[userID];
+          const userState = userData.userState;
 
           if (!userState) {
             return null;
           }
 
           if (userState.isFallbackUser) {
+            return null;
+          }
+
+          if (
+            !Object.keys(userData.log).find(
+              logKey => userData.log[logKey].type === "submission",
+            )
+          ) {
             return null;
           }
 
@@ -359,8 +369,30 @@ export default class ManagePage extends React.Component {
                             </BasePrompt>
                           );
                         } else {
+                          const submissionLog =
+                            userData.log[
+                              Object.keys(userData.log).find(
+                                logKey =>
+                                  userData.log[logKey].type === "submission" &&
+                                  Number.parseInt(
+                                    userData.log[logKey].moduleID,
+                                  ) === moduleIndex,
+                              )
+                            ];
+                          const submissionMoment =
+                            submissionLog && moment(submissionLog.time);
+
                           return (
                             <div style={{ marginBottom: -64 }}>
+                              {submissionMoment
+                                ? <p className={css(styles.submissionTime)}>
+                                    [Submitted on{" "}
+                                    {submissionMoment.format(
+                                      "MMMM Do, YYYY",
+                                    )}{" "}
+                                    at {submissionMoment.format("h:mm A")}]
+                                  </p>
+                                : null}
                               {this.renderModule(
                                 getUserInput,
                                 getRemoteData,
@@ -431,5 +463,10 @@ const styles = StyleSheet.create({
 
   didNotReachNotice: {
     color: sharedStyles.colors.gray68,
+  },
+
+  submissionTime: {
+    color: sharedStyles.colors.gray68,
+    marginTop: 24,
   },
 });
