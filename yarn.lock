@@ -4451,9 +4451,9 @@ react-radio-group@^3.0.1:
   dependencies:
     prop-types "^15.5.8"
 
-react-visibility-sensor@^3.9.0:
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/react-visibility-sensor/-/react-visibility-sensor-3.10.0.tgz#4c4635745e83d1188d409827e7be51d177cc6a8d"
+react-visibility-sensor@^3.10.1:
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/react-visibility-sensor/-/react-visibility-sensor-3.10.1.tgz#4e520b3d15a018ac50e39af63b2f6b79f0eee799"
   dependencies:
     create-react-class "^15.5.1"
     prop-types "^15.5.4"
