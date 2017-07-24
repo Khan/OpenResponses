@@ -313,7 +313,12 @@ export default class ManagePage extends React.Component {
               const userID = inbox[k].fromUserID;
               const reviewer = this.state.userData[userID];
               return (
-                (reviewer && reviewer.userState && reviewer.userState.email) ||
+                (reviewer &&
+                  reviewer.userState &&
+                  reviewer.userState.email &&
+                  `${reviewer.userState.email} (${moment(inbox[k].time).format(
+                    "MMMM Do, YYYY; h:mm A",
+                  )})`) ||
                 ""
               );
             });
