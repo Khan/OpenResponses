@@ -73,16 +73,20 @@ exports.logReviewers = functions.database
     currentRevieweeIDs.delete(previousRevieweeIDs);
     for (let revieweeID of currentRevieweeIDs) {
       console.log("New reviewee", revieweeID);
+      const revieweeRef = event.data.ref.root.child(
+        `${event.params.flowID}/${event.params.cohortID}/${revieweeID}`,
+      );
       promises.push(
-        event.data.ref.root
-          .child(
-            `${event.params.flowID}/${event.params.cohortID}/${revieweeID}/log`,
-          )
-          .push({
-            type: "addReviewer",
-            time: admin.database.ServerValue.TIMESTAMP,
-            reviewer: event.params.userID,
-          }),
+        revieweeRef.child("log").push({
+          type: "addReviewer",
+          time: admin.database.ServerValue.TIMESTAMP,
+          reviewer: event.params.userID,
+        }),
+      );
+      promises.push(
+        revieweeRef
+          .child("userState/reviewerCount")
+          .transaction(value => (value || 0) + 1),
       );
     }
 
