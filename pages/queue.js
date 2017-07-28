@@ -1,9 +1,10 @@
 import { css, StyleSheet } from "aphrodite";
 import moment from "moment";
 import React from "react";
+
 import { signIn } from "../lib/auth";
 import { _getDatabase } from "../lib/db";
-
+import flowLookupTable from "../lib/flows";
 import sharedStyles from "../lib/styles";
 
 export default class QueuePage extends React.Component {
@@ -33,6 +34,9 @@ export default class QueuePage extends React.Component {
       return null;
     }
 
+    const flow = flowLookupTable[flowID];
+    const submissionThreshold = flow.submissionThreshold || 0;
+
     return (
       <div className={css(styles.container)}>
         <p>
@@ -48,6 +52,7 @@ export default class QueuePage extends React.Component {
             return (
               userData.inputs &&
               userData.inputs.submitted &&
+              userData.inputs.submitted[submissionThreshold] &&
               !userData.userState.isFallbackUser &&
               Object.keys(userData.inputs.submitted).length > 1 &&
               !userData.inbox

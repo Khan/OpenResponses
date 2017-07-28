@@ -20,6 +20,12 @@
   dependencies:
     "@types/react" "*"
 
+"@types/csv-stringify@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@types/csv-stringify/-/csv-stringify-1.4.0.tgz#219121941b8eb5b0e1a763c50dd4d6445fc69ed7"
+  dependencies:
+    "@types/node" "*"
+
 "@types/firebase@^2.4.31":
   version "2.4.31"
   resolved "https://registry.yarnpkg.com/@types/firebase/-/firebase-2.4.31.tgz#8a8dfdb602bcd790b99691701f872124a14cd778"
@@ -34,7 +40,7 @@
   dependencies:
     moment "*"
 
-"@types/node@^6.0.46":
+"@types/node@*", "@types/node@^6.0.46":
   version "6.0.79"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-6.0.79.tgz#5efe7d4a6d8c453c7e9eaf55d931f4a22fac5169"
 
