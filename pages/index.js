@@ -137,6 +137,17 @@ export default class FlowPage extends React.Component {
 
     if (this.props.url.query.forceAssignReviewee) {
       baseUserState.forceAssignReviewee = this.props.url.query.forceAssignReviewee;
+      baseUserState.furthestPageLoaded =
+        (this.getFlow().submissionThreshold || 0) + 1;
+      setTimeout(() => {
+        this.setCurrentPage(baseUserState.furthestPageLoaded);
+      }, 0); // TODO oh jeez hack.
+      const newQuery = { ...this.props.url.query };
+      delete newQuery.forceAssignReviewee;
+      Router.replace({
+        ...this.props.url,
+        query: { ...newQuery },
+      });
     }
 
     this.setUserState(baseUserState);
@@ -165,6 +176,8 @@ export default class FlowPage extends React.Component {
   };
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
+
+  getFlow = () => flowLookupTable[this.getFlowID()];
 
   getDatabaseVersion = () =>
     flowLookupTable[this.getFlowID()].databaseVersion || 1;
@@ -230,6 +243,7 @@ export default class FlowPage extends React.Component {
   };
 
   setCurrentPage = newPageIndex => {
+    console.log("Setting current page to", newPageIndex);
     this.setState({ currentPage: newPageIndex });
     Router.push({
       ...this.props.url,
@@ -253,7 +267,7 @@ export default class FlowPage extends React.Component {
     }
 
     // If our flow has any remote data requirements, we'll see if any of those requirements' data has changed. If so, we'll run the remote fetcher associated with that data requirement.
-    const flow = flowLookupTable[this.getFlowID()];
+    const flow = this.getFlow();
     for (let remoteDataKey in flow.remoteDataRequirements || {}) {
       const { inputs, fetcher } = flow.remoteDataRequirements[remoteDataKey];
       const oldAndNewData = inputs.map(keyPathString => {
@@ -301,7 +315,7 @@ export default class FlowPage extends React.Component {
       return null;
     }
 
-    const flow = flowLookupTable[this.getFlowID()];
+    const flow = this.getFlow();
 
     if (flow.requiresEmail && !this.state.userState.email) {
       return <Welcome onSubmit={this.onSubmitEmail} collectEmail />;

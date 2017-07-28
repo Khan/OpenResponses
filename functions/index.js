@@ -184,11 +184,6 @@ exports.logUserCreation = functions.database
 exports.transferFeedback = functions.database
   .ref("/{flowID}/{cohortID}/{userID}/inputs/submitted/{moduleID}/feedback")
   .onWrite(event => {
-    // Only edit data when it is first created.
-    if (event.data.previous.exists()) {
-      console.log("Exiting because data previously existed");
-      return;
-    }
     // Exit when the data is deleted.
     if (!event.data.exists()) {
       console.log("Exiting because new data does not exist");
@@ -204,6 +199,15 @@ exports.transferFeedback = functions.database
       .once("value")
       .then(otherStudentUserStateSnapshot => {
         const otherStudentUserState = otherStudentUserStateSnapshot.val();
+
+        // Only transfer new submissions (unless this is a fallback user).
+        if (
+          !otherStudentUserState.isFallbackUser &&
+          event.data.previous.exists()
+        ) {
+          console.log("Exiting because data previously existed");
+          return;
+        }
 
         if (!otherStudentUserState.reviewees) {
           throw new Error(`No reviewee student IDs for ${event.params.userID}`);
