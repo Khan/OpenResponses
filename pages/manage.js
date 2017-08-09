@@ -232,8 +232,52 @@ export default class ManagePage extends React.Component {
     );
   };
 
+  countOfUsers = (modules, withSubmissionAtPage, requireReview) => {
+    if (!modules) {
+      return 0;
+    }
+    return Object.keys(this.state.userData).filter((userID, index) => {
+      const userInputs = this.state.userData[userID].inputs;
+      if (!userInputs) {
+        return false;
+      }
+      const getUserInput = index => userInputs[index] || {};
+      const getRemoteData = key =>
+        this.state.remoteData && this.state.remoteData[userID][key];
+      const children = modules(getUserInput, getRemoteData);
+      const userData = this.state.userData[userID];
+      const userState = userData.userState;
+
+      if (!userState) {
+        return false;
+      }
+
+      if (userState.isFallbackUser || !userState.email) {
+        return false;
+      }
+
+      if (requireReview && !userData.inbox) {
+        return false;
+      }
+
+      if (
+        withSubmissionAtPage !== undefined &&
+        userState.furthestPageLoaded <= withSubmissionAtPage
+      ) {
+        return false;
+      }
+      return true;
+    }).length;
+  };
+
   renderReport = (flow, modules) => {
     const { reportSpec } = flow;
+    let lastCount = this.countOfUsers(modules);
+    let lastModuleIndex = 0;
+    if (!modules) {
+      return null;
+    }
+
     return (
       <div className={css(styles.container)}>
         <div
@@ -256,6 +300,57 @@ export default class ManagePage extends React.Component {
                     {moduleIndex + 1}
                   </PageButton>,
                 )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div
+          className={css(styles.submissionRatesBar)}
+          style={{ minWidth: reportSpec.length * (400 + 24) }}
+        >
+          {modules(() => ({}), () => undefined).map((module, moduleIndex) => {
+            const totalUsers = this.countOfUsers(modules);
+            const reportRate = (currentCount, verb) => {
+              const delta = currentCount - lastCount;
+              const result = (
+                <p>
+                  {moduleIndex + 1}: {currentCount} / {totalUsers} ({Number.parseFloat(currentCount / totalUsers * 100).toFixed(0)}%){" "}
+                  {verb}
+                  {moduleIndex !== 0
+                    ? ` (−${Number.parseFloat(delta / lastCount * -100).toFixed(
+                        0,
+                      )}%)`
+                    : ""}
+                </p>
+              );
+              lastCount = currentCount;
+              return result;
+            };
+
+            let reviewCount = null;
+            if (
+              flow.needsReviewModuleID !== undefined &&
+              moduleIndex === flow.needsReviewModuleID
+            ) {
+              const reviewedUsers = this.countOfUsers(
+                modules,
+                lastModuleIndex,
+                true,
+              );
+              reviewCount = reportRate(reviewedUsers, "reviewed");
+            }
+            const usersPastPage = this.countOfUsers(
+              modules,
+              moduleIndex,
+              moduleIndex >= flow.needsReviewModuleID,
+            );
+            const moduleCount = reportRate(usersPastPage, "submitted");
+            lastModuleIndex = moduleIndex;
+            return (
+              <div>
+                {reviewCount}
+                {moduleCount}
               </div>
             );
           })}
@@ -464,6 +559,15 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderBottom: `1px solid ${sharedStyles.colors.gray85}`,
     marginBottom: 24,
+  },
+
+  submissionRatesBar: {
+    margin: -24,
+    padding: "0 24px",
+    backgroundColor: "white",
+    marginBottom: 24,
+    alignItems: "top",
+    color: sharedStyles.colors.gray68,
   },
 
   didNotReachNotice: {
