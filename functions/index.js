@@ -7,6 +7,8 @@ const humanReadableFlowNames = {
   humanities_ham_async: "The Cabinet Battle: State Debt",
   tiltedSquare_async: "Tilted Square Area",
   tiltedSquare_useMethod: "Tilted Square Area",
+  humanities_resistance: "Martin Luther King Jr. and Malcolm X",
+  zoid_01: "Shape Areas",
 };
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
@@ -289,10 +291,16 @@ exports.transferFeedback = functions.database
                                 : ""}!`,
                               text: `Another student has left you feedback on your work${humanReadableFlowName
                                 ? ` for "${humanReadableFlowName}"`
-                                : ""}.\n\nRead it and continue the activity here: ${returnURL}`,
+                                : ""}.\n\nRead it and continue the activity here${event
+                                .params.flowID === "zoid_01"
+                                ? " to claim your special badge."
+                                : ""}: ${returnURL}`,
                               html: `<p>Another student has left you feedback on your work${humanReadableFlowName
                                 ? ` for &ldquo;${humanReadableFlowName}.&rdquo;`
-                                : "."}</p><p><a href="${returnURL}">Click here</a> to read it and continue the activity.</p>`,
+                                : "."}</p><p><a href="${returnURL}">Click here</a> to read it and ${event
+                                .params.flowID === "zoid_01"
+                                ? "complete the activity for your special badge!"
+                                : "continue the activity."}</p>`,
                             });
                           },
                           reason => {
