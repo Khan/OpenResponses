@@ -300,7 +300,10 @@ exports.transferFeedback = functions.database
                                 : "."}</p><p><a href="${returnURL}">Click here</a> to read it and ${event
                                 .params.flowID === "zoid_01"
                                 ? "complete the activity for your special badge!"
-                                : "continue the activity."}</p>`,
+                                : "continue the activity."}</p>${event.params
+                                .flowID === "zoid_01"
+                                ? '<p><img src="https://cdn.kastatic.org/images/badges/earth.png" /></p>'
+                                : ""}`,
                             });
                           },
                           reason => {
