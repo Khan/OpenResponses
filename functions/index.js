@@ -9,6 +9,7 @@ const humanReadableFlowNames = {
   tiltedSquare_useMethod: "Tilted Square Area",
   humanities_resistance: "Martin Luther King Jr. and Malcolm X",
   zoid_01: "Shape Areas",
+  naacp_rhetoric: "The Civil Rights Movement in Context",
 };
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
