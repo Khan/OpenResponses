@@ -568,6 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     alignItems: "top",
     color: sharedStyles.colors.gray68,
+    display: "none",
   },
 
   didNotReachNotice: {
