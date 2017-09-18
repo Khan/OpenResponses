@@ -4,6 +4,9 @@ import moment from "moment";
 import NumericInput from "react-numeric-input";
 import React from "react";
 import { css, StyleSheet } from "aphrodite";
+import { Raw, Plain } from "slate";
+import csv_stringify from "csv-stringify";
+import shuffle from "lodash.shuffle";
 
 import BasePrompt from "../lib/components/modules/base-prompt";
 import flowLookupTable from "../lib/flows";
@@ -46,6 +49,105 @@ export default class ManagePage extends React.Component {
         (await loadManagementData(flowID, classCode)) || {};
 
       const userData = await loadData(flowID, classCode, null);
+
+      const finishedUserData = async flowID => {
+        const data = await loadData(flowID, "email01", null);
+        const lastSubmittedPage =
+          flowLookupTable[flowID].modules(() => ({}), () => undefined).length -
+          2;
+        const userIDs = Object.keys(data).filter(userID => {
+          const user = data[userID];
+          return (
+            user &&
+            user.inputs &&
+            user.inputs[0] &&
+            user.userState &&
+            user.userState.kaid &&
+            user.userState.email &&
+            !user.userState.isFallbackUser
+          );
+        });
+        const finishedUserData = userIDs.map(userID => {
+          const inputs = data[userID].inputs;
+          const toPlainText = rawData =>
+            Plain.serialize(
+              Raw.deserialize(JSON.parse(rawData.rawData), { terse: true }),
+            ).replace(/\r?\n|\r/g, "  <cr>  ");
+          return {
+            preCompute: inputs[0]["pre_trapezoid_compute"],
+            preExplain:
+              inputs[1] && toPlainText(inputs[1]["pre_trapezoid_explanation"]),
+            postCompute:
+              inputs[lastSubmittedPage - 1] &&
+              inputs[lastSubmittedPage - 1]["post_kite_compute"],
+            postExplain:
+              inputs[lastSubmittedPage] &&
+              toPlainText(inputs[lastSubmittedPage]["post_kite_compute"]),
+            kaid: data[userID].userState.kaid,
+          };
+        });
+        return finishedUserData;
+      };
+      const zoid1 = await finishedUserData("zoid_01");
+      const zoid2 = await finishedUserData("zoid_02");
+      const zoid3 = await finishedUserData("zoid_03");
+      const datasets = [zoid1, zoid2, zoid3];
+
+      const coalesce = key => {
+        const results = datasets.map((users, i) =>
+          users
+            .filter(user => user[key])
+            .map(user => [i, user.kaid, user[key]]),
+        );
+        return [].concat.apply([], results);
+      };
+
+      csv_stringify(
+        shuffle(coalesce("preCompute")),
+        { delimiter: "🔥" },
+        (error, output) => {
+          console.log("preCompute", output);
+        },
+      );
+
+      csv_stringify(
+        shuffle(coalesce("preExplain")),
+        { delimiter: "🔥" },
+        (error, output) => {
+          console.log("preExplain", output);
+        },
+      );
+
+      csv_stringify(
+        shuffle(coalesce("postCompute")),
+        { delimiter: "🔥" },
+        (error, output) => {
+          console.log("postCompute", output);
+        },
+      );
+
+      csv_stringify(
+        shuffle(coalesce("postExplain")),
+        { delimiter: "🔥" },
+        (error, output) => {
+          console.log("postExplain", output);
+        },
+      );
+
+      const preAndPostResults = datasets.map((users, i) =>
+        users
+          .filter(user => user["preExplain"] && user["postExplain"])
+          .map(user => [i, user.kaid, user.preExplain, user.postExplain]),
+      );
+      const preAndPost = [].concat.apply([], preAndPostResults);
+
+      csv_stringify(
+        shuffle(preAndPost),
+        { delimiter: "🔥" },
+        (error, output) => {
+          console.log("preAndPost", output);
+        },
+      );
 
       this.setState({
         userData: userData || {},
