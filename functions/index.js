@@ -12,6 +12,11 @@ const humanReadableFlowNames = {
   naacp_rhetoric: "The Civil Rights Movement in Context",
 };
 
+// TODO(andy): And this is an even hackier way to specify the final page, but it'll do for now.
+const finalSubmittedPages = {
+  naacp_rhetoric: 9,
+};
+
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
 
 exports.logRejection = functions.database
@@ -123,11 +128,37 @@ exports.logSubmission = functions.database
 
     const user = event.data.ref.parent.parent.parent;
     const log = user.child("log");
-    return log.push({
-      type: "submission",
-      moduleID: event.params.moduleID,
-      time: admin.database.ServerValue.TIMESTAMP,
-    });
+    return log
+      .push({
+        type: "submission",
+        moduleID: event.params.moduleID,
+        time: admin.database.ServerValue.TIMESTAMP,
+      })
+      .then(() => {
+        const finalPage = finalSubmittedPages[event.params.flowID];
+        if (finalPage == event.params.moduleID) {
+          const submittedRef = event.data.ref.parent;
+          const inputsRef = submittedRef.parent;
+          const userRef = inputsRef.parent;
+          return userRef
+            .child("userState/email")
+            .once("value")
+            .then(emailAddressSnapshot => {
+              const humanReadableFlowName =
+                humanReadableFlowNames[event.params.flowID];
+              const returnURL = `${functions.config().host
+                .origin}/?flowID=${event.params.flowID}&classCode=${event.params
+                .cohortID}&userID=${event.params.userID}`;
+              return transporter.sendMail({
+                from: "Khan Academy <noreply@khanacademy.org>",
+                to: emailAddressSnapshot.val(),
+                subject: `Congratulations on completing “${humanReadableFlowName}”!`,
+                text: `Great work finishing this activity! Click this URL to see a summary of all your hard work: ${returnURL}`,
+                html: `<p>Great work finishing this activity! Click <a href="${returnURL}">here</a> to see a summary of all your hard work.</p>`,
+              });
+            });
+        }
+      });
   });
 
 exports.logUserCreation = functions.database
@@ -176,7 +207,7 @@ exports.logUserCreation = functions.database
             return transporter.sendMail({
               from: "Khan Academy <noreply@khanacademy.org>",
               to: event.data.val(),
-              subject: `Welcome to ${humanReadableFlowName}!`,
+              subject: `Welcome to “${humanReadableFlowName}”!`,
               text: `Just in case you need to switch to a different computer, click this URL to pick up where you left off: ${returnURL}`,
               html: `<p>Just in case you need to switch to a different computer, <a href="${returnURL}">click this link</a> to pick up where you left off.</p>`,
             });
