@@ -20,13 +20,16 @@
   },
   "dependencies": {
     "@types/aphrodite": "^0.5.5",
+    "@types/diff": "^3.2.2",
     "@types/firebase": "^2.4.31",
     "@types/markdown-it": "0.0.2",
     "@types/moment": "^2.13.0",
     "@types/react-portal": "^3.0.1",
     "@types/validator": "^6.2.0",
     "aphrodite": "^1.2.0",
+    "diff": "^3.3.1",
     "firebase": "^3.7.6",
+    "immutable": "^3.8.1",
     "keypather": "^2.0.1",
     "lodash.shuffle": "^4.2.0",
     "markdown-it": "^8.3.1",
@@ -41,7 +44,9 @@
     "react-portal": "^3.0.0",
     "react-radio-group": "^3.0.1",
     "react-visibility-sensor": "^3.10.1",
-    "slate": "^0.19.16",
+    "slate": "^0.25",
+    "slate-plain-serializer": "^0.1.11",
+    "slate-react": "^0.2.1",
     "validator": "^7.2.0"
   },
   "devDependencies": {
@@ -57,7 +62,7 @@
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
     "now": "^4.10.3",
-    "prettier": "prettier/prettier",
+    "prettier": "1.7.2",
     "react-no-ssr": "^1.1.0",
     "rimraf": "^2.6.1"
   },
