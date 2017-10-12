@@ -112,7 +112,7 @@ https://YOUR-SERVER.com/url_base?param1=value1&param2=value2&param3=value
 | `/report` | Display a report of all non-fallback-user activity. | Teachers |
 | `/manage` | Display more detailed data of all users activity. A few admin controls. | KA |
 | `/queue` | Display which students are waiting on feedback. | KA |
-
+| `/distribution` | Not-very-self-explanatory simulator of peer interaction distributions in various what-if scenarios. | KA |
 
 
 | URL parameter | Meaning |
