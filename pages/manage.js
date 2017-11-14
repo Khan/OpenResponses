@@ -153,12 +153,11 @@ export default class ManagePage extends React.Component {
       .toArray(module.props.children)
       .filter(child => !child.props.hideInReport);
 
-    if (module.props.passThroughInManagerUI) {
-      return (
-        <BasePrompt {...extraProps}>
-          {filteredChildren}
-        </BasePrompt>
-      );
+    if (
+      module.props.passThroughInManagerUI ||
+      module.props.passThroughInManagerUI === undefined
+    ) {
+      return <BasePrompt {...extraProps}>{filteredChildren}</BasePrompt>;
     } else {
       return React.cloneElement(module, extraProps, filteredChildren);
     }
@@ -206,10 +205,8 @@ export default class ManagePage extends React.Component {
                 <h2>
                   Student {index + 1} ({userID})
                 </h2>
-                <p>
-                  {JSON.stringify(userState, undefined, 1)}
-                </p>
-                {children.map((module, moduleIndex) =>
+                <p>{JSON.stringify(userState, undefined, 1)}</p>
+                {children.map((module, moduleIndex) => (
                   <div key={moduleIndex}>
                     <h3>
                       Student {index + 1}: Page {moduleIndex + 1}
@@ -222,8 +219,8 @@ export default class ManagePage extends React.Component {
                       moduleIndex,
                     )}
                     <hr />
-                  </div>,
-                )}
+                  </div>
+                ))}
               </div>
             );
           })}
@@ -295,11 +292,11 @@ export default class ManagePage extends React.Component {
                   textAlign: "center",
                 }}
               >
-                {(Array.isArray(spec) ? spec : [spec]).map(moduleIndex =>
+                {(Array.isArray(spec) ? spec : [spec]).map(moduleIndex => (
                   <PageButton isCompleted disabled>
                     {moduleIndex + 1}
-                  </PageButton>,
-                )}
+                  </PageButton>
+                ))}
               </div>
             );
           })}
@@ -420,24 +417,21 @@ export default class ManagePage extends React.Component {
 
           return (
             <div key={userID}>
-              <h1>
-                {userState.email}
-              </h1>
-              {reviewingEmails || reviewedByEmails
-                ? <p>
-                    {reviewingEmails
-                      ? <span>
-                          <strong>Reviewing:</strong>{" "}
-                          {reviewingEmails.join(", ")}.{" "}
-                        </span>
-                      : null}
-                    {reviewedByEmails
-                      ? <span>
-                          <strong>Reviewed by:</strong> {reviewedByEmails[0]}.
-                        </span>
-                      : null}
-                  </p>
-                : null}
+              <h1>{userState.email}</h1>
+              {reviewingEmails || reviewedByEmails ? (
+                <p>
+                  {reviewingEmails ? (
+                    <span>
+                      <strong>Reviewing:</strong> {reviewingEmails.join(", ")}.{" "}
+                    </span>
+                  ) : null}
+                  {reviewedByEmails ? (
+                    <span>
+                      <strong>Reviewed by:</strong> {reviewedByEmails[0]}.
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
               <div
                 style={{
                   display: "flex",
@@ -455,7 +449,8 @@ export default class ManagePage extends React.Component {
                     >
                       {(Array.isArray(spec)
                         ? spec
-                        : [spec]).map(moduleIndex => {
+                        : [spec]
+                      ).map(moduleIndex => {
                         if (
                           moduleIndex > userState.furthestPageLoaded ||
                           (moduleIndex === userState.furthestPageLoaded &&
@@ -484,15 +479,13 @@ export default class ManagePage extends React.Component {
 
                           return (
                             <div style={{ marginBottom: -64 }}>
-                              {submissionMoment
-                                ? <p className={css(styles.submissionTime)}>
-                                    [Submitted on{" "}
-                                    {submissionMoment.format(
-                                      "MMMM Do, YYYY",
-                                    )}{" "}
-                                    at {submissionMoment.format("h:mm A")}]
-                                  </p>
-                                : null}
+                              {submissionMoment ? (
+                                <p className={css(styles.submissionTime)}>
+                                  [Submitted on{" "}
+                                  {submissionMoment.format("MMMM Do, YYYY")} at{" "}
+                                  {submissionMoment.format("h:mm A")}]
+                                </p>
+                              ) : null}
                               {this.renderModule(
                                 getUserInput,
                                 getRemoteData,
