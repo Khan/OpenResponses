@@ -10,6 +10,7 @@ const humanReadableFlowNames = {
   humanities_resistance: "Martin Luther King Jr. and Malcolm X",
   zoid_01: "Shape Areas",
   naacp_rhetoric: "The Civil Rights Movement in Context",
+  compare_napoleon: "Napoleon and the Absolutist Monarchs",
 };
 
 // TODO(andy): And this is an even hackier way to specify the final page, but it'll do for now.
