@@ -306,51 +306,73 @@ export default class ManagePage extends React.Component {
           className={css(styles.submissionRatesBar)}
           style={{ minWidth: reportSpec.length * (400 + 24) }}
         >
-          {modules(() => ({}), () => undefined).map((module, moduleIndex) => {
-            const totalUsers = this.countOfUsers(modules);
-            const reportRate = (currentCount, verb) => {
-              const delta = currentCount - lastCount;
-              const result = (
-                <p>
-                  {moduleIndex + 1}: {currentCount} / {totalUsers} ({Number.parseFloat(currentCount / totalUsers * 100).toFixed(0)}%){" "}
-                  {verb}
-                  {moduleIndex !== 0
-                    ? ` (−${Number.parseFloat(delta / lastCount * -100).toFixed(
-                        0,
-                      )}%)`
-                    : ""}
-                </p>
-              );
-              lastCount = currentCount;
-              return result;
-            };
-
-            let reviewCount = null;
-            if (
-              flow.needsReviewModuleID !== undefined &&
-              moduleIndex === flow.needsReviewModuleID
-            ) {
-              const reviewedUsers = this.countOfUsers(
-                modules,
-                lastModuleIndex,
-                true,
-              );
-              reviewCount = reportRate(reviewedUsers, "reviewed");
-            }
-            const usersPastPage = this.countOfUsers(
-              modules,
-              moduleIndex,
-              moduleIndex >= flow.needsReviewModuleID,
-            );
-            const moduleCount = reportRate(usersPastPage, "submitted");
-            lastModuleIndex = moduleIndex;
+          {reportSpec.map(spec => {
             return (
-              <div>
-                {reviewCount}
-                {moduleCount}
+              <div
+                style={{
+                  width: `${1 / reportSpec.length * 100}%`,
+                  minWidth: 400,
+                  display: "inline-block",
+                  margin: "0 12px",
+                  textAlign: "left",
+                }}
+              >
+                {(Array.isArray(spec) ? spec : [spec]).map(moduleIndex => {
+                  const totalUsers = this.countOfUsers(modules);
+                  const reportRate = (currentCount, verb) => {
+                    const delta = currentCount - lastCount;
+                    const result = (
+                      <p>
+                        {currentCount} / {totalUsers} ({Number.parseFloat(
+                          currentCount / totalUsers * 100,
+                        ).toFixed(0)}%){" students "}
+                        {verb}
+                        {` page ${moduleIndex + 1} `}
+                        {moduleIndex !== 0
+                          ? ` (−${Number.parseFloat(
+                              delta / lastCount * -100,
+                            ).toFixed(0)}%)`
+                          : ""}
+                      </p>
+                    );
+                    lastCount = currentCount;
+                    return result;
+                  };
+
+                  let reviewCount = null;
+                  if (
+                    flow.needsReviewModuleID !== undefined &&
+                    moduleIndex === flow.needsReviewModuleID
+                  ) {
+                    const reviewedUsers = this.countOfUsers(
+                      modules,
+                      lastModuleIndex,
+                      true,
+                    );
+                    reviewCount = reportRate(reviewedUsers, "reviewed");
+                  }
+                  const usersPastPage = this.countOfUsers(
+                    modules,
+                    moduleIndex,
+                    moduleIndex >= flow.needsReviewModuleID,
+                  );
+                  const moduleCount = reportRate(usersPastPage, "submitted");
+                  lastModuleIndex = moduleIndex;
+                  return (
+                    <div>
+                      {reviewCount}
+                      {moduleCount}
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
+
+          {modules(
+            () => ({}),
+            () => undefined,
+          ).map((module, moduleIndex) => {})}
         </div>
 
         {Object.keys(this.state.userData).map((userID, index) => {
@@ -561,7 +583,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     alignItems: "top",
     color: sharedStyles.colors.gray68,
-    display: "none",
+    display: "flex",
   },
 
   didNotReachNotice: {
