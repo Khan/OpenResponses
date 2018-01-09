@@ -1,6 +1,7 @@
 import React from "react";
 import Router from "next/router";
 import { default as KeyPather } from "keypather";
+import throttle from "lodash.throttle";
 const keypather = new KeyPather();
 
 import cohortName from "../lib/cohort";
@@ -198,18 +199,36 @@ export default class FlowPage extends React.Component {
     })().catch(reportError);
   };
 
+  throttledSaveToServer = throttle(
+    (index, newInputs) => {
+      const saveDataAsync = async () => {
+        this.iteration = (this.iteration || 0) + 1;
+        const currentIteration = this.iteration;
+        console.log("Saving iteration ", this.iteration);
+        return saveData(
+          this.getDatabaseVersion(),
+          this.getFlowID(),
+          getCohortFromURL(this.props.url),
+          this.state.userID,
+          index,
+          newInputs,
+        )
+          .then(() => {
+            console.log("Finished iteration ", currentIteration);
+          })
+          .catch(error => {
+            console.log("Error on iteration ", currentIteration, error);
+          });
+      };
+
+      saveDataAsync().catch(reportError);
+    },
+    1000,
+    { trailing: false, leading: true },
+  );
+
   onChange = (index, newInputs) => {
-    const saveToServer = async () => {
-      saveData(
-        this.getDatabaseVersion(),
-        this.getFlowID(),
-        getCohortFromURL(this.props.url),
-        this.state.userID,
-        index,
-        newInputs,
-      );
-    };
-    saveToServer().catch(reportError);
+    this.throttledSaveToServer(index, newInputs);
 
     let { inputs } = this.state;
     if (inputs.length < index) {
