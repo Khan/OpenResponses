@@ -10,6 +10,7 @@ import ModuleFlow from "../lib/components/modules/module-flow";
 import reportError from "../lib/error";
 import { signIn } from "../lib/auth";
 import {
+  setConnectivityHandler,
   loadData,
   saveData,
   commitData,
@@ -44,6 +45,7 @@ export default class FlowPage extends React.Component {
       maximumPageNumber: -1,
       currentPage: initialPage,
       inbox: {},
+      hasConnectivity: true,
     };
 
     this.dispatcher = (action, parameters) => {
@@ -157,6 +159,9 @@ export default class FlowPage extends React.Component {
   componentDidMount = () => {
     (async () => {
       await this.fetchInitialData();
+      const connectivitySubscriptionCancelFunction = setConnectivityHandler(
+        this.connectivityHandler,
+      );
       this.recordPageLoad(this.state.currentPage);
       const inboxSubscriptionCancelFunction = watchInbox(
         this.getFlowID(),
@@ -164,7 +169,10 @@ export default class FlowPage extends React.Component {
         this.state.userID,
         inbox => this.setState({ inbox }),
       );
-      this.setState({ inboxSubscriptionCancelFunction });
+      this.setState({
+        inboxSubscriptionCancelFunction,
+        connectivitySubscriptionCancelFunction,
+      });
     })().catch(reportError);
   };
 
@@ -174,6 +182,13 @@ export default class FlowPage extends React.Component {
 
     this.state.inboxSubscriptionCancelFunction &&
       this.state.inboxSubscriptionCancelFunction();
+
+    this.state.connectivitySubscriptionCancelFunction &&
+      this.state.connectivitySubscriptionCancelFunction();
+  };
+
+  connectivityHandler = newConnectivityValue => {
+    this.setState({ hasConnectivity: newConnectivityValue });
   };
 
   getFlowID = () => getFlowIDFromQuery(this.props.url.query);
@@ -357,6 +372,7 @@ export default class FlowPage extends React.Component {
         maximumPageNumber={this.state.maximumPageNumber}
         onPageChange={this.onPageChange}
         dispatcher={this.dispatcher}
+        hasConnectivity={this.state.hasConnectivity}
       >
         {modules}
       </ModuleFlow>
