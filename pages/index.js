@@ -46,6 +46,9 @@ export default class FlowPage extends React.Component {
       currentPage: initialPage,
       inbox: {},
       hasConnectivity: true,
+      pendingSaveRequestIDs: {},
+      nextSaveRequestID: 0,
+      saveRequestTimeoutTime: 0,
     };
 
     this.dispatcher = (action, parameters) => {
@@ -217,9 +220,13 @@ export default class FlowPage extends React.Component {
   throttledSaveToServer = throttle(
     (index, newInputs) => {
       const saveDataAsync = async () => {
-        this.iteration = (this.iteration || 0) + 1;
-        const currentIteration = this.iteration;
-        console.log("Saving iteration ", this.iteration);
+        const currentSaveRequestID = this.state.nextSaveRequestID;
+        this.state.pendingSaveRequestIDs[currentSaveRequestID] =
+          Date.now() + 1000;
+        this.setState({
+          nextSaveRequestID: currentSaveRequestID + 1,
+          pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
+        });
         return saveData(
           this.getDatabaseVersion(),
           this.getFlowID(),
@@ -229,12 +236,21 @@ export default class FlowPage extends React.Component {
           newInputs,
         )
           .then(() => {
-            console.log("Finished iteration ", currentIteration);
+            delete this.state.pendingSaveRequestIDs[currentSaveRequestID];
+            this.setState({
+              pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
+            });
           })
           .catch(error => {
-            console.log("Error on iteration ", currentIteration, error);
+            console.error("Error on iteration ", currentSaveRequestID, error);
           });
       };
+
+      setTimeout(() => {
+        this.setState({
+          saveRequestTimeoutTime: Date.now(),
+        });
+      }, 1100);
 
       saveDataAsync().catch(reportError);
     },
@@ -359,6 +375,13 @@ export default class FlowPage extends React.Component {
       );
     }
 
+    const isHighLatency = Object.keys(this.state.pendingSaveRequestIDs).find(
+      saveRequestID =>
+        this.state.pendingSaveRequestIDs[saveRequestID] < Date.now(),
+    )
+      ? true
+      : false;
+
     const modules = flow.modules || flow;
     return (
       <ModuleFlow
@@ -372,7 +395,7 @@ export default class FlowPage extends React.Component {
         maximumPageNumber={this.state.maximumPageNumber}
         onPageChange={this.onPageChange}
         dispatcher={this.dispatcher}
-        hasConnectivity={this.state.hasConnectivity}
+        hasConnectivity={this.state.hasConnectivity && !isHighLatency}
       >
         {modules}
       </ModuleFlow>
