@@ -204,7 +204,7 @@ export default class FlowPage extends React.Component {
   setUserState = newUserState => {
     this.setState({ userState: { ...this.state.userState, ...newUserState } });
 
-    (async () => {
+    return (async () => {
       const latestUserState = await saveUserState(
         this.getFlowID(),
         getCohortFromURL(this.props.url),
@@ -275,21 +275,44 @@ export default class FlowPage extends React.Component {
   };
 
   recordPageLoad = newPageIndex => {
-    if (newPageIndex > (this.state.userState.furthestPageLoaded || -1)) {
+    const commitSaveRequestString = `commit${newPageIndex}`;
+    if (
+      newPageIndex > (this.state.userState.furthestPageLoaded || -1) &&
+      !this.state.pendingSaveRequestIDs[commitSaveRequestString]
+    ) {
       if (newPageIndex > 0) {
-        commitData(
+        this.state.pendingSaveRequestIDs[commitSaveRequestString] =
+          Date.now() + 750;
+        setTimeout(() => {
+          this.setState({
+            saveRequestTimeoutTime: Date.now(),
+          });
+        }, 800);
+
+        return commitData(
           this.getDatabaseVersion(),
           this.getFlowID(),
           getCohortFromURL(this.props.url),
           this.state.userID,
           newPageIndex - 1,
           this.state.inputs[newPageIndex - 1],
-        );
+        ).then(() => {
+          this.setUserState({
+            furthestPageLoaded: newPageIndex,
+          }).then(() => {
+            delete this.state.pendingSaveRequestIDs[commitSaveRequestString];
+            this.setState({
+              pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
+            });
+          });
+        });
+      } else {
+        this.setUserState({
+          furthestPageLoaded: newPageIndex,
+        });
       }
-      this.setUserState({
-        furthestPageLoaded: newPageIndex,
-      });
     }
+    return Promise.resolve(null);
   };
 
   setCurrentPage = newPageIndex => {
@@ -302,8 +325,9 @@ export default class FlowPage extends React.Component {
   };
 
   onPageChange = newPageIndex => {
-    this.recordPageLoad(newPageIndex);
-    this.setCurrentPage(newPageIndex);
+    this.recordPageLoad(newPageIndex).then(() => {
+      this.setCurrentPage(newPageIndex);
+    });
   };
 
   onSubmitEmail = email => {
