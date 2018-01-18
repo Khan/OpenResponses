@@ -31,6 +31,7 @@ export default class AphroditeDocument extends Document {
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
           <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
           <style>
             {`
               html, body {
