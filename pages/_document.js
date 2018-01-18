@@ -31,12 +31,14 @@ export default class AphroditeDocument extends Document {
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
           <meta name="mobile-web-app-capable" content="yes" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+          />
           <style>
             {`
               html, body {
                 margin: 0;
-                height: 100%;
               }
               * {
                 font-family: Proxima Nova, Helvetica, sans-serif;
