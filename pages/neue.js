@@ -5,6 +5,7 @@ import Router from "next/router";
 import { signIn } from "../lib/auth";
 import PageContainer from "../lib/components/neue/page-container";
 import Prompt from "../lib/components/neue/prompt";
+import ResponseCard from "../lib/components/neue/response-card";
 
 type State = {
   ready: boolean,
@@ -33,6 +34,8 @@ export default class NeueFlowPage extends React.Component {
           
 bat baz quux bar baz bat baz quux`}
         />
+        <p />
+        <ResponseCard studentName="Your Response" />
       </PageContainer>
     );
   };

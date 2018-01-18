@@ -22,26 +22,25 @@ export default class AphroditeDocument extends Document {
             src="https://cdn.ravenjs.com/3.15.0/raven.min.js"
             crossorigin="anonymous"
           />
-          {shouldEnableRaven
-            ? <script
-                dangerouslySetInnerHTML={{
-                  __html: `Raven.config("${sentryDSN}").install(); window.onunhandledrejection = function(evt) { Raven.captureException(evt.reason); };`,
-                }}
-              />
-            : null}
+          {shouldEnableRaven ? (
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `Raven.config("${sentryDSN}").install(); window.onunhandledrejection = function(evt) { Raven.captureException(evt.reason); };`,
+              }}
+            />
+          ) : null}
           <style dangerouslySetInnerHTML={{ __html: this.props.css.content }} />
           <meta name="mobile-web-app-capable" content="yes" />
           <style>
-            {
-              `
-              body {
+            {`
+              html, body {
                 margin: 0;
+                height: 100%;
               }
               * {
                 font-family: Proxima Nova, Helvetica, sans-serif;
               }
-              `
-            }
+              `}
           </style>
         </Head>
         <body>
