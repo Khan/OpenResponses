@@ -4,6 +4,7 @@ import React, { Fragment } from "react";
 import Router from "next/router";
 import { resetKeyGenerator } from "slate";
 
+import CardWorkspace from "../lib/components/neue/card-workspace";
 import PageContainer from "../lib/components/neue/page-container";
 import Prompt from "../lib/components/neue/prompt";
 import ResponseCard from "../lib/components/neue/response-card";
@@ -65,108 +66,92 @@ export default class NeueFlowPage extends React.Component {
     switch (this.state.stage) {
       case "compose":
         contents = (
-          <ResponseCard
-            studentName="Your Response"
-            data={this.state.responseData}
-            onChange={newData => this.setState({ responseData: newData })}
-            onSubmit={this.onSubmit}
-            submitTitle="Share with Class"
+          <CardWorkspace
+            submittedCards={[]}
+            pendingCards={[
+              {
+                studentName: "You",
+                data: this.state.responseData,
+              },
+            ]}
+            openPendingCard={0}
+            submitButtonTitle="Share with Class"
+            onOpenPendingCard={() => {}}
+            onChangePendingCardData={newData =>
+              this.setState({ responseData: newData })}
+            onSubmitPendingCard={this.onSubmit}
           />
         );
         break;
       case "engage":
         contents = (
-          <Fragment>
-            <ResponseCard studentName="Anna Applebaum" />
-            {Array(3)
+          <CardWorkspace
+            submittedCards={[
+              {
+                studentName: "Another Student",
+              },
+            ]}
+            pendingCards={Array(3)
               .fill(null)
-              .map((el, idx) => (
-                <div
-                  style={{
-                    position:
-                      this.state.activeResponseCard === idx
-                        ? "relative"
-                        : "fixed",
-                    bottom:
-                      this.state.activeResponseCard !== null ? 3 * -60 : 0,
-                    width: "100%",
-                    height: 0,
-                  }}
-                  key={idx}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: (3 - idx) * -60,
-                      width: "100%",
-                    }}
-                  >
-                    <ResponseCard
-                      studentName="You"
-                      data={this.state.engagementData}
-                      onChange={newData =>
-                        this.setState({ engagementData: newData })}
-                      onSubmit={this.onSubmit}
-                      onFocus={() => this.onFocusResponseCard(idx)}
-                      submitTitle="Share Reply"
-                    />
-                  </div>
-                </div>
-              ))}
-          </Fragment>
+              .map((el, idx) => ({
+                studentName: "You",
+                data: this.state.engagementData,
+              }))}
+            openPendingCard={this.state.activeResponseCard}
+            submitButtonTitle="Share with Class"
+            onOpenPendingCard={pendingCardIndex =>
+              this.onFocusResponseCard(pendingCardIndex)}
+            onChangePendingCardData={newData =>
+              this.setState({ engagementData: newData })}
+            onSubmitPendingCard={this.onSubmit}
+          />
         );
         break;
       case "reflect":
         contents = (
-          <Fragment>
-            <ResponseCard
-              studentName="Your Response"
-              data={this.state.responseData}
-            />
-            {Array(3)
+          <CardWorkspace
+            submittedCards={[
+              {
+                studentName: "You",
+                data: this.state.responseData,
+              },
+            ]}
+            pendingCards={Array(3)
               .fill(null)
-              .map((el, idx) => (
-                <div
-                  style={{
-                    position:
-                      this.state.activeResponseCard === idx
-                        ? "relative"
-                        : "fixed",
-                    bottom:
-                      this.state.activeResponseCard !== null ? 3 * -60 : 0,
-                    width: "100%",
-                    height: 0,
-                  }}
-                  key={idx}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: (3 - idx) * -60,
-                      width: "100%",
-                    }}
-                  >
-                    <ResponseCard
-                      studentName="You"
-                      data={this.state.reflectionData}
-                      onChange={newData =>
-                        this.setState({ reflectionData: newData })}
-                      onSubmit={this.onSubmit}
-                      onFocus={() => this.onFocusResponseCard(idx)}
-                      submitTitle="Submit Reflection"
-                    />
-                  </div>
-                </div>
-              ))}
-          </Fragment>
+              .map((el, idx) => ({
+                studentName: "You",
+                data: this.state.reflectionData,
+              }))}
+            openPendingCard={this.state.activeResponseCard}
+            submitButtonTitle="Submit Reflection"
+            onOpenPendingCard={pendingCardIndex =>
+              this.onFocusResponseCard(pendingCardIndex)}
+            onChangePendingCardData={newData =>
+              this.setState({ reflectionData: newData })}
+            onSubmitPendingCard={this.onSubmit}
+          />
         );
         break;
       case "conclusion":
         contents = (
-          <Fragment>
-            <ResponseCard studentName="You" data={this.state.responseData} />
-            <ResponseCard studentName="You" data={this.state.reflectionData} />
-          </Fragment>
+          <CardWorkspace
+            submittedCards={[
+              {
+                studentName: "You",
+                data: this.state.responseData,
+              },
+              {
+                studentName: "You",
+                data: this.state.reflectionData,
+              },
+            ]}
+            pendingCards={[]}
+            openPendingCard={null}
+            submitButtonTitle=""
+            onOpenPendingCard={() => {}}
+            onChangePendingCardData={() => {}}
+            onSubmitPendingCard={() => {}}
+          />
         );
         break;
     }
