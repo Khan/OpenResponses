@@ -42,6 +42,13 @@ export default class NeueFlowPage extends React.Component {
           stage: "reflect",
           activeResponseCard: null,
         });
+        break;
+      case "reflect":
+        this.setState({
+          stage: "conclusion",
+          activeResponseCard: null,
+        });
+        break;
     }
   };
 
@@ -95,13 +102,10 @@ export default class NeueFlowPage extends React.Component {
                     }}
                   >
                     <ResponseCard
-                      studentName="Your Response"
-                      data={this.state.data && this.state.data[idx]}
-                      onChange={newData => {
-                        const dataCopy = [...(this.state.data || [])];
-                        dataCopy[idx] = newData;
-                        this.setState({ data: dataCopy });
-                      }}
+                      studentName="You"
+                      data={this.state.engagementData}
+                      onChange={newData =>
+                        this.setState({ engagementData: newData })}
                       onSubmit={this.onSubmit}
                       onFocus={() => this.onFocusResponseCard(idx)}
                       submitTitle="Share Reply"
@@ -143,13 +147,10 @@ export default class NeueFlowPage extends React.Component {
                     }}
                   >
                     <ResponseCard
-                      studentName="Your Response"
-                      data={this.state.data && this.state.data[idx]}
-                      onChange={newData => {
-                        const dataCopy = [...(this.state.data || [])];
-                        dataCopy[idx] = newData;
-                        this.setState({ data: dataCopy });
-                      }}
+                      studentName="You"
+                      data={this.state.reflectionData}
+                      onChange={newData =>
+                        this.setState({ reflectionData: newData })}
                       onSubmit={this.onSubmit}
                       onFocus={() => this.onFocusResponseCard(idx)}
                       submitTitle="Submit Reflection"
@@ -157,6 +158,14 @@ export default class NeueFlowPage extends React.Component {
                   </div>
                 </div>
               ))}
+          </Fragment>
+        );
+        break;
+      case "conclusion":
+        contents = (
+          <Fragment>
+            <ResponseCard studentName="You" data={this.state.responseData} />
+            <ResponseCard studentName="You" data={this.state.reflectionData} />
           </Fragment>
         );
         break;
