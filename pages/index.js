@@ -1,7 +1,8 @@
 import React from "react";
 import Router from "next/router";
-import { default as KeyPather } from "keypather";
+import { resetKeyGenerator } from "slate";
 import throttle from "lodash.throttle";
+import { default as KeyPather } from "keypather";
 const keypather = new KeyPather();
 
 import cohortName from "../lib/cohort";
@@ -160,6 +161,8 @@ export default class FlowPage extends React.Component {
   };
 
   componentDidMount = () => {
+    resetKeyGenerator();
+
     (async () => {
       await this.fetchInitialData();
       const connectivitySubscriptionCancelFunction = setConnectivityHandler(

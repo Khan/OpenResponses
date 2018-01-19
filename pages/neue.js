@@ -12,6 +12,7 @@ import { signIn } from "../lib/auth";
 
 type State = {
   stage: "compose" | "engage" | "reflect" | "conclusion",
+  activeResponseCard: ?number,
 };
 
 type Props = {};
@@ -24,9 +25,29 @@ export default class NeueFlowPage extends React.Component {
     super(props);
 
     this.state = {
-      stage: "engage",
+      stage: "compose",
+      activeResponseCard: null,
     };
   }
+
+  onSubmit = () => {
+    switch (this.state.stage) {
+      case "compose":
+        this.setState({
+          stage: "engage",
+        });
+        break;
+      case "engage":
+        this.setState({
+          stage: "reflect",
+          activeResponseCard: null,
+        });
+    }
+  };
+
+  onFocusResponseCard = (responseCardIndex: number) => {
+    this.setState({ activeResponseCard: responseCardIndex });
+  };
 
   componentWillMount = () => {
     resetKeyGenerator();
@@ -36,24 +57,105 @@ export default class NeueFlowPage extends React.Component {
     let contents;
     switch (this.state.stage) {
       case "compose":
-        contents = <ResponseCard studentName="Your Response" />;
+        contents = (
+          <ResponseCard
+            studentName="Your Response"
+            data={this.state.responseData}
+            onChange={newData => this.setState({ responseData: newData })}
+            onSubmit={this.onSubmit}
+            submitTitle="Share with Class"
+          />
+        );
         break;
       case "engage":
         contents = (
           <Fragment>
+            <ResponseCard studentName="Anna Applebaum" />
             {Array(3)
               .fill(null)
               .map((el, idx) => (
-                <ResponseCard
-                  key={idx}
-                  studentName="Your Response"
-                  data={this.state.data && this.state.data[idx]}
-                  onChange={newData => {
-                    const dataCopy = [...(this.state.data || [])];
-                    dataCopy[idx] = newData;
-                    this.setState({ data: dataCopy });
+                <div
+                  style={{
+                    position:
+                      this.state.activeResponseCard === idx
+                        ? "relative"
+                        : "fixed",
+                    bottom:
+                      this.state.activeResponseCard !== null ? 3 * -60 : 0,
+                    width: "100%",
+                    height: 0,
                   }}
-                />
+                  key={idx}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: (3 - idx) * -60,
+                      width: "100%",
+                    }}
+                  >
+                    <ResponseCard
+                      studentName="Your Response"
+                      data={this.state.data && this.state.data[idx]}
+                      onChange={newData => {
+                        const dataCopy = [...(this.state.data || [])];
+                        dataCopy[idx] = newData;
+                        this.setState({ data: dataCopy });
+                      }}
+                      onSubmit={this.onSubmit}
+                      onFocus={() => this.onFocusResponseCard(idx)}
+                      submitTitle="Share Reply"
+                    />
+                  </div>
+                </div>
+              ))}
+          </Fragment>
+        );
+        break;
+      case "reflect":
+        contents = (
+          <Fragment>
+            <ResponseCard
+              studentName="Your Response"
+              data={this.state.responseData}
+            />
+            {Array(3)
+              .fill(null)
+              .map((el, idx) => (
+                <div
+                  style={{
+                    position:
+                      this.state.activeResponseCard === idx
+                        ? "relative"
+                        : "fixed",
+                    bottom:
+                      this.state.activeResponseCard !== null ? 3 * -60 : 0,
+                    width: "100%",
+                    height: 0,
+                  }}
+                  key={idx}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: (3 - idx) * -60,
+                      width: "100%",
+                    }}
+                  >
+                    <ResponseCard
+                      studentName="Your Response"
+                      data={this.state.data && this.state.data[idx]}
+                      onChange={newData => {
+                        const dataCopy = [...(this.state.data || [])];
+                        dataCopy[idx] = newData;
+                        this.setState({ data: dataCopy });
+                      }}
+                      onSubmit={this.onSubmit}
+                      onFocus={() => this.onFocusResponseCard(idx)}
+                      submitTitle="Submit Reflection"
+                    />
+                  </div>
+                </div>
               ))}
           </Fragment>
         );
