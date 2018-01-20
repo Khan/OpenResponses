@@ -35,6 +35,7 @@ const getFlowIDFromURL = url => {
 };
 
 const databaseVersion = 2;
+const numberOfEngagementPages = 1;
 
 type State = {
   currentPage: number,
@@ -213,7 +214,10 @@ export default class NeueFlowPage extends React.Component {
       extractResponse: inputs => inputs[0].pendingCardData,
       revieweePageNumberRequirement: 0,
       sortReviewees: () => 0,
-      findReviewees: ({ inputs, userState }, fetcher) => [fetcher(() => true)],
+      findReviewees: ({ inputs, userState }, fetcher) =>
+        Array(numberOfEngagementPages)
+          .fill(null)
+          .map(() => fetcher(() => true)),
       flowName: getFlowIDFromURL(this.props.url),
     }).fetcher;
     const fetcherResponse = await revieweeFetcher(
@@ -345,7 +349,6 @@ export default class NeueFlowPage extends React.Component {
 
   render = () => {
     const nameForYou = "You";
-    const numberOfEngagementPages = 1;
 
     const currentPage = this.state.currentPage;
     let stage;
