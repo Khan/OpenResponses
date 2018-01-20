@@ -12,6 +12,7 @@ import PageContainer from "../lib/components/neue/page-container";
 import Prompt from "../lib/components/neue/prompt";
 import reportError from "../lib/error";
 import ResponseCard from "../lib/components/neue/response-card";
+import findReviewees from "../lib/flows/utilities/reviewee-requirement";
 import sharedStyles from "../lib/styles";
 import { signIn } from "../lib/auth";
 import {
@@ -23,6 +24,7 @@ import {
   loadManagementData,
   watchInbox,
 } from "../lib/db";
+import { initializeApp } from "firebase";
 
 const getClassCodeFromURL = url => {
   return url.query.classCode;
@@ -142,18 +144,20 @@ export default class NeueFlowPage extends React.Component {
       },
     );
 
+    const initialPage =
+      (userState &&
+        userState.furthestPageLoaded &&
+        Number.parseInt(userState.furthestPageLoaded)) ||
+      0;
     this.setState({
-      currentPage:
-        (userState &&
-          userState.furthestPageLoaded &&
-          Number.parseInt(userState.furthestPageLoaded)) ||
-        0,
+      currentPage: initialPage,
       ready: true,
       inputs: inputs || [],
       userState: userState || {},
       userID: activeUserID,
       managementSubscriptionCancelFunction,
     });
+    await this.updateReviewees(initialPage);
 
     let baseUserState = {};
     if (this.props.url.query.fallbackUser) {
@@ -203,6 +207,34 @@ export default class NeueFlowPage extends React.Component {
     { trailing: false, leading: true },
   );
 
+  updateReviewees = async (currentPage: number) => {
+    const revieweeFetcher = findReviewees({
+      matchAtPageNumber: 1,
+      extractResponse: inputs => inputs[0].pendingCardData,
+      revieweePageNumberRequirement: 0,
+      sortReviewees: () => 0,
+      findReviewees: ({ inputs, userState }, fetcher) => [fetcher(() => true)],
+      flowName: getFlowIDFromURL(this.props.url),
+    }).fetcher;
+    const fetcherResponse = await revieweeFetcher(
+      [currentPage, [], undefined],
+      this.state.userID,
+      getClassCodeFromURL(this.props.url),
+      { inputs: this.state.inputs, userState: this.state.userState },
+      false,
+    );
+    if (fetcherResponse) {
+      const remoteData = fetcherResponse.remoteData || fetcherResponse;
+      const newUserState = fetcherResponse.newUserState;
+      this.setState({
+        reviewees: remoteData.responses,
+      });
+      if (newUserState) {
+        await this.setUserState(newUserState);
+      }
+    }
+  };
+
   recordPageLoad = async (newPageIndex: number) => {
     const commitSaveRequestString = `commit${newPageIndex}`;
     if (
@@ -219,7 +251,7 @@ export default class NeueFlowPage extends React.Component {
         }, 800);
 
         await commitData(
-          2,
+          databaseVersion,
           getFlowIDFromURL(this.props.url),
           getClassCodeFromURL(this.props.url),
           this.state.userID,
@@ -230,6 +262,7 @@ export default class NeueFlowPage extends React.Component {
           furthestPageLoaded: newPageIndex,
         });
 
+        await this.updateReviewees(newPageIndex);
         delete this.state.pendingSaveRequestIDs[commitSaveRequestString];
         this.setState({
           pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
@@ -348,7 +381,8 @@ export default class NeueFlowPage extends React.Component {
           submittedCards: [
             {
               studentName: "Another Student",
-              // TODO: Actually load from DB.
+              data:
+                this.state.reviewees && this.state.reviewees[currentPage - 1],
             },
           ],
           pendingCards: Array(3)
