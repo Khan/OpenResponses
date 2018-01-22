@@ -36,6 +36,9 @@ const getFlowIDFromURL = url => {
 
 const databaseVersion = 2;
 const numberOfEngagementPages = 1;
+const nameForYou = "You"; // TODO: Needs to be student name.
+
+type Stage = "compose" | "engage" | "reflect" | "conclusion";
 
 type State = {
   currentPage: number,
@@ -90,6 +93,19 @@ export default class NeueFlowPage extends React.Component {
       connectivitySubscriptionCancelFunction: null,
     };
   }
+
+  getCurrentStage = (): Stage => {
+    const currentPage = this.state.currentPage;
+    if (currentPage === 0) {
+      return "compose";
+    } else if (currentPage < numberOfEngagementPages + 1) {
+      return "engage";
+    } else if (currentPage === numberOfEngagementPages + 1) {
+      return "reflect";
+    } else {
+      return "conclusion";
+    }
+  };
 
   onSubmit = () => {
     (async () => {
@@ -280,6 +296,11 @@ export default class NeueFlowPage extends React.Component {
   };
 
   onChange = (index: number, newInputs: Object) => {
+    let effectiveNewInputs = newInputs;
+    if (this.getCurrentStage() === "engage") {
+      // This is really quite a hack to cause the server-side feedback exchange machinery (built for the previous flow architecture) to send this work to the reviewee.
+      effectiveNewInputs.feedback = true;
+    }
     this.throttledSaveToServer(index, newInputs);
 
     let { inputs } = this.state;
@@ -347,20 +368,38 @@ export default class NeueFlowPage extends React.Component {
       this.state.connectivitySubscriptionCancelFunction();
   };
 
-  render = () => {
-    const nameForYou = "You";
+  getReflectionSubmittedCards = () => {
+    const { inbox } = this.state;
+    const sortedKeys = Object.keys(inbox).sort();
+    const messages = sortedKeys
+      .reduce((accumulator, key) => {
+        const message = inbox[key];
+        return [...accumulator, message];
+      }, [])
+      .map(message => ({
+        studentName: "Another Student", // TODO: Will need to grab student name, too (will have to modify cloud function to do that)
+        data: message.submitted[message.fromModuleID].pendingCardData,
+      }));
 
-    const currentPage = this.state.currentPage;
-    let stage;
-    if (currentPage === 0) {
-      stage = "compose";
-    } else if (currentPage < numberOfEngagementPages + 1) {
-      stage = "engage";
-    } else if (currentPage === numberOfEngagementPages + 1) {
-      stage = "reflect";
-    } else {
-      stage = "conclusion";
+    const output = [
+      {
+        studentName: nameForYou,
+        data: this.state.inputs[0].pendingCardData,
+      },
+      ...messages,
+    ];
+    if (this.getCurrentStage() === "conclusion") {
+      output.push({
+        studentName: nameForYou,
+        data: this.state.inputs[this.state.currentPage - 1].pendingCardData,
+      });
     }
+    return output;
+  };
+
+  render = () => {
+    const { currentPage } = this.state;
+    const stage = this.getCurrentStage();
 
     const currentInputs = this.state.inputs[currentPage] || {};
     const pendingCardData = currentInputs.pendingCardData;
@@ -399,12 +438,7 @@ export default class NeueFlowPage extends React.Component {
         break;
       case "reflect":
         workspaceContents = {
-          submittedCards: [
-            {
-              studentName: nameForYou,
-              data: this.state.inputs[0].pendingCardData,
-            },
-          ],
+          submittedCards: this.getReflectionSubmittedCards(),
           pendingCards: Array(3)
             .fill(null)
             .map((el, idx) => ({
@@ -416,16 +450,7 @@ export default class NeueFlowPage extends React.Component {
         break;
       case "conclusion":
         workspaceContents = {
-          submittedCards: [
-            {
-              studentName: nameForYou,
-              data: this.state.inputs[0].pendingCardData,
-            },
-            {
-              studentName: nameForYou,
-              data: this.state.inputs[currentPage - 1].pendingCardData,
-            },
-          ],
+          submittedCards: this.getReflectionSubmittedCards(),
           pendingCards: [],
           submitButtonTitle: "Submit Reflection",
         };
