@@ -369,31 +369,34 @@ export default class NeueFlowPage extends React.Component {
   };
 
   getReflectionSubmittedCards = () => {
-    const { inbox } = this.state;
+    const inbox = this.state.inbox || {};
     const sortedKeys = Object.keys(inbox).sort();
     const messages = sortedKeys
       .reduce((accumulator, key) => {
         const message = inbox[key];
         return [...accumulator, message];
       }, [])
-      .map(message => ({
+      .map((message, idx) => ({
         studentName: "Another Student", // TODO: Will need to grab student name, too (will have to modify cloud function to do that)
         data: message.submitted[message.fromModuleID].pendingCardData,
+        key: `reflectionFeedback${idx}`,
       }));
 
     const output = [
       {
         studentName: nameForYou,
         data: this.state.inputs[0].pendingCardData,
+        key: "reflectionBasis",
       },
       ...messages,
     ];
-    if (this.getCurrentStage() === "conclusion") {
-      output.push({
-        studentName: nameForYou,
-        data: this.state.inputs[this.state.currentPage - 1].pendingCardData,
-      });
-    }
+    // if (this.getCurrentStage() === "conclusion") {
+    //   output.push({
+    //     studentName: nameForYou,
+    //     data: this.state.inputs[this.state.currentPage - 1].pendingCardData,
+    //     key: "reflection",
+    //   });
+    // }
     return output;
   };
 
@@ -412,6 +415,7 @@ export default class NeueFlowPage extends React.Component {
             {
               studentName: nameForYou,
               data: pendingCardData,
+              key: "compose",
             },
           ],
           openPendingCard: 0,
@@ -425,34 +429,55 @@ export default class NeueFlowPage extends React.Component {
               studentName: "Another Student",
               data:
                 this.state.reviewees && this.state.reviewees[currentPage - 1],
+              key: `engage${currentPage}Peer`,
             },
           ],
-          pendingCards: Array(3)
-            .fill(null)
-            .map((el, idx) => ({
-              studentName: nameForYou,
-              data: pendingCardData,
-            })),
+          pendingCards: [
+            "I'm confused by…",
+            "I'd be convinced if…",
+            "I disagree because…",
+          ].map((el, idx) => ({
+            studentName: nameForYou,
+            data: pendingCardData,
+            key: `engage${currentPage}Response${idx}`,
+            placeholder: el,
+          })),
           submitButtonTitle: "Share Reply",
         };
         break;
       case "reflect":
         workspaceContents = {
           submittedCards: this.getReflectionSubmittedCards(),
-          pendingCards: Array(3)
-            .fill(null)
-            .map((el, idx) => ({
-              studentName: nameForYou,
-              data: pendingCardData,
-            })),
+          pendingCards: [
+            "I learned that…",
+            "Before, I'd assumed that…",
+            "Now I want to know…",
+          ].map((el, idx) => ({
+            studentName: nameForYou,
+            data: pendingCardData,
+            key: `reflect${currentPage}Response${idx}`,
+            placeholder: el,
+          })),
           submitButtonTitle: "Submit Reflection",
         };
         break;
       case "conclusion":
         workspaceContents = {
           submittedCards: this.getReflectionSubmittedCards(),
-          pendingCards: [],
+          pendingCards: [
+            "I learned that…",
+            "Before, I'd assumed that…",
+            "Now I want to know…",
+          ].map((el, idx) => ({
+            studentName: nameForYou,
+            data: this.state.inputs[currentPage - 1].pendingCardData,
+            key: `reflect${currentPage - 1}Response${idx}`,
+            placeholder: el,
+          })),
           submitButtonTitle: "Submit Reflection",
+          onSubmitPendingCard: null,
+          openPendingCard: this.state.inputs[currentPage - 1]
+            .openPendingCardIndex,
         };
         break;
     }
@@ -484,10 +509,8 @@ export default class NeueFlowPage extends React.Component {
         </Head>
         <PageContainer>
           <Prompt
-            title="Testing testing 1 2 3"
-            prompt={`Foo bar baz bat baz quux bar baz _Foo bar baz bat baz quux bar_ baz Foo bar baz bat baz quux bar baz Foo bar baz bat baz quux bar baz Foo bar baz bat baz quux bar baz
-          
-bat baz quux bar baz bat baz quux`}
+            title="Jesus and the Founding of Christianity"
+            prompt={`Do you think Jesus intended to create a new religion, or merely reform Judaism? Use 2 pieces of evidence to back up your claim.`}
           />
           <p />
           {workspace}
