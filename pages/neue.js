@@ -384,7 +384,8 @@ export default class NeueFlowPage extends React.Component {
         return [...accumulator, message];
       }, [])
       .map((message, idx) => ({
-        studentName: "Another Student", // TODO: Will need to grab student name, too (will have to modify cloud function to do that)
+        studentName: message.profile.name,
+        avatar: message.profile.avatar,
         data: message.submitted[message.fromModuleID].pendingCardData,
         key: `reflectionFeedback${idx}`,
       }));
@@ -392,6 +393,7 @@ export default class NeueFlowPage extends React.Component {
     const output = [
       {
         studentName: nameForYou,
+        avatar: this.state.userState.profile.avatar,
         data: this.state.inputs[0].pendingCardData,
         key: "reflectionBasis",
       },
@@ -449,6 +451,7 @@ export default class NeueFlowPage extends React.Component {
           pendingCards: [
             {
               studentName: nameForYou,
+              avatar: this.state.userState.profile.avatar,
               data: pendingCardData,
               key: "compose",
             },
@@ -458,12 +461,14 @@ export default class NeueFlowPage extends React.Component {
         };
         break;
       case "engage":
+        const reviewee =
+          this.state.reviewees && this.state.reviewees[currentPage - 1];
         workspaceContents = {
           submittedCards: [
             {
-              studentName: "Another Student",
-              data:
-                this.state.reviewees && this.state.reviewees[currentPage - 1],
+              studentName: reviewee && reviewee._profile.name,
+              avatar: reviewee && reviewee._profile.avatar,
+              data: reviewee,
               key: `engage${currentPage}Peer`,
             },
           ],
@@ -473,6 +478,7 @@ export default class NeueFlowPage extends React.Component {
             "I disagree because…",
           ].map((el, idx) => ({
             studentName: nameForYou,
+            avatar: this.state.userState.profile.avatar,
             data: pendingCardData,
             key: `engage${currentPage}Response${idx}`,
             placeholder: el,
@@ -489,6 +495,7 @@ export default class NeueFlowPage extends React.Component {
             "Now I want to know…",
           ].map((el, idx) => ({
             studentName: nameForYou,
+            avatar: this.state.userState.profile.avatar,
             data: pendingCardData,
             key: `reflect${currentPage}Response${idx}`,
             placeholder: el,
@@ -505,6 +512,7 @@ export default class NeueFlowPage extends React.Component {
             "Now I want to know…",
           ].map((el, idx) => ({
             studentName: nameForYou,
+            avatar: this.state.userState.profile.avatar,
             data: this.state.inputs[currentPage - 1].pendingCardData,
             key: `reflect${currentPage - 1}Response${idx}`,
             placeholder: el,

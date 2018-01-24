@@ -278,6 +278,7 @@ exports.transferFeedback = functions.database
                 .child("inbox")
                 .push({
                   feedback: event.data.val(),
+                  profile: otherStudentUserState.profile,
                   submitted: submittedValues,
                   time: admin.database.ServerValue.TIMESTAMP,
                   fromUserID: event.params.userID,
