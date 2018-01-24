@@ -41,7 +41,7 @@ export default class AphroditeDocument extends Document {
                 margin: 0;
               }
               * {
-                font-family: Proxima Nova, Helvetica, sans-serif;
+                // font-family: Proxima Nova, Helvetica, sans-serif;
               }
               `}
           </style>
