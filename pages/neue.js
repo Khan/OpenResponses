@@ -554,6 +554,11 @@ export default class NeueFlowPage extends React.Component {
           <Prompt
             title={title}
             prompt={`Do you think Jesus intended to create a new religion, or merely reform Judaism? Use 2 pieces of evidence to back up your claim.`}
+            stimuli={[
+              {
+                imageURL: "/static/compare_napoleon/napoleon.jpg",
+              },
+            ]}
           />
           <p />
           {workspace}
