@@ -8,15 +8,14 @@
     "deploy": "node_modules/.bin/now",
     "precommit": "lint-staged",
     "prepackage-functions": "rimraf dist-functions",
-    "package-functions": "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
+    "package-functions":
+      "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
     "postpackage-functions": "cd dist-functions && yarn",
-    "deploy-functions": "yarn run package-functions && firebase deploy --only functions"
+    "deploy-functions":
+      "yarn run package-functions && firebase deploy --only functions"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --write --trailing-comma all",
-      "git add"
-    ]
+    "*.js": ["prettier --write --trailing-comma all", "git add"]
   },
   "dependencies": {
     "@types/aphrodite": "^0.5.5",
