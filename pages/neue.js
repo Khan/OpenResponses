@@ -8,12 +8,13 @@ import { default as KeyPather } from "keypather";
 const keypather = new KeyPather();
 
 import CardWorkspace from "../lib/components/neue/card-workspace";
+import findReviewees from "../lib/flows/utilities/reviewee-requirement";
 import PageContainer from "../lib/components/neue/page-container";
 import Prompt from "../lib/components/neue/prompt";
 import reportError from "../lib/error";
 import ResponseCard from "../lib/components/neue/response-card";
-import findReviewees from "../lib/flows/utilities/reviewee-requirement";
 import sharedStyles from "../lib/styles";
+import Welcome from "../lib/components/neue/welcome";
 import { signIn } from "../lib/auth";
 import {
   setConnectivityHandler,
@@ -37,6 +38,8 @@ const getFlowIDFromURL = url => {
 const databaseVersion = 2;
 const numberOfEngagementPages = 1;
 const nameForYou = "You"; // TODO: Needs to be student name.
+
+const title = "Jesus and the Founding of Christianity"; // TODO: Extract
 
 type Stage = "compose" | "engage" | "reflect" | "conclusion";
 
@@ -105,6 +108,10 @@ export default class NeueFlowPage extends React.Component {
     } else {
       return "conclusion";
     }
+  };
+
+  onSubmitWelcome = (email: string, name: string, avatar: string) => {
+    this.setUserState({ email, profile: { name, avatar } });
   };
 
   onSubmit = () => {
@@ -401,6 +408,34 @@ export default class NeueFlowPage extends React.Component {
   };
 
   render = () => {
+    if (!this.state.ready) {
+      // TODO(andy): Implement loading page.
+      return null;
+    }
+
+    if (!this.state.userState.email) {
+      return (
+        <Fragment>
+          <Head>
+            <style>
+              {`
+          body {
+            background-color: ${sharedStyles.colors.gray90};
+          }
+        `}
+            </style>
+          </Head>
+          <PageContainer>
+            <Welcome
+              onSubmit={this.onSubmitWelcome}
+              collectEmail
+              title={title}
+            />
+          </PageContainer>
+        </Fragment>
+      );
+    }
+
     const { currentPage } = this.state;
     const stage = this.getCurrentStage();
 
@@ -497,7 +532,7 @@ export default class NeueFlowPage extends React.Component {
     );
 
     return (
-      <div>
+      <Fragment>
         <Head>
           <style>
             {`
@@ -509,13 +544,13 @@ export default class NeueFlowPage extends React.Component {
         </Head>
         <PageContainer>
           <Prompt
-            title="Jesus and the Founding of Christianity"
+            title={title}
             prompt={`Do you think Jesus intended to create a new religion, or merely reform Judaism? Use 2 pieces of evidence to back up your claim.`}
           />
           <p />
           {workspace}
         </PageContainer>
-      </div>
+      </Fragment>
     );
   };
 }
