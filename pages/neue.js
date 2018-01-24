@@ -39,7 +39,7 @@ const databaseVersion = 2;
 const numberOfEngagementPages = 1;
 const nameForYou = "You"; // TODO: Needs to be student name.
 
-const title = "Jesus and the Founding of Christianity"; // TODO: Extract
+const title = "Reconstruction and life after the Civil War"; // TODO: Extract
 
 type Stage = "compose" | "engage" | "reflect" | "conclusion";
 
@@ -553,10 +553,10 @@ export default class NeueFlowPage extends React.Component {
         <PageContainer>
           <Prompt
             title={title}
-            prompt={`Do you think Jesus intended to create a new religion, or merely reform Judaism? Use 2 pieces of evidence to back up your claim.`}
+            prompt={`What is the message of this cartoon? Would you say the artist supported or opposed equal rights for freedmen?`}
             stimuli={[
               {
-                imageURL: "/static/compare_napoleon/napoleon.jpg",
+                imageURL: "/static/reconstruction/Franchise.jpg",
               },
             ]}
           />
