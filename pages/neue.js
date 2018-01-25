@@ -559,6 +559,9 @@ export default class NeueFlowPage extends React.Component {
             body {
               background-color: ${sharedStyles.colors.gray90};
             }
+            @font-face{font-family:Lato;font-style:normal;font-weight:900;src:url('/static/fonts/Lato/Lato-Black.ttf');}
+            @font-face{font-family:Lato;font-style:normal;font-weight:bold;src:url('/static/fonts/Lato/Lato-Bold.ttf');}
+            @font-face{font-family:Lato;font-style:normal;font-weight:normal;src:url('/static/fonts/Lato/Lato-Regular.ttf');}
           `}
           </style>
         </Head>
