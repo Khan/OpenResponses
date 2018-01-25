@@ -505,22 +505,22 @@ export default class NeueFlowPage extends React.Component {
         break;
       case "conclusion":
         workspaceContents = {
-          submittedCards: this.getReflectionSubmittedCards(),
-          pendingCards: [
-            "I learned that…",
-            "Before, I'd assumed that…",
-            "Now I want to know…",
-          ].map((el, idx) => ({
+          submittedCards: this.getReflectionSubmittedCards().concat({
             studentName: nameForYou,
             avatar: this.state.userState.profile.avatar,
             data: this.state.inputs[currentPage - 1].pendingCardData,
-            key: `reflect${currentPage - 1}Response${idx}`,
-            placeholder: el,
-          })),
+            key: `reflect${currentPage - 1}Response${this.state.inputs[
+              currentPage - 1
+            ].openPendingCardIndex}`,
+          }),
+          pendingCards: [
+            {
+              key: "conclusion",
+            },
+          ],
           submitButtonTitle: "Submit Reflection",
           onSubmitPendingCard: null,
-          openPendingCard: this.state.inputs[currentPage - 1]
-            .openPendingCardIndex,
+          openPendingCard: null,
         };
         break;
     }
