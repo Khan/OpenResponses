@@ -3,6 +3,7 @@ import Head from "next/head";
 import React, { Fragment } from "react";
 import Router from "next/router";
 import throttle from "lodash.throttle";
+import scrollToComponent from "react-scroll-to-component";
 import { resetKeyGenerator } from "slate";
 import { default as KeyPather } from "keypather";
 const keypather = new KeyPather();
@@ -95,6 +96,8 @@ export default class NeueFlowPage extends React.Component {
       inboxSubscriptionCancelFunction: null,
       connectivitySubscriptionCancelFunction: null,
     };
+
+    this.cardWorkspaceContainerRef = null;
   }
 
   getCurrentStage = (): Stage => {
@@ -118,6 +121,15 @@ export default class NeueFlowPage extends React.Component {
     (async () => {
       const newPageIndex = this.state.currentPage + 1;
       await this.recordPageLoad(newPageIndex);
+
+      if (window.innerWidth < 800) {
+        // Hacky scroll to keep cards visible on mobile. Need to figure out a better approach here.
+        scrollToComponent(this.cardWorkspaceContainerRef, {
+          align: "top",
+          offset: -50,
+        });
+      }
+
       this.setState({ currentPage: newPageIndex, activeResponseCard: null });
     })();
   };
@@ -561,7 +573,9 @@ export default class NeueFlowPage extends React.Component {
             ]}
           />
           <p />
-          {workspace}
+          <div ref={ref => (this.cardWorkspaceContainerRef = ref)}>
+            {workspace}
+          </div>
         </PageContainer>
       </Fragment>
     );
