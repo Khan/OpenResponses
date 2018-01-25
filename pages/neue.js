@@ -485,9 +485,9 @@ export default class NeueFlowPage extends React.Component {
             },
           ],
           pendingCards: [
-            "I'm confused by…",
-            "I'd be convinced if…",
-            "I disagree because…",
+            "A strength of this response is…",
+            "This could be stronger if…",
+            "Someone might disagree, saying…",
           ].map((el, idx) => ({
             studentName: nameForYou,
             avatar: this.state.userState.profile.avatar,
@@ -565,7 +565,9 @@ export default class NeueFlowPage extends React.Component {
         <PageContainer>
           <Prompt
             title={title}
-            prompt={`What is the message of this cartoon? Would you say the artist supported or opposed equal rights for freedmen?`}
+            prompt={`What is the message of this cartoon? Would you say the artist supported or opposed equal rights for freedmen?
+            
+The text under the cartoon reads: "Franchise. And not this man?"`}
             stimuli={[
               {
                 imageURL: "/static/reconstruction/Franchise.jpg",
