@@ -37,7 +37,7 @@ const getFlowIDFromURL = url => {
 };
 
 const databaseVersion = 2;
-const numberOfEngagementPages = 1;
+const numberOfEngagementPages = 2;
 const nameForYou = "You"; // TODO: Needs to be student name.
 
 const title = "Reconstruction and life after the Civil War"; // TODO: Extract
@@ -132,10 +132,6 @@ export default class NeueFlowPage extends React.Component {
 
       this.setState({ currentPage: newPageIndex, activeResponseCard: null });
     })();
-  };
-
-  onFocusResponseCard = (responseCardIndex: number) => {
-    this.setState({ activeResponseCard: responseCardIndex });
   };
 
   setUserState = (newUserState: Object) => {
@@ -249,10 +245,20 @@ export default class NeueFlowPage extends React.Component {
       extractResponse: inputs => inputs[0].pendingCardData,
       revieweePageNumberRequirement: 0,
       sortReviewees: () => 0,
-      findReviewees: ({ inputs, userState }, fetcher) =>
-        Array(numberOfEngagementPages)
-          .fill(null)
-          .map(() => fetcher(() => true)),
+      findReviewees: ({ inputs, userState }, fetcher) => {
+        const reviewees = [];
+        for (var i = 0; i < numberOfEngagementPages; i++) {
+          reviewees.push(
+            fetcher(
+              otherUserData =>
+                reviewees.findIndex(
+                  reviewee => reviewee.userID === otherUserData.userID,
+                ) === -1,
+            ),
+          );
+        }
+        return reviewees;
+      },
       flowName: getFlowIDFromURL(this.props.url),
     }).fetcher;
     const fetcherResponse = await revieweeFetcher(
@@ -336,11 +342,16 @@ export default class NeueFlowPage extends React.Component {
   };
 
   onOpenPendingCard = (pendingCardIndex: number) => {
-    const newInputs = {
-      ...(this.state.inputs[this.state.currentPage] || {}),
-      openPendingCardIndex: pendingCardIndex,
-    };
-    this.onChange(this.state.currentPage, newInputs);
+    if (
+      this.state.inputs[this.state.currentPage].openPendingCardIndex ===
+      undefined
+    ) {
+      const newInputs = {
+        ...(this.state.inputs[this.state.currentPage] || {}),
+        openPendingCardIndex: pendingCardIndex,
+      };
+      this.onChange(this.state.currentPage, newInputs);
+    }
   };
 
   onChangePendingCardData = (newData: Object) => {
@@ -469,7 +480,7 @@ export default class NeueFlowPage extends React.Component {
             },
           ],
           openPendingCard: 0,
-          submitButtonTitle: "Share with Class",
+          submitButtonTitle: "Share with class",
         };
         break;
       case "engage":
@@ -495,7 +506,7 @@ export default class NeueFlowPage extends React.Component {
             key: `engage${currentPage}Response${idx}`,
             placeholder: el,
           })),
-          submitButtonTitle: "Share Reply",
+          submitButtonTitle: "Share reply",
         };
         break;
       case "reflect":
@@ -512,7 +523,7 @@ export default class NeueFlowPage extends React.Component {
             key: `reflect${currentPage}Response${idx}`,
             placeholder: el,
           })),
-          submitButtonTitle: "Submit Reflection",
+          submitButtonTitle: "Share reflection",
         };
         break;
       case "conclusion":
@@ -530,7 +541,7 @@ export default class NeueFlowPage extends React.Component {
               key: "conclusion",
             },
           ],
-          submitButtonTitle: "Submit Reflection",
+          submitButtonTitle: "Share reflection",
           onSubmitPendingCard: null,
           openPendingCard: null,
         };
@@ -573,7 +584,7 @@ export default class NeueFlowPage extends React.Component {
 The text under the cartoon reads: "Franchise. And not this man?"`}
             stimuli={[
               {
-                imageURL: "/static/reconstruction/Franchise.jpg",
+                imageURL: "http://andymatuschak.org/Franchise.jpg",
               },
             ]}
           />
