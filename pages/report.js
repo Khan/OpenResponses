@@ -113,13 +113,61 @@ export default class ReportPage extends React.Component {
     return output;
   };
 
+  getCardList = (userID, highlightingUserID) => {
+    const { userState, inputs, inbox } = this.state.users[userID];
+
+    console.log(userID, userState);
+    const response = {
+      studentName: `${userState.profile.name} (${userState.email})`,
+      avatar: userState.profile.avatar,
+      data: inputs[0].pendingCardData,
+      key: "compose",
+      highlight: userID === highlightingUserID,
+    };
+
+    let replies = [];
+    if (inbox) {
+      const sortedKeys = Object.keys(inbox).sort();
+      replies = sortedKeys
+        .reduce((accumulator, key) => {
+          const message = inbox[key];
+          return [...accumulator, message];
+        }, [])
+        .map((message, idx) => {
+          const sender = this.state.users[message.fromUserID];
+          const senderEmail = sender
+            ? sender.userState.email
+            : "(unknown email)";
+          return {
+            studentName: `${message.profile.name} (${senderEmail})`,
+            avatar: message.profile.avatar,
+            data: message.submitted[message.fromModuleID].pendingCardData,
+            key: `reflectionFeedback${idx}`,
+            time: message.time,
+            highlight: message.fromUserID === highlightingUserID,
+          };
+        });
+    }
+
+    if (inputs.length > 0 && !inputs[inputs.length - 1].feedback) {
+      replies.push({
+        studentName: `${userState.profile.name} (${userState.email})`,
+        avatar: userState.profile.avatar,
+        data: inputs[inputs.length - 1].pendingCardData,
+        key: "reflection",
+        highlight: userID === highlightingUserID,
+      });
+    }
+
+    return [response, ...replies];
+  };
+
   render = () => {
     if (!this.state.ready) {
       // TODO(andy): Implement loading page.
       return null;
     }
 
-    console.log(this.state.users);
     return (
       <Fragment>
         {" "}
@@ -141,52 +189,34 @@ export default class ReportPage extends React.Component {
           }}
         >
           {Object.keys(this.state.users).map(userID => {
-            const { userState, inputs, inbox } = this.state.users[userID];
-            if (!userState || !inputs) {
+            const { userState, inputs } = this.state.users[userID];
+            if (!userState || !inputs || inputs.length === 0) {
+              return null;
+            }
+            if (userState.isFallbackUser) {
               return null;
             }
 
-            const response = {
-              studentName: `${userState.profile.name} (${userState.email})`,
-              avatar: userState.profile.avatar,
-              data: inputs[0].pendingCardData,
-              key: "compose",
-            };
-
-            let replies = [];
-            if (inbox) {
-              const sortedKeys = Object.keys(inbox).sort();
-              replies = sortedKeys
-                .reduce((accumulator, key) => {
-                  const message = inbox[key];
-                  return [...accumulator, message];
-                }, [])
-                .map((message, idx) => {
-                  const sender = this.state.users[message.fromUserID];
-                  const senderEmail = sender
-                    ? sender.userState.email
-                    : "(unknown email)";
-                  return {
-                    studentName: `${message.profile.name} (${senderEmail})`,
-                    avatar: message.profile.avatar,
-                    data:
-                      message.submitted[message.fromModuleID].pendingCardData,
-                    key: `reflectionFeedback${idx}`,
-                    time: message.time,
-                  };
-                });
-            }
-
-            if (inputs.length > 0 && !inputs[inputs.length - 1].feedback) {
-              replies.push({
-                studentName: `${userState.profile.name} (${userState.email})`,
-                avatar: userState.profile.avatar,
-                data: inputs[inputs.length - 1].pendingCardData,
-                key: "reflection",
-              });
-            }
-
-            const cards = [response, ...replies];
+            const revieweeCards = (userState.reviewees || []).map(reviewee => {
+              if (!this.state.users[reviewee.userID]) {
+                return null;
+              }
+              return (
+                <div
+                  style={{
+                    paddingTop: 36,
+                    marginTop: 36,
+                    borderTop: `1px solid ${sharedStyles.wbColors.offBlack20}`,
+                  }}
+                >
+                  <CardWorkspace
+                    key={reviewee.userID}
+                    pendingCards={[]}
+                    submittedCards={this.getCardList(reviewee.userID, userID)}
+                  />
+                </div>
+              );
+            });
 
             return (
               <div
@@ -195,19 +225,32 @@ export default class ReportPage extends React.Component {
                   flexShrink: 0,
                   margin: "0 14px",
                 }}
+                key={userID}
               >
                 <h2
                   style={{
                     ...sharedStyles.wbTypography.headingMedium,
+                    position: "fixed",
+                    backgroundColor: sharedStyles.colors.gray90,
+                    zIndex: 100,
+                    padding: "24px 0px",
+                    margin: 0,
+                    width: "100%",
                   }}
                 >
                   {userState.email}
                 </h2>
-                <CardWorkspace
-                  key={userID}
-                  pendingCards={[]}
-                  submittedCards={cards}
-                />
+                <div
+                  style={{
+                    marginTop: 90,
+                  }}
+                >
+                  <CardWorkspace
+                    pendingCards={[]}
+                    submittedCards={this.getCardList(userID, userID)}
+                  />
+                  {revieweeCards}
+                </div>
               </div>
             );
           })}

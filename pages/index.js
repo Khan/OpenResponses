@@ -593,7 +593,12 @@ export default class NeueFlowPage extends React.Component {
 Source: Thomas Nast was a political cartoonist who drew for a New York magazine called Harper’s Weekly. He supported the North’s side during the Civil War. This cartoon was published in 1865.`}
           />
           <p />
-          <div ref={ref => (this.cardWorkspaceContainerRef = ref)}>
+          <div
+            ref={ref => (this.cardWorkspaceContainerRef = ref)}
+            style={{
+              paddingBottom: "70vh",
+            }}
+          >
             {workspace}
           </div>
         </PageContainer>
