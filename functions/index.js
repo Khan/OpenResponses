@@ -13,6 +13,7 @@ const humanReadableFlowNames = {
   compare_colonization: "Spanish and Portuguese Colonialism",
   compare_napoleon: "Napoleon and the Absolutist Monarchs",
   compare_family: "Family Structures and Gender Relations in 600–1450 C.E.",
+  reconstruction: "Reconstruction and life after the Civil War",
 };
 
 // TODO(andy): And this is an even hackier way to specify the final page, but it'll do for now.
