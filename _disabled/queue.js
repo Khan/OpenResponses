@@ -19,7 +19,9 @@ export default class QueuePage extends React.Component {
     (async () => {
       const flowID = this.props.url.query.flowID;
       await signIn();
-      const flowData = await _getDatabase().ref(flowID).once("value");
+      const flowData = await _getDatabase()
+        .ref(flowID)
+        .once("value");
       this.setState({ flowData: flowData.val(), ready: true });
     })();
   };
@@ -68,11 +70,9 @@ export default class QueuePage extends React.Component {
           );
           return (
             <div>
-              <h2>
-                {cohortID}
-              </h2>
+              <h2>{cohortID}</h2>
               <div>
-                {userIDsAwaitingFeedback.map(u =>
+                {userIDsAwaitingFeedback.map(u => (
                   <p>
                     <a
                       href={`/?flowID=${flowID}&classCode=${cohortID}&userID=${fallbackUserID}&forceAssignReviewee=${u}`}
@@ -129,8 +129,8 @@ export default class QueuePage extends React.Component {
                       .filter(email => email)
                       .join(", ")}); rejected{" "}
                     {cohortData[u].userState.rejectedCount || 0} times
-                  </p>,
-                )}
+                  </p>
+                ))}
               </div>
             </div>
           );

@@ -212,19 +212,17 @@ export default class DistributionTestPage extends React.Component {
               }, {}),
             )
               .sort()
-              .map(([distribution, count]) =>
+              .map(([distribution, count]) => (
                 <tr key={distribution}>
-                  <td>
-                    {distribution}:
-                  </td>
+                  <td>{distribution}:</td>
                   <td>
                     {Number.parseFloat(
                       count / simulationResults.length * 100,
                     ).toFixed(2)}
                     % ({count} student{count > 1 ? "s" : ""})
                   </td>
-                </tr>,
-              )}
+                </tr>
+              ))}
           </tbody>
         </table>
 
@@ -234,31 +232,33 @@ export default class DistributionTestPage extends React.Component {
           <thead>
             <tr>
               <td />
-              {Array(bucketCount).fill(0).map((unused, index) => {
-                const style = { paddingRight: "1em" };
-                const thisBucket = (index + 1) * bucketSize / 60;
-                if (index === 0) {
-                  return (
-                    <td style={style}>
-                      {"< "}
-                      {thisBucket} hr
-                    </td>
-                  );
-                } else if (index === bucketCount - 1) {
-                  return (
-                    <td style={style}>
-                      {">= "}
-                      {index * bucketSize / 60} hr
-                    </td>
-                  );
-                } else {
-                  return (
-                    <td style={style}>
-                      {index * bucketSize / 60}-{thisBucket}hr
-                    </td>
-                  );
-                }
-              })}
+              {Array(bucketCount)
+                .fill(0)
+                .map((unused, index) => {
+                  const style = { paddingRight: "1em" };
+                  const thisBucket = (index + 1) * bucketSize / 60;
+                  if (index === 0) {
+                    return (
+                      <td style={style}>
+                        {"< "}
+                        {thisBucket} hr
+                      </td>
+                    );
+                  } else if (index === bucketCount - 1) {
+                    return (
+                      <td style={style}>
+                        {">= "}
+                        {index * bucketSize / 60} hr
+                      </td>
+                    );
+                  } else {
+                    return (
+                      <td style={style}>
+                        {index * bucketSize / 60}-{thisBucket}hr
+                      </td>
+                    );
+                  }
+                })}
             </tr>
           </thead>
           <tbody>
@@ -279,36 +279,38 @@ export default class DistributionTestPage extends React.Component {
                 });
                 return output;
               }, {}),
-            ).map(([responseIndex, histogram]) =>
+            ).map(([responseIndex, histogram]) => (
               <tr key={responseIndex.toString()}>
                 <td>
                   Feedback #
                   {Number.parseInt(responseIndex) + 1}
                   :
                 </td>
-                {Array(bucketCount).fill(0).map((unused, index) => {
-                  const bucket = (index + 1) * bucketSize;
-                  let value = histogram[bucket.toString()] || 0;
-                  if (index === bucketCount - 1) {
-                    value =
-                      simulationResults.length -
-                      Object.entries(histogram).reduce(
-                        (a, [sumBucket, count], sumIndex) =>
-                          a + (sumIndex >= index ? 0 : count),
-                        0,
-                      );
-                  }
-                  return (
-                    <td key={index.toString()}>
-                      {Number.parseFloat(
-                        value / simulationResults.length * 100,
-                      ).toFixed(1)}
-                      %
-                    </td>
-                  );
-                })}
-              </tr>,
-            )}
+                {Array(bucketCount)
+                  .fill(0)
+                  .map((unused, index) => {
+                    const bucket = (index + 1) * bucketSize;
+                    let value = histogram[bucket.toString()] || 0;
+                    if (index === bucketCount - 1) {
+                      value =
+                        simulationResults.length -
+                        Object.entries(histogram).reduce(
+                          (a, [sumBucket, count], sumIndex) =>
+                            a + (sumIndex >= index ? 0 : count),
+                          0,
+                        );
+                    }
+                    return (
+                      <td key={index.toString()}>
+                        {Number.parseFloat(
+                          value / simulationResults.length * 100,
+                        ).toFixed(1)}
+                        %
+                      </td>
+                    );
+                  })}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

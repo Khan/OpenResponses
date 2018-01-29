@@ -1,7 +1,7 @@
 // @flow
 import { default as KeyPather } from "keypather";
 import moment from "moment";
-import NumericInput from "react-numeric-input";
+// import NumericInput from "react-numeric-input";
 import React from "react";
 import { css, StyleSheet } from "aphrodite";
 
@@ -175,12 +175,14 @@ export default class ManagePage extends React.Component {
             />{" "}
             limit students to pages up to and including page{" "}
           </label>
-          <NumericInput
+          {
+            null /*<NumericInput
             min={0}
             value={this.state.maximumPageNumber}
             disabled={this.state.maximumPageNumber === null}
             onChange={this.onChangeMaximumPageNumber}
-          />{" "}
+          />*/
+          }{" "}
           (0-indexed)
         </p>
         <p>
@@ -188,43 +190,6 @@ export default class ManagePage extends React.Component {
             Populate this class code with fallback users
           </button>
         </p>
-        <hr />
-        <div>
-          {Object.keys(this.state.userData).map((userID, index) => {
-            const userData = this.state.userData[userID].inputs;
-            if (!userData) {
-              return null;
-            }
-            const getUserInput = index => userData[index] || {};
-            const getRemoteData = key =>
-              this.state.remoteData && this.state.remoteData[userID][key];
-            const children = modules(getUserInput, getRemoteData);
-            const userState = this.state.userData[userID].userState;
-            return (
-              <div key={userID}>
-                <h2>
-                  Student {index + 1} ({userID})
-                </h2>
-                <p>{JSON.stringify(userState, undefined, 1)}</p>
-                {children.map((module, moduleIndex) => (
-                  <div key={moduleIndex}>
-                    <h3>
-                      Student {index + 1}: Page {moduleIndex + 1}
-                    </h3>
-                    {this.renderModule(
-                      getUserInput,
-                      getRemoteData,
-                      userState,
-                      module,
-                      moduleIndex,
-                    )}
-                    <hr />
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
       </div>
     );
   };
@@ -543,14 +508,15 @@ export default class ManagePage extends React.Component {
     }
 
     const flow = flowLookupTable[this.getFlowID()];
-    const modules = flow.modules || flow;
 
     // This doesn't actually need to be secure at the moment, so we'll just go by URL. /report for teachers, /manage for us.
     const isAdmin = this.props.url.pathname === "/manage";
 
     if (isAdmin) {
-      return this.renderAdmin(flow, modules);
+      return this.renderAdmin(flow);
     } else {
+      const modules = flow.modules || flow;
+
       return this.renderReport(flow, modules);
     }
   };

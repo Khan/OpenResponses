@@ -5302,9 +5302,9 @@ react-numeric-input@^2.0.7:
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/react-numeric-input/-/react-numeric-input-2.0.7.tgz#f8d46ac4176cd2ef47c8e8c813171499fb65338d"
 
-react-pointable@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/react-pointable/-/react-pointable-0.1.0.tgz#98c7dd5412494a441efac4241957844ad7a02a80"
+react-pointable@^1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/react-pointable/-/react-pointable-1.1.1.tgz#4f9b1ca397dfb5f506923d3b470421b0b30d16c2"
 
 react-portal@^3.0.0, react-portal@^3.1.0:
   version "3.1.0"
@@ -5317,12 +5317,6 @@ react-proxy@^3.0.0-alpha.0:
   resolved "https://registry.yarnpkg.com/react-proxy/-/react-proxy-3.0.0-alpha.1.tgz#4400426bcfa80caa6724c7755695315209fa4b07"
   dependencies:
     lodash "^4.6.1"
-
-react-radio-group@marudor/react-radio-group:
-  version "4.0.1"
-  resolved "https://codeload.github.com/marudor/react-radio-group/tar.gz/e8fa40c13d4cd4ea7cf33ffc1b15cb7af2888566"
-  dependencies:
-    prop-types "^15.5.8"
 
 react-scroll-to-component@^1.0.2:
   version "1.0.2"
