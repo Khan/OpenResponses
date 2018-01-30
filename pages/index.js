@@ -343,8 +343,9 @@ export default class NeueFlowPage extends React.Component {
 
   onOpenPendingCard = (pendingCardIndex: number) => {
     if (
+      !this.state.inputs[this.state.currentPage] ||
       this.state.inputs[this.state.currentPage].openPendingCardIndex ===
-      undefined
+        undefined
     ) {
       const newInputs = {
         ...(this.state.inputs[this.state.currentPage] || {}),
