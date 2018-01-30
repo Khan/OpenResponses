@@ -40,7 +40,6 @@ const getFlowIDFromURL = url => {
 };
 
 const databaseVersion = 2;
-const numberOfEngagementPages = 2;
 const nameForYou = "You"; // TODO: Needs to be student name.
 
 type Activity = {
@@ -51,6 +50,8 @@ type Activity = {
 
   engagementPrompts: string[],
   reflectionPrompts: string[],
+
+  revieweeCount: number,
 };
 
 const activity: Activity = {
@@ -77,6 +78,8 @@ Source: Thomas Nast was a political cartoonist who drew for a New York magazine 
     "Before, I'd assumed that…",
     "Now I want to know…",
   ],
+
+  revieweeCount: 2,
 };
 
 type Stage = "compose" | "engage" | "reflect" | "conclusion";
@@ -145,9 +148,9 @@ export default class NeueFlowPage extends React.Component {
     const currentPage = this.state.currentPage;
     if (currentPage === 0) {
       return "compose";
-    } else if (currentPage < numberOfEngagementPages + 1) {
+    } else if (currentPage < activity.revieweeCount + 1) {
       return "engage";
-    } else if (currentPage === numberOfEngagementPages + 1) {
+    } else if (currentPage === activity.revieweeCount + 1) {
       return "reflect";
     } else {
       return "conclusion";
@@ -281,6 +284,13 @@ export default class NeueFlowPage extends React.Component {
   );
 
   updateReviewees = async (currentPage: number) => {
+    if (
+      this.state.reviewees &&
+      this.state.reviewees.length === activity.revieweeCount
+    ) {
+      return;
+    }
+
     const revieweeFetcher = findReviewees({
       matchAtPageNumber: 1,
       extractResponse: inputs => inputs[0].pendingCardData,
@@ -288,15 +298,16 @@ export default class NeueFlowPage extends React.Component {
       sortReviewees: () => 0,
       findReviewees: ({ inputs, userState }, fetcher) => {
         const reviewees = [];
-        for (var i = 0; i < numberOfEngagementPages; i++) {
-          reviewees.push(
-            fetcher(
-              otherUserData =>
-                reviewees.findIndex(
-                  reviewee => reviewee.userID === otherUserData.userID,
-                ) === -1,
-            ),
+        for (var i = 0; i < activity.revieweeCount; i++) {
+          const reviewee = fetcher(
+            otherUserData =>
+              reviewees.findIndex(
+                reviewee => reviewee.userID === otherUserData.userID,
+              ) === -1,
           );
+          if (reviewee) {
+            reviewees.push(reviewee);
+          }
         }
         return reviewees;
       },
@@ -309,6 +320,7 @@ export default class NeueFlowPage extends React.Component {
       { inputs: this.state.inputs, userState: this.state.userState },
       false,
     );
+    console.log("fetcher response", fetcherResponse);
     if (fetcherResponse) {
       const remoteData = fetcherResponse.remoteData || fetcherResponse;
       const newUserState = fetcherResponse.newUserState;
@@ -317,6 +329,14 @@ export default class NeueFlowPage extends React.Component {
       });
       if (newUserState) {
         await this.setUserState(newUserState);
+      }
+
+      if (remoteData.responses.length < activity.revieweeCount) {
+        console.log(
+          `Only got ${remoteData.responses
+            .length} reviewees; seeking ${activity.revieweeCount}`,
+        );
+        setTimeout(() => this.updateReviewees(this.state.currentPage), 1000);
       }
     }
   };
@@ -528,24 +548,31 @@ export default class NeueFlowPage extends React.Component {
       case "engage":
         const reviewee =
           this.state.reviewees && this.state.reviewees[currentPage - 1];
-        workspaceContents = {
-          submittedCards: [
-            {
-              studentName: reviewee && reviewee._profile.name,
-              avatar: reviewee && reviewee._profile.avatar,
-              data: reviewee,
-              key: `engage${currentPage}Peer`,
-            },
-          ],
-          pendingCards: activity.engagementPrompts.map((el, idx) => ({
-            studentName: nameForYou,
-            avatar: this.state.userState.profile.avatar,
-            data: pendingCardData,
-            key: `engage${currentPage}Response${idx}`,
-            placeholder: el,
-          })),
-          submitButtonTitle: "Share reply",
-        };
+        if (reviewee) {
+          workspaceContents = {
+            submittedCards: [
+              {
+                studentName: reviewee && reviewee._profile.name,
+                avatar: reviewee && reviewee._profile.avatar,
+                data: reviewee,
+                key: `engage${currentPage}Peer`,
+              },
+            ],
+            pendingCards: activity.engagementPrompts.map((el, idx) => ({
+              studentName: nameForYou,
+              avatar: this.state.userState.profile.avatar,
+              data: pendingCardData,
+              key: `engage${currentPage}Response${idx}`,
+              placeholder: el,
+            })),
+            submitButtonTitle: "Share reply",
+          };
+        } else {
+          workspaceContents = {
+            submittedCards: [],
+            pendingCards: [],
+          };
+        }
         break;
       case "reflect":
         workspaceContents = {
@@ -596,6 +623,12 @@ export default class NeueFlowPage extends React.Component {
       />
     );
 
+    const shouldShowWaitingNotice =
+      currentPage > 0 &&
+      this.state.reviewees.length < currentPage &&
+      currentPage <= activity.revieweeCount;
+    console.log("should show waiting", shouldShowWaitingNotice);
+
     return (
       <Fragment>
         <Head>
@@ -618,6 +651,19 @@ export default class NeueFlowPage extends React.Component {
             postStimuliPrompt={activity.postStimuliPrompt}
           />
           <p />
+          {shouldShowWaitingNotice ? (
+            <div
+              style={{
+                position: "absolute",
+                ...sharedStyles.wbTypography.headingMedium,
+                textAlign: "center",
+                width: "100%",
+                marginTop: 16,
+              }}
+            >
+              Waiting for a classmate to submit their work…
+            </div>
+          ) : null}
           <div
             ref={ref => (this.cardWorkspaceContainerRef = ref)}
             style={{
