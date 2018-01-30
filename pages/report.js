@@ -118,7 +118,7 @@ export default class ReportPage extends React.Component {
     highlightingUserID,
     hideRepliesFromNonHighlightedUsers,
   ) => {
-    const { userState, inputs, inbox } = this.state.users[userID];
+    const { userState, inputs, inbox, log } = this.state.users[userID];
 
     console.log(userID, userState);
     const response = {
@@ -160,14 +160,24 @@ export default class ReportPage extends React.Component {
     }
 
     if (inputs.length > 0 && !inputs[inputs.length - 1].feedback) {
+      const timestampKey = Object.keys(log).find(logKey => {
+        const logEntry = log[logKey];
+        return (
+          logEntry.type === "submission" &&
+          Number.parseInt(logEntry.moduleID) === inputs.length - 1
+        );
+      });
+      const time = timestampKey && log[timestampKey].time;
       replies.push({
         studentName: `${userState.profile.name} (${userState.email})`,
         avatar: userState.profile.avatar,
         data: inputs[inputs.length - 1].pendingCardData,
         key: "reflection",
         highlight: userID === highlightingUserID,
+        time: time,
       });
     }
+    replies.sort((a, b) => a.time - b.time);
 
     return [response, ...replies];
   };
