@@ -40,7 +40,9 @@ const databaseVersion = 2;
 const numberOfEngagementPages = 2;
 const nameForYou = "You"; // TODO: Needs to be student name.
 
-const title = "Reconstruction and life after the Civil War"; // TODO: Extract
+const activity = {
+  title: "Reconstruction and life after the Civil War",
+};
 
 type Stage = "compose" | "engage" | "reflect" | "conclusion";
 
@@ -53,6 +55,7 @@ type State = {
   inputs: Object[], // TODO
   userState: Object, // TODO
   inbox: Object, // TODO
+  reviewees: Object[], // TODO
 
   hasConnectivity: boolean,
   nextSaveRequestID: number,
@@ -74,6 +77,8 @@ export default class NeueFlowPage extends React.Component {
   state: State;
   props: Props;
 
+  cardWorkspaceContainerRef: ?HTMLDivElement;
+
   constructor(props: Props) {
     super(props);
 
@@ -86,6 +91,7 @@ export default class NeueFlowPage extends React.Component {
       inputs: [],
       userState: {},
       inbox: {},
+      reviewees: [],
 
       hasConnectivity: true,
       nextSaveRequestID: 0,
@@ -455,7 +461,7 @@ export default class NeueFlowPage extends React.Component {
             <Welcome
               onSubmit={this.onSubmitWelcome}
               collectEmail
-              title={title}
+              title={activity.title}
             />
           </PageContainer>
         </Fragment>
@@ -579,7 +585,7 @@ export default class NeueFlowPage extends React.Component {
         </Head>
         <PageContainer>
           <Prompt
-            title={title}
+            title={activity.title}
             prompt={`Analyze the cartoon, and answer these questions:
 
 1. What was the message of this cartoon?
