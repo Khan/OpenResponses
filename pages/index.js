@@ -2,6 +2,7 @@
 import Head from "next/head";
 import React, { Fragment } from "react";
 import Router from "next/router";
+import shuffle from "lodash.shuffle";
 import throttle from "lodash.throttle";
 import scrollToComponent from "react-scroll-to-component";
 import { resetKeyGenerator } from "slate";
@@ -37,8 +38,22 @@ const getFlowIDFromURL = url => {
   return url.query.flowID;
 };
 
+const getStageForPage = (page: number, revieweeCount: number): Stage => {
+  if (page === 0) {
+    return "compose";
+  } else if (page < revieweeCount + 1) {
+    return "engage";
+  } else if (page === revieweeCount + 1) {
+    return "reflect";
+  } else {
+    return "conclusion";
+  }
+};
+
 const databaseVersion = 2;
 const nameForYou = "You"; // TODO: Needs to be student name.
+
+const engagementCardCount = 3;
 
 type Stage = "compose" | "engage" | "reflect" | "conclusion";
 
@@ -105,16 +120,13 @@ export default class NeueFlowPage extends React.Component {
   }
 
   getCurrentStage = (): Stage => {
-    const currentPage = this.state.currentPage;
-    if (currentPage === 0) {
-      return "compose";
-    } else if (currentPage < this.state.activity.revieweeCount + 1) {
-      return "engage";
-    } else if (currentPage === this.state.activity.revieweeCount + 1) {
-      return "reflect";
-    } else {
-      return "conclusion";
+    if (!this.state.activity) {
+      throw "Can't get stage for null activity";
     }
+    return getStageForPage(
+      this.state.currentPage,
+      this.state.activity.revieweeCount,
+    );
   };
 
   onSubmitWelcome = (email: string, name: string, avatar: string) => {
@@ -244,9 +256,14 @@ export default class NeueFlowPage extends React.Component {
   );
 
   updateReviewees = async (currentPage: number) => {
+    if (!this.state.activity) {
+      throw "Can't update reviewees for null activity";
+    }
+    const activity = this.state.activity;
+
     if (
       this.state.reviewees &&
-      this.state.reviewees.length === this.state.activity.revieweeCount
+      this.state.reviewees.length === activity.revieweeCount
     ) {
       return;
     }
@@ -258,7 +275,7 @@ export default class NeueFlowPage extends React.Component {
       sortReviewees: () => 0,
       findReviewees: ({ inputs, userState }, fetcher) => {
         const reviewees = [];
-        for (var i = 0; i < this.state.activity.revieweeCount; i++) {
+        for (var i = 0; i < activity.revieweeCount; i++) {
           const reviewee = fetcher(
             otherUserData =>
               reviewees.findIndex(
@@ -291,10 +308,10 @@ export default class NeueFlowPage extends React.Component {
         await this.setUserState(newUserState);
       }
 
-      if (remoteData.responses.length < this.state.activity.revieweeCount) {
+      if (remoteData.responses.length < activity.revieweeCount) {
         console.log(
-          `Only got ${remoteData.responses.length} reviewees; seeking ${this
-            .state.activity.revieweeCount}`,
+          `Only got ${remoteData.responses
+            .length} reviewees; seeking ${activity.revieweeCount}`,
         );
         setTimeout(() => this.updateReviewees(this.state.currentPage), 1000);
       }
@@ -329,6 +346,26 @@ export default class NeueFlowPage extends React.Component {
         });
 
         await this.updateReviewees(newPageIndex);
+
+        if (!this.state.activity) {
+          throw "Can't shuffle engagement cards for a null activity";
+        }
+        const activity = this.state.activity;
+        const newStage = getStageForPage(newPageIndex, activity.revieweeCount);
+        if (newStage === "engage" || newStage === "reflect") {
+          const deck =
+            newStage === "engage"
+              ? activity.engagementPrompts
+              : activity.reflectionPrompts;
+          const cardIndices = shuffle(deck.map((d, idx) => idx)).slice(
+            0,
+            engagementCardCount,
+          );
+          this.onChange(newPageIndex, {
+            _cardIndices: cardIndices,
+          });
+        }
+
         delete this.state.pendingSaveRequestIDs[commitSaveRequestString];
         this.setState({
           pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
@@ -478,6 +515,7 @@ export default class NeueFlowPage extends React.Component {
         </p>
       );
     }
+    const activity = this.state.activity;
 
     if (!this.state.userState.email) {
       return (
@@ -537,15 +575,15 @@ export default class NeueFlowPage extends React.Component {
                 key: `engage${currentPage}Peer`,
               },
             ],
-            pendingCards: this.state.activity.engagementPrompts.map(
-              (el, idx) => ({
+            pendingCards: currentInputs._cardIndices
+              .map(i => activity.engagementPrompts[i])
+              .map((el, idx) => ({
                 studentName: nameForYou,
                 avatar: this.state.userState.profile.avatar,
                 data: pendingCardData,
                 key: `engage${currentPage}Response${idx}`,
                 placeholder: el,
-              }),
-            ),
+              })),
             submitButtonTitle: "Share reply",
           };
         } else {
@@ -558,27 +596,27 @@ export default class NeueFlowPage extends React.Component {
       case "reflect":
         workspaceContents = {
           submittedCards: this.getReflectionSubmittedCards(),
-          pendingCards: this.state.activity.reflectionPrompts.map(
-            (el, idx) => ({
+          pendingCards: currentInputs._cardIndices
+            .map(i => activity.reflectionPrompts[i])
+            .map((el, idx) => ({
               studentName: nameForYou,
               avatar: this.state.userState.profile.avatar,
               data: pendingCardData,
               key: `reflect${currentPage}Response${idx}`,
               placeholder: el,
-            }),
-          ),
+            })),
           submitButtonTitle: "Share reflection",
         };
         break;
       case "conclusion":
+        const reflectionInputs = this.state.inputs[currentPage - 1];
         workspaceContents = {
           submittedCards: this.getReflectionSubmittedCards().concat({
             studentName: nameForYou,
             avatar: this.state.userState.profile.avatar,
-            data: this.state.inputs[currentPage - 1].pendingCardData,
-            key: `reflect${currentPage - 1}Response${this.state.inputs[
-              currentPage - 1
-            ].openPendingCardIndex}`,
+            data: reflectionInputs.pendingCardData,
+            key: `reflect${currentPage - 1}Response${reflectionInputs
+              ._cardIndices[reflectionInputs.openPendingCardIndex]}`,
           }),
           pendingCards: [
             {
@@ -609,7 +647,7 @@ export default class NeueFlowPage extends React.Component {
     const shouldShowWaitingNotice =
       currentPage > 0 &&
       this.state.reviewees.length < currentPage &&
-      currentPage <= this.state.activity.revieweeCount;
+      currentPage <= activity.revieweeCount;
     console.log("should show waiting", shouldShowWaitingNotice);
 
     return (
@@ -628,10 +666,10 @@ export default class NeueFlowPage extends React.Component {
         </Head>
         <PageContainer>
           <Prompt
-            title={this.state.activity.title}
-            prompt={this.state.activity.prompt}
-            stimuli={this.state.activity.stimuli}
-            postStimuliPrompt={this.state.activity.postStimuliPrompt}
+            title={activity.title}
+            prompt={activity.prompt}
+            stimuli={activity.stimuli}
+            postStimuliPrompt={activity.postStimuliPrompt}
           />
           <p />
           {shouldShowWaitingNotice ? (
