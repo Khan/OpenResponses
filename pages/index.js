@@ -8,6 +8,7 @@ import { resetKeyGenerator } from "slate";
 import { default as KeyPather } from "keypather";
 const keypather = new KeyPather();
 
+import activities from "../lib/activities";
 import CardWorkspace from "../lib/components/neue/card-workspace";
 import findReviewees from "../lib/flows/utilities/reviewee-requirement";
 import PageContainer from "../lib/components/neue/page-container";
@@ -28,9 +29,6 @@ import {
 } from "../lib/db";
 import { initializeApp } from "firebase";
 
-import type { Markdown } from "../lib/components/neue/markdown";
-import type { Stimulus } from "../lib/components/neue/prompt";
-
 const getClassCodeFromURL = url => {
   return url.query.classCode;
 };
@@ -42,49 +40,10 @@ const getFlowIDFromURL = url => {
 const databaseVersion = 2;
 const nameForYou = "You"; // TODO: Needs to be student name.
 
-type Activity = {
-  title: string,
-  prompt: Markdown,
-  stimuli: Stimulus[],
-  postStimuliPrompt: ?Markdown,
-
-  engagementPrompts: string[],
-  reflectionPrompts: string[],
-
-  revieweeCount: number,
-};
-
-const activity: Activity = {
-  title: "Reconstruction and life after the Civil War",
-  prompt: `Analyze the cartoon, and answer these questions:
-
-1. What was the message of this cartoon?
-2. Would you say the artist supported or opposed equal rights for freedmen?`,
-  stimuli: [
-    {
-      imageURL: "http://andymatuschak.org/Franchise.jpg",
-    },
-  ],
-  postStimuliPrompt: `Caption: FRANCHISE. AND NOT THIS MAN?
-            
-Source: Thomas Nast was a political cartoonist who drew for a New York magazine called Harper’s Weekly. He supported the North’s side during the Civil War. This cartoon was published in 1865.`,
-  engagementPrompts: [
-    "A strength of this response is…",
-    "This could be stronger if…",
-    "Someone might disagree, saying…",
-  ],
-  reflectionPrompts: [
-    "I learned that…",
-    "Before, I'd assumed that…",
-    "Now I want to know…",
-  ],
-
-  revieweeCount: 2,
-};
-
 type Stage = "compose" | "engage" | "reflect" | "conclusion";
 
 type State = {
+  activity: ?Activity,
   currentPage: number,
   activeResponseCard: ?number,
   ready: boolean,
@@ -121,6 +80,7 @@ export default class NeueFlowPage extends React.Component {
     super(props);
 
     this.state = {
+      activity: activities[getFlowIDFromURL(props.url)],
       currentPage: 0,
       activeResponseCard: null,
       ready: false,
@@ -148,9 +108,9 @@ export default class NeueFlowPage extends React.Component {
     const currentPage = this.state.currentPage;
     if (currentPage === 0) {
       return "compose";
-    } else if (currentPage < activity.revieweeCount + 1) {
+    } else if (currentPage < this.state.activity.revieweeCount + 1) {
       return "engage";
-    } else if (currentPage === activity.revieweeCount + 1) {
+    } else if (currentPage === this.state.activity.revieweeCount + 1) {
       return "reflect";
     } else {
       return "conclusion";
@@ -286,7 +246,7 @@ export default class NeueFlowPage extends React.Component {
   updateReviewees = async (currentPage: number) => {
     if (
       this.state.reviewees &&
-      this.state.reviewees.length === activity.revieweeCount
+      this.state.reviewees.length === this.state.activity.revieweeCount
     ) {
       return;
     }
@@ -298,7 +258,7 @@ export default class NeueFlowPage extends React.Component {
       sortReviewees: () => 0,
       findReviewees: ({ inputs, userState }, fetcher) => {
         const reviewees = [];
-        for (var i = 0; i < activity.revieweeCount; i++) {
+        for (var i = 0; i < this.state.activity.revieweeCount; i++) {
           const reviewee = fetcher(
             otherUserData =>
               reviewees.findIndex(
@@ -331,10 +291,10 @@ export default class NeueFlowPage extends React.Component {
         await this.setUserState(newUserState);
       }
 
-      if (remoteData.responses.length < activity.revieweeCount) {
+      if (remoteData.responses.length < this.state.activity.revieweeCount) {
         console.log(
-          `Only got ${remoteData.responses
-            .length} reviewees; seeking ${activity.revieweeCount}`,
+          `Only got ${remoteData.responses.length} reviewees; seeking ${this
+            .state.activity.revieweeCount}`,
         );
         setTimeout(() => this.updateReviewees(this.state.currentPage), 1000);
       }
@@ -500,6 +460,25 @@ export default class NeueFlowPage extends React.Component {
       return null;
     }
 
+    const flowID = getFlowIDFromURL(this.props.url);
+    if (!flowID) {
+      return (
+        <p>
+          You need to specify an activity! Your URL should look like
+          /?flowID=your_flow_id
+        </p>
+      );
+    }
+
+    if (!this.state.activity) {
+      return (
+        <p>
+          There's no activity called {flowID}! Your URL should look like
+          /?flowID=your_flow_id
+        </p>
+      );
+    }
+
     if (!this.state.userState.email) {
       return (
         <Fragment>
@@ -516,7 +495,7 @@ export default class NeueFlowPage extends React.Component {
             <Welcome
               onSubmit={this.onSubmitWelcome}
               collectEmail
-              title={activity.title}
+              title={this.state.activity.title}
             />
           </PageContainer>
         </Fragment>
@@ -558,13 +537,15 @@ export default class NeueFlowPage extends React.Component {
                 key: `engage${currentPage}Peer`,
               },
             ],
-            pendingCards: activity.engagementPrompts.map((el, idx) => ({
-              studentName: nameForYou,
-              avatar: this.state.userState.profile.avatar,
-              data: pendingCardData,
-              key: `engage${currentPage}Response${idx}`,
-              placeholder: el,
-            })),
+            pendingCards: this.state.activity.engagementPrompts.map(
+              (el, idx) => ({
+                studentName: nameForYou,
+                avatar: this.state.userState.profile.avatar,
+                data: pendingCardData,
+                key: `engage${currentPage}Response${idx}`,
+                placeholder: el,
+              }),
+            ),
             submitButtonTitle: "Share reply",
           };
         } else {
@@ -577,13 +558,15 @@ export default class NeueFlowPage extends React.Component {
       case "reflect":
         workspaceContents = {
           submittedCards: this.getReflectionSubmittedCards(),
-          pendingCards: activity.reflectionPrompts.map((el, idx) => ({
-            studentName: nameForYou,
-            avatar: this.state.userState.profile.avatar,
-            data: pendingCardData,
-            key: `reflect${currentPage}Response${idx}`,
-            placeholder: el,
-          })),
+          pendingCards: this.state.activity.reflectionPrompts.map(
+            (el, idx) => ({
+              studentName: nameForYou,
+              avatar: this.state.userState.profile.avatar,
+              data: pendingCardData,
+              key: `reflect${currentPage}Response${idx}`,
+              placeholder: el,
+            }),
+          ),
           submitButtonTitle: "Share reflection",
         };
         break;
@@ -626,7 +609,7 @@ export default class NeueFlowPage extends React.Component {
     const shouldShowWaitingNotice =
       currentPage > 0 &&
       this.state.reviewees.length < currentPage &&
-      currentPage <= activity.revieweeCount;
+      currentPage <= this.state.activity.revieweeCount;
     console.log("should show waiting", shouldShowWaitingNotice);
 
     return (
@@ -645,10 +628,10 @@ export default class NeueFlowPage extends React.Component {
         </Head>
         <PageContainer>
           <Prompt
-            title={activity.title}
-            prompt={activity.prompt}
-            stimuli={activity.stimuli}
-            postStimuliPrompt={activity.postStimuliPrompt}
+            title={this.state.activity.title}
+            prompt={this.state.activity.prompt}
+            stimuli={this.state.activity.stimuli}
+            postStimuliPrompt={this.state.activity.postStimuliPrompt}
           />
           <p />
           {shouldShowWaitingNotice ? (
