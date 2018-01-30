@@ -113,7 +113,11 @@ export default class ReportPage extends React.Component {
     return output;
   };
 
-  getCardList = (userID, highlightingUserID) => {
+  getCardList = (
+    userID,
+    highlightingUserID,
+    hideRepliesFromNonHighlightedUsers,
+  ) => {
     const { userState, inputs, inbox } = this.state.users[userID];
 
     console.log(userID, userState);
@@ -133,6 +137,12 @@ export default class ReportPage extends React.Component {
           const message = inbox[key];
           return [...accumulator, message];
         }, [])
+        .filter(
+          message =>
+            !hideRepliesFromNonHighlightedUsers ||
+            (hideRepliesFromNonHighlightedUsers &&
+              message.fromUserID === highlightingUserID),
+        )
         .map((message, idx) => {
           const sender = this.state.users[message.fromUserID];
           const senderEmail = sender
@@ -198,21 +208,31 @@ export default class ReportPage extends React.Component {
             }
 
             const revieweeCards = (userState.reviewees || []).map(reviewee => {
-              if (!this.state.users[reviewee.userID]) {
+              if (!this.state.users[reviewee.userID] || !reviewee.isSubmitted) {
                 return null;
               }
               return (
                 <div
                   style={{
-                    paddingTop: 36,
-                    marginTop: 36,
-                    borderTop: `1px solid ${sharedStyles.wbColors.offBlack20}`,
+                    marginTop: 48,
                   }}
                 >
+                  <h3
+                    style={{
+                      ...sharedStyles.wbTypography.labelLarge,
+                    }}
+                  >
+                    {userState.email}'s reply to{" "}
+                    {this.state.users[reviewee.userID].userState.email}
+                  </h3>
                   <CardWorkspace
                     key={reviewee.userID}
                     pendingCards={[]}
-                    submittedCards={this.getCardList(reviewee.userID, userID)}
+                    submittedCards={this.getCardList(
+                      reviewee.userID,
+                      userID,
+                      true,
+                    )}
                   />
                 </div>
               );
@@ -230,7 +250,6 @@ export default class ReportPage extends React.Component {
                 <h2
                   style={{
                     ...sharedStyles.wbTypography.headingMedium,
-                    position: "fixed",
                     backgroundColor: sharedStyles.colors.gray90,
                     zIndex: 100,
                     padding: "24px 0px",
@@ -240,17 +259,11 @@ export default class ReportPage extends React.Component {
                 >
                   {userState.email}
                 </h2>
-                <div
-                  style={{
-                    marginTop: 90,
-                  }}
-                >
-                  <CardWorkspace
-                    pendingCards={[]}
-                    submittedCards={this.getCardList(userID, userID)}
-                  />
-                  {revieweeCards}
-                </div>
+                <CardWorkspace
+                  pendingCards={[]}
+                  submittedCards={this.getCardList(userID, userID)}
+                />
+                {revieweeCards}
               </div>
             );
           })}
