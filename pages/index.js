@@ -30,6 +30,8 @@ import {
 } from "../lib/db";
 import { initializeApp } from "firebase";
 
+import type { PromptData, Activity } from "../lib/activities";
+
 const getClassCodeFromURL = url => {
   return url.query.classCode;
 };
@@ -85,10 +87,7 @@ type Props = {
   },
 };
 
-export default class NeueFlowPage extends React.Component {
-  state: State;
-  props: Props;
-
+export default class NeueFlowPage extends React.Component<Props, State> {
   cardWorkspaceContainerRef: ?HTMLDivElement;
 
   constructor(props: Props) {
@@ -167,6 +166,11 @@ export default class NeueFlowPage extends React.Component {
   };
 
   fetchInitialData = async () => {
+    const activity = this.state.activity;
+    if (!activity) {
+      throw "Can't fetch initial data for null activity";
+    }
+
     // TODO(andy): So... we really don't have any semblance of security, but this sure does make the lack of security more easily manipulated. At some point we'll want to think about actually restraining what users are able to modify in the database, but that's not appropriate in this prototyping stage.
     let activeUserID = this.props.url.query.userID;
     if (activeUserID) {
@@ -197,14 +201,29 @@ export default class NeueFlowPage extends React.Component {
         userState.furthestPageLoaded &&
         Number.parseInt(userState.furthestPageLoaded)) ||
       0;
-    this.setState({
-      currentPage: initialPage,
-      ready: true,
-      inputs: inputs || [],
-      userState: userState || {},
-      userID: activeUserID,
-      managementSubscriptionCancelFunction,
-    });
+    this.setState(
+      {
+        currentPage: initialPage,
+        ready: true,
+        inputs: inputs || [],
+        userState: userState || {},
+        userID: activeUserID,
+        managementSubscriptionCancelFunction,
+      },
+      () => {
+        if (
+          activity.prompt.type === "jigsaw" &&
+          (!inputs || !inputs[0] || !inputs[0]._jigsawGroup)
+        ) {
+          const jigsawPromptData = activity.prompt;
+          this.onChange(0, {
+            _jigsawGroup: Math.floor(
+              Math.random() * jigsawPromptData.groups.length,
+            ),
+          });
+        }
+      },
+    );
     await this.updateReviewees(initialPage);
 
     let baseUserState = {};
@@ -515,7 +534,20 @@ export default class NeueFlowPage extends React.Component {
         </p>
       );
     }
-    const activity = this.state.activity;
+    const activity: Activity = this.state.activity;
+
+    let prompt: PromptData;
+    if (activity.prompt.type === "jigsaw") {
+      const jigsawGroup =
+        this.state.inputs[0] && this.state.inputs[0]._jigsawGroup;
+      if (jigsawGroup === undefined) {
+        return null; // Wait for jigsaw group to be assigned.
+      } else {
+        prompt = activity.prompt.groups[jigsawGroup];
+      }
+    } else {
+      prompt = activity.prompt;
+    }
 
     if (!this.state.userState.email) {
       return (
@@ -667,9 +699,9 @@ export default class NeueFlowPage extends React.Component {
         <PageContainer>
           <Prompt
             title={activity.title}
-            prompt={activity.prompt}
-            stimuli={activity.stimuli}
-            postStimuliPrompt={activity.postStimuliPrompt}
+            prompt={prompt.prompt}
+            stimuli={prompt.stimuli}
+            postStimuliPrompt={prompt.postStimuliPrompt}
           />
           <p />
           {shouldShowWaitingNotice ? (
