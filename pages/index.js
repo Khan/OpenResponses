@@ -76,7 +76,6 @@ type State = {
   pendingSaveRequestIDs: { [key: mixed]: number },
   saveRequestTimeoutTime: number,
 
-  managementSubscriptionCancelFunction: ?(void) => void,
   inboxSubscriptionCancelFunction: ?(void) => void,
   connectivitySubscriptionCancelFunction: ?(void) => void,
 };
@@ -110,7 +109,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       pendingSaveRequestIDs: {},
       saveRequestTimeoutTime: 0,
 
-      managementSubscriptionCancelFunction: null,
       inboxSubscriptionCancelFunction: null,
       connectivitySubscriptionCancelFunction: null,
     };
@@ -188,14 +186,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const { inputs, userState } =
       (await loadData(flowID, classCode, activeUserID)) || {};
 
-    const managementSubscriptionCancelFunction = loadManagementData(
-      flowID,
-      classCode,
-      newManagementData => {
-        console.log("new management data", newManagementData);
-      },
-    );
-
     const initialPage =
       (userState &&
         userState.furthestPageLoaded &&
@@ -208,12 +198,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         inputs: inputs || [],
         userState: userState || {},
         userID: activeUserID,
-        managementSubscriptionCancelFunction,
       },
       () => {
         if (
           activity.prompt.type === "jigsaw" &&
-          (!inputs || !inputs[0] || !inputs[0]._jigsawGroup)
+          (!inputs || !inputs[0] || inputs[0]._jigsawGroup === undefined)
         ) {
           const jigsawPromptData = activity.prompt;
           this.onChange(0, {
@@ -287,20 +276,37 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       return;
     }
 
+    const thisUserJigsawGroup = this.state.inputs[0]._jigsawGroup;
     const revieweeFetcher = findReviewees({
       matchAtPageNumber: 1,
-      extractResponse: inputs => inputs[0].pendingCardData,
+      extractResponse: inputs => ({
+        ...inputs[0].pendingCardData,
+        _jigsawGroup: inputs[0]._jigsawGroup,
+      }),
       revieweePageNumberRequirement: 0,
       sortReviewees: () => 0,
       findReviewees: ({ inputs, userState }, fetcher) => {
         const reviewees = [];
         for (var i = 0; i < activity.revieweeCount; i++) {
-          const reviewee = fetcher(
-            otherUserData =>
+          const reviewee = fetcher(otherUserData => {
+            const revieweeIsNew =
               reviewees.findIndex(
-                reviewee => reviewee.userID === otherUserData.userID,
-              ) === -1,
-          );
+                existingReviewee =>
+                  existingReviewee.userID === otherUserData.userID,
+              ) === -1;
+
+            const revieweeJigsawGroup = otherUserData.inputs[0]._jigsawGroup;
+            const revieweeIsDifferentEnough =
+              activity.prompt.type !== "jigsaw" ||
+              (thisUserJigsawGroup !== revieweeJigsawGroup &&
+                // No other existing reviewee has this jigsaw group
+                reviewees.findIndex(
+                  existingReviewee =>
+                    existingReviewee.submission._jigsawGroup ===
+                    revieweeJigsawGroup,
+                ) === -1);
+            return revieweeIsNew && revieweeIsDifferentEnough;
+          });
           if (reviewee) {
             reviewees.push(reviewee);
           }
@@ -316,7 +322,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       { inputs: this.state.inputs, userState: this.state.userState },
       false,
     );
-    console.log("fetcher response", fetcherResponse);
     if (fetcherResponse) {
       const remoteData = fetcherResponse.remoteData || fetcherResponse;
       const newUserState = fetcherResponse.newUserState;
@@ -328,10 +333,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       }
 
       if (remoteData.responses.length < activity.revieweeCount) {
-        console.log(
-          `Only got ${remoteData.responses
-            .length} reviewees; seeking ${activity.revieweeCount}`,
-        );
         setTimeout(() => this.updateReviewees(this.state.currentPage), 1000);
       }
     }
@@ -398,8 +399,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   onChange = (index: number, newInputs: Object) => {
+    if (!this.state.activity) {
+      throw "Can't commit changes for a null activity";
+    }
+
     let effectiveNewInputs = newInputs;
-    if (this.getCurrentStage() === "engage") {
+    if (
+      getStageForPage(index, this.state.activity.revieweeCount) === "engage"
+    ) {
       // This is really quite a hack to cause the server-side feedback exchange machinery (built for the previous flow architecture) to send this work to the reviewee.
       effectiveNewInputs.feedback = true;
     }
@@ -466,9 +473,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   componentWillUnmount = () => {
-    this.state.managementSubscriptionCancelFunction &&
-      this.state.managementSubscriptionCancelFunction();
-
     this.state.inboxSubscriptionCancelFunction &&
       this.state.inboxSubscriptionCancelFunction();
 
@@ -577,6 +581,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     const currentInputs = this.state.inputs[currentPage] || {};
     const pendingCardData = currentInputs.pendingCardData;
+
     let workspaceContents = {};
     switch (stage) {
       case "compose":
@@ -605,6 +610,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 avatar: reviewee && reviewee._profile.avatar,
                 data: reviewee,
                 key: `engage${currentPage}Peer`,
+                subheading:
+                  activity.prompt.type === "jigsaw"
+                    ? `${activity.prompt.groupNameHeadingPrefix} ${activity
+                        .prompt.groups[reviewee._jigsawGroup].name}`
+                    : undefined,
               },
             ],
             pendingCards: currentInputs._cardIndices
@@ -680,7 +690,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       currentPage > 0 &&
       this.state.reviewees.length < currentPage &&
       currentPage <= activity.revieweeCount;
-    console.log("should show waiting", shouldShowWaitingNotice);
 
     return (
       <Fragment>
