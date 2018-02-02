@@ -47,13 +47,13 @@ firebase functions:config:set host.origin="https://your.webserver.com"
 
 # Adding content
 
-See `lib/flows/humanities_ham_async.js` for an example of a flow using this system. To add a new flow, add a new file to that folder, add an entry for it in `index.js` (copy the pattern that's already there), and navigate to `/?flowID=NAME_GIVEN_IN_INDEX`.
+See `lib/activities.js` for examples of a flow using this system. To add a new flow, add a new entry to that file (copy the pattern that's already there), and navigate to `/?flowID=NAME_GIVEN_IN_ACTIVITIES`.
 
 # Identity
 
 You'll be automatically assigned a user ID when you visit a page. When developing flows, it might be helpful to pose as multiple users to enter various responses.
 
-You can get a new ID by visiting `/signOut` then refreshing the flow page. You can pose as a user by passing their user ID in the `userID` argument in the URL.
+You can pose as a user by passing their user ID in the `userID` argument in the URL.
 
 You can isolate one group of students from another group of students by passing an `classCode` argument in the URL, like this:
 
@@ -82,22 +82,6 @@ Now, to populate a new class code with those students:
 3. Type the class code you used for the fallback class (we usually just use `FALLBACK`).
 4. Refresh the page, and you'll see those students in place.
 
-# Managing students
-
-You can control the range of pages students are permitted to reach (and see their work live) by visiting this URL:
-
-```
-http://YOUR-SERVER.com/manage?flowID=myFlow&classCode=OaklandHigh
-```
-
-Changing the value on this page will push an update to students currently on the site, so they'll immediately be able to advance.
-
-Visit this page to see which students are waiting for feedback:
-
-```
-http://YOUR-SERVER.com/queue?flowID=myFlow&classCode=OaklandHigh
-```
-
 # URL scheme reference
 
 Construct URLs by adding parameters onto the URL base like this:
@@ -110,8 +94,7 @@ https://YOUR-SERVER.com/url_base?param1=value1&param2=value2&param3=value
 | --- | --- | --- |
 | `/` | Actually do the activity. | Students |
 | `/report` | Display a report of all non-fallback-user activity. | Teachers |
-| `/manage` | Display more detailed data of all users activity. A few admin controls. | KA |
-| `/queue` | Display which students are waiting on feedback. | KA |
+| `/manage` | Display a few admin controls for the activity. | KA |
 | `/distribution` | Not-very-self-explanatory simulator of peer interaction distributions in various what-if scenarios. | KA |
 
 
@@ -120,5 +103,3 @@ https://YOUR-SERVER.com/url_base?param1=value1&param2=value2&param3=value
 | `flowID` | Chooses which flow (activity) is being displayed. Corresponds to pages in `lib/flows`. |
 | `classCode` | Can be any arbitrary string. Creates isolated "pools" of students to set boundaries for peer exchange. |
 | `userID` | Set this to a user's ID to "impersonate" that user. |
-| `page` | Choose which page to display. Zero-indexed. |
-| `email` | Set this argument to skip the initial email input and populate the user's recorded email with an already-known address. |
