@@ -215,11 +215,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     );
     await this.updateReviewees(initialPage);
 
-    let baseUserState = {};
     if (this.props.url.query.fallbackUser) {
-      baseUserState.isFallbackUser = true;
+      console.log("Creating fallback user");
+      this.setUserState({ isFallbackUser: true });
     }
-    this.setUserState(baseUserState);
   };
 
   throttledSaveToServer = throttle(
