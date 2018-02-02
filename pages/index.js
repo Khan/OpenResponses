@@ -275,13 +275,17 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       return;
     }
 
-    const thisUserJigsawGroup = this.state.inputs[0]._jigsawGroup;
+    const thisUserJigsawGroup =
+      this.state.inputs[0] && this.state.inputs[0]._jigsawGroup;
     const revieweeFetcher = findReviewees({
       matchAtPageNumber: 1,
-      extractResponse: inputs => ({
-        ...inputs[0].pendingCardData,
-        _jigsawGroup: inputs[0]._jigsawGroup,
-      }),
+      extractResponse: inputs =>
+        inputs[0]._jigsawGroup !== undefined
+          ? {
+              ...inputs[0].pendingCardData,
+              _jigsawGroup: inputs[0]._jigsawGroup,
+            }
+          : inputs[0].pendingCardData,
       revieweePageNumberRequirement: 0,
       sortReviewees: () => 0,
       findReviewees: ({ inputs, userState }, fetcher) => {
@@ -458,6 +462,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           this.setState({ hasConnectivity: newConnectivityValue }),
       );
       this.recordPageLoad(this.state.currentPage);
+
       const inboxSubscriptionCancelFunction = watchInbox(
         getFlowIDFromURL(this.props.url),
         getClassCodeFromURL(this.props.url),
