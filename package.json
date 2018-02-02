@@ -2,9 +2,9 @@
   "name": "khan-open-responses",
   "version": "0.0.1",
   "scripts": {
-    "dev": "next",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node_modules/.bin/next",
+    "build": "node_modules/.bin/next build",
+    "start": "node_modules/.bin/next start",
     "deploy": "node_modules/.bin/now",
     "precommit": "lint-staged",
     "prepackage-functions": "rimraf dist-functions",
