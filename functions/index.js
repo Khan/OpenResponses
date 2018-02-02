@@ -2,24 +2,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 
-// TODO(andy): This is a pretty hacky way to specify the human-readable flow names, but it'll do for now.
-const humanReadableFlowNames = {
-  humanities_ham_async: "The Cabinet Battle: State Debt",
-  tiltedSquare_async: "Tilted Square Area",
-  tiltedSquare_useMethod: "Tilted Square Area",
-  humanities_resistance: "Martin Luther King Jr. and Malcolm X",
-  zoid_01: "Shape Areas",
-  naacp_rhetoric: "The Civil Rights Movement in Context",
-  compare_colonization: "Spanish and Portuguese Colonialism",
-  compare_napoleon: "Napoleon and the Absolutist Monarchs",
-  compare_family: "Family Structures and Gender Relations in 600–1450 C.E.",
-  reconstruction: "Reconstruction and life after the Civil War",
-};
-
-// TODO(andy): And this is an even hackier way to specify the final page, but it'll do for now.
-const finalSubmittedPages = {
-  naacp_rhetoric: 9,
-};
+import activities from "./activities";
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
 
@@ -132,37 +115,11 @@ exports.logSubmission = functions.database
 
     const user = event.data.ref.parent.parent.parent;
     const log = user.child("log");
-    return log
-      .push({
-        type: "submission",
-        moduleID: event.params.moduleID,
-        time: admin.database.ServerValue.TIMESTAMP,
-      })
-      .then(() => {
-        const finalPage = finalSubmittedPages[event.params.flowID];
-        if (finalPage == event.params.moduleID) {
-          const submittedRef = event.data.ref.parent;
-          const inputsRef = submittedRef.parent;
-          const userRef = inputsRef.parent;
-          return userRef
-            .child("userState/email")
-            .once("value")
-            .then(emailAddressSnapshot => {
-              const humanReadableFlowName =
-                humanReadableFlowNames[event.params.flowID];
-              const returnURL = `${functions.config().host
-                .origin}/?flowID=${event.params.flowID}&classCode=${event.params
-                .cohortID}&userID=${event.params.userID}`;
-              return transporter.sendMail({
-                from: "Khan Academy <noreply@khanacademy.org>",
-                to: emailAddressSnapshot.val(),
-                subject: `Congratulations on completing “${humanReadableFlowName}”!`,
-                text: `Great work finishing this activity! Click this URL to see a summary of all your hard work: ${returnURL}`,
-                html: `<p>Great work finishing this activity! Click <a href="${returnURL}">here</a> to see a summary of all your hard work.</p>`,
-              });
-            });
-        }
-      });
+    return log.push({
+      type: "submission",
+      moduleID: event.params.moduleID,
+      time: admin.database.ServerValue.TIMESTAMP,
+    });
   });
 
 exports.logUserCreation = functions.database
@@ -188,8 +145,7 @@ exports.logUserCreation = functions.database
         time: admin.database.ServerValue.TIMESTAMP,
       })
       .then(() => {
-        const humanReadableFlowName =
-          humanReadableFlowNames[event.params.flowID];
+        const humanReadableFlowName = activities[event.params.flowID].title;
 
         if (!humanReadableFlowName) {
           return;
@@ -313,8 +269,7 @@ exports.transferFeedback = functions.database
                             );
 
                             const humanReadableFlowName =
-                              humanReadableFlowNames[event.params.flowID];
-                            // TODO(andy): Include a human-readable name of the flow.
+                              activities[event.params.flowID].title;
                             // TODO(andy): Shorten the flow URL?
                             const returnURL = `${functions.config().host
                               .origin}/?flowID=${event.params
