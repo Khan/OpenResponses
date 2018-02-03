@@ -125,6 +125,9 @@ export default class ReportPage extends React.Component {
       studentName: `${userState.profile.name} (${userState.email})`,
       avatar: userState.profile.avatar,
       data: inputs[0].pendingCardData,
+      placeholder: inputs[0].pendingCardData
+        ? undefined
+        : "[the student did not submit an answer]",
       key: "compose",
       highlight: userID === highlightingUserID,
     };
@@ -159,7 +162,7 @@ export default class ReportPage extends React.Component {
         });
     }
 
-    if (inputs.length > 0 && !inputs[inputs.length - 1].feedback) {
+    if (inputs.length > 1 && !inputs[inputs.length - 1].feedback) {
       const timestampKey = Object.keys(log).find(logKey => {
         const logEntry = log[logKey];
         return (
