@@ -147,7 +147,7 @@ exports.logUserCreation = functions.database
       .then(() => {
         const humanReadableFlowName = activities[event.params.flowID].title;
 
-        if (!humanReadableFlowName) {
+        if (!humanReadableFlowName || /stress/.test(event.params.cohortID)) {
           return;
         }
 
