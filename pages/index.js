@@ -133,17 +133,20 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   onSubmit = () => {
     (async () => {
       const newPageIndex = this.state.currentPage + 1;
-      await this.recordPageLoad(newPageIndex);
+      const commitSaveRequestString = `commit${newPageIndex}`; // such hacks, I'm sorry
+      if (!this.state.pendingSaveRequestIDs[commitSaveRequestString]) {
+        await this.recordPageLoad(newPageIndex);
 
-      if (window.innerWidth < 800) {
-        // Hacky scroll to keep cards visible on mobile. Need to figure out a better approach here.
-        scrollToComponent(this.cardWorkspaceContainerRef, {
-          align: "top",
-          offset: -50,
-        });
+        if (window.innerWidth < 800) {
+          // Hacky scroll to keep cards visible on mobile. Need to figure out a better approach here.
+          scrollToComponent(this.cardWorkspaceContainerRef, {
+            align: "top",
+            offset: -50,
+          });
+        }
+
+        this.setState({ currentPage: newPageIndex, activeResponseCard: null });
       }
-
-      this.setState({ currentPage: newPageIndex, activeResponseCard: null });
     })();
   };
 
@@ -343,10 +346,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
   recordPageLoad = async (newPageIndex: number) => {
     const commitSaveRequestString = `commit${newPageIndex}`;
-    if (
-      newPageIndex > (this.state.userState.furthestPageLoaded || -1) &&
-      !this.state.pendingSaveRequestIDs[commitSaveRequestString]
-    ) {
+    if (newPageIndex > (this.state.userState.furthestPageLoaded || -1)) {
       if (newPageIndex > 0) {
         this.state.pendingSaveRequestIDs[commitSaveRequestString] =
           Date.now() + 750;

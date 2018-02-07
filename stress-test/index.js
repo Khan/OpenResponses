@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const lipsum = require("lorem-ipsum");
 
-const classCode = "stress_test16";
+const classCode = "stress_test17";
 const userCount = 15;
 
 (async () => {
