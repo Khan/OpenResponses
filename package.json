@@ -30,7 +30,7 @@
     "@types/validator": "^6.2.0",
     "aphrodite": "^1.2.0",
     "diff": "^3.3.1",
-    "firebase": "^3.7.6",
+    "firebase": "^4.0",
     "immutable": "^3.8.1",
     "keypather": "^2.0.1",
     "lodash.shuffle": "^4.2.0",
@@ -68,8 +68,10 @@
     "flow-bin": "^0.43.1",
     "husky": "^0.13.3",
     "lint-staged": "^3.4.0",
+    "lorem-ipsum": "^1.0.4",
     "now": "^4.10.3",
     "prettier": "1.7.2",
+    "puppeteer": "^1.0.0",
     "rimraf": "^2.6.1"
   },
   "now": {
