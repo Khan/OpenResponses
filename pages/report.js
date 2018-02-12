@@ -213,7 +213,12 @@ export default class ReportPage extends React.Component {
         >
           {Object.keys(this.state.users).map(userID => {
             const { userState, inputs } = this.state.users[userID];
-            if (!userState || !inputs || inputs.length === 0) {
+            if (
+              !userState ||
+              !inputs ||
+              inputs.length === 0 ||
+              userState.furthestPageLoaded === 0
+            ) {
               return null;
             }
             if (userState.isFallbackUser) {
