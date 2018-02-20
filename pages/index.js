@@ -208,10 +208,15 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           (!inputs || !inputs[0] || inputs[0]._jigsawGroup === undefined)
         ) {
           const jigsawPromptData = activity.prompt;
+
+          const jigsawGroupRandomData = new Uint8Array(1);
+          window.crypto.getRandomValues(jigsawGroupRandomData);
+          const jigsawGroup = Math.floor(
+            jigsawGroupRandomData[0] / 255.0 * jigsawPromptData.groups.length,
+          );
+
           this.onChange(0, {
-            _jigsawGroup: Math.floor(
-              Math.random() * jigsawPromptData.groups.length,
-            ),
+            _jigsawGroup: jigsawGroup,
           });
         }
       },
