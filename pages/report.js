@@ -3,6 +3,7 @@ import Head from "next/head";
 import React, { Fragment } from "react";
 import { resetKeyGenerator } from "slate";
 
+import activities from "../lib/activities";
 import CardWorkspace from "../lib/components/neue/card-workspace";
 import PageContainer from "../lib/components/neue/page-container";
 import Prompt from "../lib/components/neue/prompt";
@@ -12,6 +13,8 @@ import sharedStyles from "../lib/styles";
 import { signIn } from "../lib/auth";
 import { loadData } from "../lib/db";
 import { initializeApp } from "firebase";
+
+import type { Activity } from "../lib/activities";
 
 const getClassCodeFromURL = url => {
   return url.query.classCode;
@@ -32,7 +35,8 @@ type Stage = "compose" | "engage" | "reflect" | "conclusion";
 type State = {
   ready: boolean,
   userID: ?string,
-  users: Object, // TODO
+  users: Object[], // TODO
+  activity: Activity,
 };
 
 type Props = {
@@ -41,17 +45,17 @@ type Props = {
   },
 };
 
-export default class ReportPage extends React.Component {
-  state: State;
-  props: Props;
-
+export default class ReportPage extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
+
+    const flowID = getFlowIDFromURL(this.props.url);
 
     this.state = {
       ready: false,
       userID: null,
       users: [],
+      activity: activities[flowID],
     };
   }
 
@@ -117,6 +121,7 @@ export default class ReportPage extends React.Component {
     userID,
     highlightingUserID,
     hideRepliesFromNonHighlightedUsers,
+    activity: Activity,
   ) => {
     const { userState, inputs, inbox, log } = this.state.users[userID];
 
@@ -130,6 +135,12 @@ export default class ReportPage extends React.Component {
         : "[the student did not submit an answer]",
       key: "compose",
       highlight: userID === highlightingUserID,
+      subheading:
+        activity.prompt.type === "jigsaw"
+          ? `${activity.prompt.groupNameHeadingPrefix} ${activity.prompt.groups[
+              inputs[0]._jigsawGroup
+            ].name}`
+          : undefined,
     };
 
     let replies = [];
@@ -250,6 +261,7 @@ export default class ReportPage extends React.Component {
                       reviewee.userID,
                       userID,
                       true,
+                      this.state.activity,
                     )}
                   />
                 </div>
@@ -279,7 +291,12 @@ export default class ReportPage extends React.Component {
                 </h2>
                 <CardWorkspace
                   pendingCards={[]}
-                  submittedCards={this.getCardList(userID, userID)}
+                  submittedCards={this.getCardList(
+                    userID,
+                    userID,
+                    false,
+                    this.state.activity,
+                  )}
                 />
                 {revieweeCards}
               </div>
