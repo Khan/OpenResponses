@@ -8,17 +8,17 @@
     "deploy": "node_modules/.bin/now",
     "precommit": "lint-staged",
     "prepackage-functions": "rimraf dist-functions",
-    "package-functions": "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
+    "package-functions":
+      "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
     "postpackage-functions": "cd dist-functions && yarn",
-    "deploy-functions": "yarn run package-functions && firebase deploy --only functions"
+    "deploy-functions":
+      "yarn run package-functions && firebase deploy --only functions"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --write --trailing-comma all",
-      "git add"
-    ]
+    "*.js": ["prettier --write --trailing-comma all", "git add"]
   },
   "dependencies": {
+    "@firebase/app-types": "^0.1.2",
     "@types/aphrodite": "^0.5.5",
     "@types/diff": "^3.2.2",
     "@types/express-useragent": "^0.2.21",
@@ -30,6 +30,7 @@
     "@types/react-motion": "0.0.24",
     "@types/react-portal": "^3.0.1",
     "@types/validator": "^6.2.0",
+    "@zeit/next-css": "^0.1.2",
     "aphrodite": "^1.2.0",
     "browserslist-useragent": "^1.1.0",
     "diff": "^3.3.1",
@@ -51,6 +52,7 @@
     "react-numeric-input": "^2.0.7",
     "react-pointable": "^1.0",
     "react-portal": "^3.0.0",
+    "react-quill": "zensourcer/react-quill#pr",
     "react-scroll-to-component": "^1.0.2",
     "react-visibility-sensor": "^3.10.1",
     "slate": "^0.32",

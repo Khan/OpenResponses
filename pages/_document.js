@@ -17,6 +17,7 @@ export default class AphroditeDocument extends Document {
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"
           />
+          <link rel="stylesheet" href="/_next/static/style.css" />
           <script src="https://code.jquery.com/pep/0.4.2/pep.js" />
           <script
             src="https://cdn.ravenjs.com/3.15.0/raven.min.js"
