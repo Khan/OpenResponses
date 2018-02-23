@@ -2,24 +2,26 @@
   "name": "khan-open-responses",
   "version": "0.0.1",
   "scripts": {
-    "dev": "node_modules/.bin/next",
+    "dev": "node lib/server.js",
     "build": "node_modules/.bin/next build",
-    "start": "node_modules/.bin/next start",
+    "start": "NODE_ENV=production node lib/server.js",
     "deploy": "node_modules/.bin/now",
     "precommit": "lint-staged",
     "prepackage-functions": "rimraf dist-functions",
-    "package-functions":
-      "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
+    "package-functions": "babel 'functions' --out-dir 'dist-functions' --presets=es2015 --copy-files --ignore 'node_modules'",
     "postpackage-functions": "cd dist-functions && yarn",
-    "deploy-functions":
-      "yarn run package-functions && firebase deploy --only functions"
+    "deploy-functions": "yarn run package-functions && firebase deploy --only functions"
   },
   "lint-staged": {
-    "*.js": ["prettier --write --trailing-comma all", "git add"]
+    "*.js": [
+      "prettier --write --trailing-comma all",
+      "git add"
+    ]
   },
   "dependencies": {
     "@types/aphrodite": "^0.5.5",
     "@types/diff": "^3.2.2",
+    "@types/express-useragent": "^0.2.21",
     "@types/firebase": "^2.4.31",
     "@types/lodash.throttle": "^4.1.3",
     "@types/markdown-it": "0.0.2",
@@ -29,6 +31,7 @@
     "@types/react-portal": "^3.0.1",
     "@types/validator": "^6.2.0",
     "aphrodite": "^1.2.0",
+    "browserslist-useragent": "^1.1.0",
     "diff": "^3.3.1",
     "firebase": "^4.0",
     "immutable": "^3.8.1",
@@ -76,5 +79,13 @@
   },
   "now": {
     "dotenv": "env.production"
-  }
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions",
+    "IE 11",
+    ">1%"
+  ]
 }
