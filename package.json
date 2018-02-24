@@ -52,7 +52,6 @@
     "react-numeric-input": "^2.0.7",
     "react-pointable": "^1.0",
     "react-portal": "^3.0.0",
-    "react-quill": "zensourcer/react-quill#pr",
     "react-scroll-to-component": "^1.0.2",
     "react-visibility-sensor": "^3.10.1",
     "slate": "^0.32",
@@ -87,7 +86,6 @@
     "last 2 Firefox versions",
     "last 2 Safari versions",
     "last 2 Edge versions",
-    "unreleased versions",
     "IE 11",
     ">1%"
   ]

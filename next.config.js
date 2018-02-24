@@ -11,11 +11,6 @@ module.exports = withCSS({
       c.resolve.alias = {};
     }
 
-    // Hack dealing with the fact that npm is rejecting our pull-request-defined react-quill implementation. I spent enough time fighting with it; forcing for now.
-    c.resolve.alias["react-quill"] = path.resolve(
-      __dirname,
-      "node_modules/react-quill",
-    );
     return c;
   },
 });
