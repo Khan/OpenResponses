@@ -126,8 +126,18 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     );
   };
 
-  onSubmitWelcome = (email: string, name: string, avatar: string) => {
-    this.setUserState({ email, profile: { name, avatar } });
+  onSubmitWelcome = ({
+    email,
+    name,
+    avatar,
+    realName,
+  }: {
+    email: string,
+    name: string,
+    avatar: string,
+    realName: ?string,
+  }) => {
+    this.setUserState({ email, profile: { name, avatar, realName } });
   };
 
   onSubmit = () => {
@@ -579,6 +589,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               onSubmit={this.onSubmitWelcome}
               collectEmail
               title={this.state.activity.title}
+              requiresRealName
             />
           </PageContainer>
         </Fragment>

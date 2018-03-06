@@ -117,6 +117,10 @@ export default class ReportPage extends React.Component<Props, State> {
     return output;
   };
 
+  getIdentityFromUserState = userState => {
+    return userState.profile.realName || userState.email;
+  };
+
   getCardList = (
     userID,
     highlightingUserID,
@@ -127,7 +131,7 @@ export default class ReportPage extends React.Component<Props, State> {
 
     console.log(userID, userState);
     const response = {
-      studentName: `${userState.profile.name} (${userState.email})`,
+      studentName: this.getIdentityFromUserState(userState),
       avatar: userState.profile.avatar,
       data: inputs[0].pendingCardData,
       placeholder: inputs[0].pendingCardData
@@ -159,11 +163,11 @@ export default class ReportPage extends React.Component<Props, State> {
         )
         .map((message, idx) => {
           const sender = this.state.users[message.fromUserID];
-          const senderEmail = sender
-            ? sender.userState.email
+          const senderIdentity = sender
+            ? this.getIdentityFromUserState(sender.userState)
             : "(unknown email)";
           return {
-            studentName: `${message.profile.name} (${senderEmail})`,
+            studentName: senderIdentity,
             avatar: message.profile.avatar,
             data: message.submitted[message.fromModuleID].pendingCardData,
             key: `reflectionFeedback${idx}`,
@@ -183,7 +187,7 @@ export default class ReportPage extends React.Component<Props, State> {
       });
       const time = timestampKey && log[timestampKey].time;
       replies.push({
-        studentName: `${userState.profile.name} (${userState.email})`,
+        studentName: this.getIdentityFromUserState(userState),
         avatar: userState.profile.avatar,
         data: inputs[inputs.length - 1].pendingCardData,
         key: "reflection",
@@ -251,8 +255,10 @@ export default class ReportPage extends React.Component<Props, State> {
                       ...sharedStyles.wbTypography.labelLarge,
                     }}
                   >
-                    {userState.email}'s reply to{" "}
-                    {this.state.users[reviewee.userID].userState.email}
+                    {this.getIdentityFromUserState(userState)}'s reply to{" "}
+                    {this.getIdentityFromUserState(
+                      this.state.users[reviewee.userID].userState,
+                    )}
                   </h3>
                   <CardWorkspace
                     key={reviewee.userID}
@@ -287,7 +293,7 @@ export default class ReportPage extends React.Component<Props, State> {
                     width: "100%",
                   }}
                 >
-                  {userState.email}
+                  {this.getIdentityFromUserState(userState)}
                 </h2>
                 <CardWorkspace
                   pendingCards={[]}
