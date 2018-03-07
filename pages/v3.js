@@ -479,7 +479,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             postStimuliPrompt={prompt.postStimuliPrompt}
           />
 
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
             <Thread
               posts={[
                 {
