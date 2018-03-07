@@ -4,11 +4,11 @@ import React, { Fragment } from "react";
 import { resetKeyGenerator } from "slate";
 
 import activities from "../lib/activities";
-import CardWorkspace from "../lib/components/neue/card-workspace";
-import PageContainer from "../lib/components/neue/page-container";
-import Prompt from "../lib/components/neue/prompt";
+import CardWorkspace from "../lib/components/card-workspace";
+import PageContainer from "../lib/components/page-container";
+import Prompt from "../lib/components/prompt";
 import reportError from "../lib/error";
-import ResponseCard from "../lib/components/neue/response-card";
+import ResponseCard from "../lib/components/response-card";
 import sharedStyles from "../lib/styles";
 import { signIn } from "../lib/auth";
 import { loadData } from "../lib/db";

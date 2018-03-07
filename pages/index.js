@@ -10,14 +10,14 @@ import { default as KeyPather } from "keypather";
 const keypather = new KeyPather();
 
 import activities from "../lib/activities";
-import CardWorkspace from "../lib/components/neue/card-workspace";
-import findReviewees from "../lib/flows/utilities/reviewee-requirement";
-import PageContainer from "../lib/components/neue/page-container";
-import Prompt from "../lib/components/neue/prompt";
+import CardWorkspace from "../lib/components/card-workspace";
+import findReviewees from "../lib/reviewee-requirement";
+import PageContainer from "../lib/components/page-container";
+import Prompt from "../lib/components/prompt";
 import reportError from "../lib/error";
-import ResponseCard from "../lib/components/neue/response-card";
+import ResponseCard from "../lib/components/response-card";
 import sharedStyles from "../lib/styles";
-import Welcome from "../lib/components/neue/welcome";
+import Welcome from "../lib/components/welcome";
 import { signIn } from "../lib/auth";
 import {
   setConnectivityHandler,

@@ -1,6 +1,6 @@
 import Head from "next/head";
-import PageContainer from "../lib/components/neue/page-container";
-import Prompt from "../lib/components/neue/prompt";
+import PageContainer from "../lib/components/page-container";
+import Prompt from "../lib/components/prompt";
 import React, { Fragment } from "react";
 
 export default () => (
