@@ -26,6 +26,7 @@ import {
 import { initializeApp } from "firebase";
 
 import type { PromptData, Activity } from "../lib/activities";
+import type { dataKind as QuillDataKind } from "../lib/components/quill-rich-editor"; // TODO move
 
 const getClassCodeFromURL = url => {
   return url.query.classCode;
@@ -40,16 +41,38 @@ const nameForYou = "You"; // TODO: Needs to be student name.
 
 const engagementCardCount = 3;
 
-type State = {
-  activity: ?Activity,
-  currentPage: number,
-  activeResponseCard: ?number,
-  ready: boolean,
+type UserID = string;
+type ThreadKey = UserID; // for now...
 
+type RichEditorData = {
+  kind: QuillDataKind,
+  rawData: string,
+};
+
+type ThreadData = {
+  posts: { [key: string]: PostData },
+};
+
+type PostData = {
+  data: RichEditorData,
+  submissionTimestamp: number,
+  userID: UserID,
+  userData: {
+    avatar: string,
+    pseudonym: string,
+    name: string,
+  },
+};
+
+type State = {
+  ready: boolean,
   userID: ?string,
-  inputs: Object[], // TODO
-  userState: Object, // TODO
-  reviewees: Object[], // TODO
+
+  activity: ?Activity,
+
+  userData: Object, // TODO
+  threads: { [key: ThreadKey]: ThreadData },
+  expandedThreads: ThreadKey[],
 
   hasConnectivity: boolean,
   nextSaveRequestID: number,
@@ -70,15 +93,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      activity: activities[getFlowIDFromURL(props.url)],
-      currentPage: 0,
-      activeResponseCard: null,
       ready: false,
-
       userID: null,
-      inputs: [],
-      userState: {},
-      reviewees: [],
+
+      activity: activities[getFlowIDFromURL(props.url)],
+
+      userData: {},
+      threads: {},
+      expandedThreads: [],
 
       hasConnectivity: true,
       nextSaveRequestID: 0,
@@ -117,6 +139,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   setUserState = (newUserState: Object) => {
+    /*
     this.setState({ userState: { ...this.state.userState, ...newUserState } });
 
     return (async () => {
@@ -130,6 +153,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         this.setState({ userState: latestUserState });
       }
     })().catch(reportError);
+    */
   };
 
   fetchInitialData = async () => {
@@ -138,10 +162,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       throw "Can't fetch initial data for null activity";
     }
 
-    // TODO
-    this.setState({ ready: true });
-
-    /*
     // TODO(andy): So... we really don't have any semblance of security, but this sure does make the lack of security more easily manipulated. At some point we'll want to think about actually restraining what users are able to modify in the database, but that's not appropriate in this prototyping stage.
     let activeUserID = this.props.url.query.userID;
     if (activeUserID) {
@@ -154,6 +174,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         query: { ...this.props.url.query, userID: activeUserID },
       });
     }
+
+    this.setState({
+      ready: true,
+      userID: activeUserID,
+    });
+
+    // TODO
+    /*
     const flowID = getFlowIDFromURL(this.props.url);
     const classCode = getClassCodeFromURL(this.props.url);
     const { inputs, userState } =
@@ -339,28 +367,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     */
   };
 
-  onOpenPendingCard = (pendingCardIndex: number) => {
-    if (
-      !this.state.inputs[this.state.currentPage] ||
-      this.state.inputs[this.state.currentPage].openPendingCardIndex ===
-        undefined
-    ) {
-      const newInputs = {
-        ...(this.state.inputs[this.state.currentPage] || {}),
-        openPendingCardIndex: pendingCardIndex,
-      };
-      this.onChange(this.state.currentPage, newInputs);
-    }
-  };
-
-  onChangePendingCardData = (newData: Object) => {
-    const newInputs = {
-      ...(this.state.inputs[this.state.currentPage] || {}),
-      pendingCardData: newData,
-    };
-    this.onChange(this.state.currentPage, newInputs);
-  };
-
   componentWillMount = () => {
     resetKeyGenerator();
   };
@@ -386,16 +392,17 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
   onEditPost = (postIndex: number) => {};
 
-  onSetIsExpanded = (newIsExpanded: boolean) => {
+  onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
     // TODO TODO
-    this.setState({ isExpanded: newIsExpanded });
+    this.setState({ expandedThreads: newIsExpanded ? [threadKey] : [] });
   };
 
   render = () => {
-    if (!this.state.ready) {
+    if (!this.state.ready || !this.state.userID) {
       // TODO(andy): Implement loading page.
       return null;
     }
+    const userID: string = this.state.userID;
 
     const flowID = getFlowIDFromURL(this.props.url);
     if (!flowID) {
@@ -419,13 +426,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     let prompt: PromptData;
     if (activity.prompt.type === "jigsaw") {
-      const jigsawGroup =
-        this.state.inputs[0] && this.state.inputs[0]._jigsawGroup;
-      if (jigsawGroup === undefined) {
-        return null; // Wait for jigsaw group to be assigned.
-      } else {
-        prompt = activity.prompt.groups[jigsawGroup];
-      }
+      throw "Unimplemented"; // TODO
+      // prompt = activity.prompt.groups[jigsawGroup];
     } else {
       prompt = activity.prompt;
     }
@@ -456,6 +458,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       );
     }
     */
+
+    const yourThreadData = this.state.threads[userID];
+    const yourThreadProps = {};
 
     return (
       <Fragment>
@@ -492,8 +497,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 },
               ]}
               onChange={this.onEditPost}
-              isExpanded={this.state.isExpanded}
-              onSetIsExpanded={this.onSetIsExpanded}
+              isExpanded={this.state.expandedThreads.includes(userID)}
+              onSetIsExpanded={newIsExpanded =>
+                this.onSetIsExpanded(userID, newIsExpanded)}
             />
           </div>
         </PageContainer>
