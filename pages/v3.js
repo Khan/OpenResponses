@@ -27,8 +27,6 @@ import {
 
 import type { PromptData, Activity } from "../lib/activities";
 
-const k: string = quillDataKind;
-
 const getClassCodeFromURL = url => {
   return url.query.classCode;
 };
@@ -39,6 +37,7 @@ const getFlowIDFromURL = url => {
 
 const databaseVersion = 3;
 const nameForYou = "You"; // TODO: Needs to be student name.
+const youAvatar = "aqualine-sapling"; // TODO
 
 const engagementCardCount = 3;
 
@@ -162,19 +161,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setUserState({ email, profile: { name, avatar, realName } });
   };
 
-  onSubmit = () => {
-    // TODO
-    /*(async () => {
-      const newPageIndex = this.state.currentPage + 1;
-      const commitSaveRequestString = `commit${newPageIndex}`; // such hacks, I'm sorry
-      if (!this.state.pendingSaveRequestIDs[commitSaveRequestString]) {
-        await this.recordPageLoad(newPageIndex);
-
-        this.setState({ currentPage: newPageIndex, activeResponseCard: null });
-      }
-    })();*/
-  };
-
   setUserState = (newUserState: Object) => {
     /*
     this.setState({ userState: { ...this.state.userState, ...newUserState } });
@@ -215,6 +201,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setState({
       ready: true,
       userID: activeUserID,
+      userData: {
+        avatar: youAvatar,
+        pseudonym: nameForYou,
+        name: "Bob Johnson",
+      },
     });
 
     // TODO
@@ -427,7 +418,51 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       this.state.connectivitySubscriptionCancelFunction();
   };
 
-  onEditPost = (newPendingPostRichEditorData: any) => {};
+  onChangePendingRichEditorData = (
+    threadKey: ThreadKey,
+    newPendingPostRichEditorData: any,
+  ) => {
+    this.setState({
+      pendingRichEditorData: {
+        ...this.state.pendingRichEditorData,
+        [threadKey]: newPendingPostRichEditorData,
+      },
+    });
+  };
+
+  onSubmit = (threadKey: ThreadKey) => {
+    const submittedRichEditorData = this.state.pendingRichEditorData[threadKey];
+    const newPendingRichEditorData = { ...this.state.pendingRichEditorData };
+    delete newPendingRichEditorData[threadKey];
+
+    const postKey = Math.random().toString(); // TODO! ref.push instead...
+    const timestamp = 10; // TODO! use server timestamp
+
+    const { avatar, pseudonym, name } = this.state.userData;
+
+    this.setState({
+      pendingRichEditorData: newPendingRichEditorData,
+      threads: {
+        ...this.state.threads,
+        [threadKey]: {
+          ...(this.state.threads[threadKey] || {}),
+          posts: {
+            ...((this.state.threads[threadKey] || {}).posts || {}),
+            [postKey]: {
+              data: submittedRichEditorData,
+              submissionTimestamp: timestamp,
+              userID: this.state.userID,
+              userData: {
+                avatar,
+                pseudonym,
+                name,
+              },
+            },
+          },
+        },
+      },
+    });
+  };
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
     // TODO TODO
@@ -496,8 +531,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
     */
 
-    const youAvatar = "aqualine-sapling"; // TODO
-
     const getThreadDataProps = threadKey => {
       const threadData = this.state.threads[threadKey] || {};
       const posts = Object.keys(threadData.posts || {})
@@ -518,10 +551,15 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       <Thread
         key={threadKey}
         {...getThreadDataProps(threadKey)}
-        showPendingPost={isYou}
+        showPendingPost={
+          this.state.pendingRichEditorData[threadKey] ||
+          (isYou && !this.state.threads[threadKey])
+        }
         pendingAvatar={youAvatar}
         pendingDisplayName="Your reply"
-        onChange={newData => {}}
+        onChange={newData =>
+          this.onChangePendingRichEditorData(threadKey, newData)}
+        onSubmit={() => this.onSubmit(threadKey)}
         isExpanded={this.state.expandedThreads.includes(threadKey)}
         onSetIsExpanded={newIsExpanded =>
           this.onSetIsExpanded(threadKey, newIsExpanded)}
@@ -557,9 +595,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
             {getThreadElement(userID, true, "Your response")}
           </div>
-          <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
-            {threadElements}
-          </div>
+          <div style={{ marginTop: 8 }}>{threadElements}</div>
         </PageContainer>
       </Fragment>
     );
