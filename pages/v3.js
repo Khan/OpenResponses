@@ -517,6 +517,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const threadElements = Object.keys(this.state.threads).map(threadKey => {
       return (
         <Thread
+          key={threadKey}
           {...getThreadDataProps(threadKey)}
           showPendingPost={false}
           pendingAvatar={youAvatar}
