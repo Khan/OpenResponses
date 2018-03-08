@@ -15,6 +15,7 @@ import reportError from "../lib/error";
 import sharedStyles from "../lib/styles";
 import Thread from "../lib/components/thread";
 import Welcome from "../lib/components/welcome";
+import { dataKind as quillDataKind } from "../lib/components/quill-rich-editor"; // TODO move
 import { signIn } from "../lib/auth";
 import {
   setConnectivityHandler,
@@ -23,10 +24,10 @@ import {
   commitData,
   saveUserState,
 } from "../lib/db";
-import { initializeApp } from "firebase";
 
 import type { PromptData, Activity } from "../lib/activities";
-import type { dataKind as QuillDataKind } from "../lib/components/quill-rich-editor"; // TODO move
+
+const k: string = quillDataKind;
 
 const getClassCodeFromURL = url => {
   return url.query.classCode;
@@ -45,7 +46,7 @@ type UserID = string;
 type ThreadKey = UserID; // for now...
 
 type RichEditorData = {
-  kind: QuillDataKind,
+  kind: quillDataKind,
   rawData: string,
 };
 
@@ -72,6 +73,7 @@ type State = {
 
   userData: Object, // TODO
   threads: { [key: ThreadKey]: ThreadData },
+  pendingRichEditorData: { [key: ThreadKey]: RichEditorData }, // TODO sync to serve
   expandedThreads: ThreadKey[],
 
   hasConnectivity: boolean,
@@ -99,7 +101,42 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       activity: activities[getFlowIDFromURL(props.url)],
 
       userData: {},
-      threads: {},
+      // threads: {},
+      threads: {
+        a: {
+          posts: {
+            a: {
+              data: {
+                kind: quillDataKind,
+                rawData:
+                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+              },
+              submissionTimestamp: 1,
+              userID: "a",
+              userData: {
+                avatar: "marcimus-red",
+                pseudonym: "Another user",
+                name: "Bob Johnson",
+              },
+            },
+            b: {
+              data: {
+                kind: quillDataKind,
+                rawData:
+                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+              },
+              submissionTimestamp: 2,
+              userID: "b",
+              userData: {
+                avatar: "mr-pants",
+                pseudonym: "A differenter user",
+                name: "Jenny Jennerson",
+              },
+            },
+          },
+        },
+      },
+      pendingRichEditorData: {},
       expandedThreads: [],
 
       hasConnectivity: true,
@@ -390,7 +427,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       this.state.connectivitySubscriptionCancelFunction();
   };
 
-  onEditPost = (postIndex: number) => {};
+  onEditPost = (newPendingPostRichEditorData: any) => {};
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
     // TODO TODO
@@ -459,8 +496,38 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
     */
 
-    const yourThreadData = this.state.threads[userID];
-    const yourThreadProps = {};
+    const youAvatar = "aqualine-sapling"; // TODO
+
+    const getThreadDataProps = threadKey => {
+      const threadData = this.state.threads[threadKey] || {};
+      const posts = Object.keys(threadData.posts || {})
+        .sort()
+        .map(postKey => {
+          const post = threadData.posts[postKey];
+          return {
+            data: post.data,
+            avatar: post.userData.avatar,
+            displayName: post.userData.pseudonym,
+          };
+        });
+      const pendingRichEditorData = this.state.pendingRichEditorData[threadKey];
+      return { posts, pendingRichEditorData };
+    };
+
+    const threadElements = Object.keys(this.state.threads).map(threadKey => {
+      return (
+        <Thread
+          {...getThreadDataProps(threadKey)}
+          showPendingPost={false}
+          pendingAvatar={youAvatar}
+          pendingDisplayName="Your reply"
+          onChange={newData => {}}
+          isExpanded={this.state.expandedThreads.includes(threadKey)}
+          onSetIsExpanded={newIsExpanded =>
+            this.onSetIsExpanded(threadKey, newIsExpanded)}
+        />
+      );
+    });
 
     return (
       <Fragment>
@@ -486,21 +553,18 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
           <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
             <Thread
-              posts={[
-                {
-                  avatar: "aqualine-sapling",
-                  studentName: "Your response",
-                  data: {
-                    kind: "quill-editor-1",
-                    rawData: "<p>testing testing 1 2 <b>3</p>",
-                  },
-                },
-              ]}
+              {...getThreadDataProps(userID)}
+              showPendingPost={true}
+              pendingAvatar={youAvatar}
+              pendingDisplayName="Your response"
               onChange={this.onEditPost}
               isExpanded={this.state.expandedThreads.includes(userID)}
               onSetIsExpanded={newIsExpanded =>
                 this.onSetIsExpanded(userID, newIsExpanded)}
             />
+          </div>
+          <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
+            {threadElements}
           </div>
         </PageContainer>
       </Fragment>
