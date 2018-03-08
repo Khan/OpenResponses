@@ -514,21 +514,23 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       return { posts, pendingRichEditorData };
     };
 
-    const threadElements = Object.keys(this.state.threads).map(threadKey => {
-      return (
-        <Thread
-          key={threadKey}
-          {...getThreadDataProps(threadKey)}
-          showPendingPost={false}
-          pendingAvatar={youAvatar}
-          pendingDisplayName="Your reply"
-          onChange={newData => {}}
-          isExpanded={this.state.expandedThreads.includes(threadKey)}
-          onSetIsExpanded={newIsExpanded =>
-            this.onSetIsExpanded(threadKey, newIsExpanded)}
-        />
-      );
-    });
+    const getThreadElement = (threadKey, isYou, pendingDisplayName) => (
+      <Thread
+        key={threadKey}
+        {...getThreadDataProps(threadKey)}
+        showPendingPost={isYou}
+        pendingAvatar={youAvatar}
+        pendingDisplayName="Your reply"
+        onChange={newData => {}}
+        isExpanded={this.state.expandedThreads.includes(threadKey)}
+        onSetIsExpanded={newIsExpanded =>
+          this.onSetIsExpanded(threadKey, newIsExpanded)}
+      />
+    );
+
+    const threadElements = Object.keys(this.state.threads)
+      .filter(threadKey => threadKey !== userID)
+      .map(threadKey => getThreadElement(threadKey, false, "Your reply"));
 
     return (
       <Fragment>
@@ -553,16 +555,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           />
 
           <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
-            <Thread
-              {...getThreadDataProps(userID)}
-              showPendingPost={true}
-              pendingAvatar={youAvatar}
-              pendingDisplayName="Your response"
-              onChange={this.onEditPost}
-              isExpanded={this.state.expandedThreads.includes(userID)}
-              onSetIsExpanded={newIsExpanded =>
-                this.onSetIsExpanded(userID, newIsExpanded)}
-            />
+            {getThreadElement(userID, true, "Your response")}
           </div>
           <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
             {threadElements}
