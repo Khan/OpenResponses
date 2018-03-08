@@ -26,6 +26,7 @@ import {
 } from "../lib/db";
 
 import type { PromptData, Activity } from "../lib/activities";
+import type { RichEditorData } from "../lib/components/rich-editor";
 
 const getClassCodeFromURL = url => {
   return url.query.classCode;
@@ -43,11 +44,6 @@ const engagementCardCount = 3;
 
 type UserID = string;
 type ThreadKey = UserID; // for now...
-
-type RichEditorData = {
-  kind: quillDataKind,
-  rawData: string,
-};
 
 type ThreadData = {
   posts: { [key: string]: PostData },
@@ -135,7 +131,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           },
         },
       },
-      pendingRichEditorData: {},
+      pendingRichEditorData: {
+        a: { kind: quillDataKind, rawData: "<p>...</p>" },
+      },
       expandedThreads: [],
 
       hasConnectivity: true,
