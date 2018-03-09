@@ -70,6 +70,7 @@ type State = {
   threads: { [key: ThreadKey]: ThreadData },
   pendingRichEditorData: { [key: ThreadKey]: RichEditorData }, // TODO sync to serve
   expandedThreads: ThreadKey[],
+  partners: { [key: string]: { userID: UserID } },
 
   hasConnectivity: boolean,
   nextSaveRequestID: number,
@@ -203,6 +204,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         a: { kind: quillDataKind, rawData: "<p>...</p>" },
       },
       expandedThreads: [],
+      partners: { za: { userID: "a" }, zb: { userID: "b" } },
 
       hasConnectivity: true,
       nextSaveRequestID: 0,
@@ -501,7 +503,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const newPendingRichEditorData = { ...this.state.pendingRichEditorData };
     delete newPendingRichEditorData[threadKey];
 
-    const postKey = Math.random().toString(); // TODO! ref.push instead...
+    const postKey = "z"; // TODO! ref.push instead...
     const timestamp = 10; // TODO! use server timestamp
 
     const { avatar, pseudonym, name } = this.state.userData;
@@ -621,7 +623,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           (isYou && !this.state.threads[threadKey])
         }
         pendingAvatar={youAvatar}
-        pendingDisplayName="Your reply"
+        pendingDisplayName={pendingDisplayName}
         onChange={newData =>
           this.onChangePendingRichEditorData(threadKey, newData)}
         onSubmit={() => this.onSubmit(threadKey)}
@@ -630,6 +632,40 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           this.onSetIsExpanded(threadKey, newIsExpanded)}
       />
     );
+
+    const threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
+      this.state.threads[threadKey] &&
+      Object.keys(this.state.threads[threadKey].posts).some(
+        postKey =>
+          this.state.threads[threadKey].posts[postKey].userID === userID,
+      );
+
+    const partnerThreadElement = partnerElementIndex => {
+      const partners = Object.keys(this.state.partners)
+        .sort()
+        .map(partnerKey => this.state.partners[partnerKey]);
+      const isUnlocked =
+        partnerElementIndex === 0
+          ? threadContainsPostFromUser(userID, userID)
+          : threadContainsPostFromUser(
+              partners[partnerElementIndex - 1].userID,
+              userID,
+            );
+      if (isUnlocked) {
+        return getThreadElement(
+          partners[partnerElementIndex].userID,
+          false,
+          "Your reply",
+        );
+      } else {
+        return (
+          <LockedThread
+            key={partnerElementIndex}
+            threadNumber={partnerElementIndex + 1}
+          />
+        );
+      }
+    };
 
     const threadElements = Object.keys(this.state.threads)
       .filter(threadKey => threadKey !== userID)
@@ -661,9 +697,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             {getThreadElement(userID, true, "Your response")}
           </div>
           <div style={{ marginTop: 8 }}>
-            <LockedThread threadNumber={1} />
+            {Array(activity.revieweeCount)
+              .fill(null)
+              .map((dummy, index) => partnerThreadElement(index))}
           </div>
-          <div style={{ marginTop: 8 }}>{threadElements}</div>
+          {null /*<div style={{ marginTop: 8 }}>{threadElements}</div>*/}
         </PageContainer>
       </Fragment>
     );
