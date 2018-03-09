@@ -200,11 +200,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           },
         },
       },
-      pendingRichEditorData: {
-        a: { kind: quillDataKind, rawData: "<p>...</p>" },
-      },
       expandedThreads: [],
       partners: { za: { userID: "a" }, zb: { userID: "b" } },
+      pendingRichEditorData: {},
 
       hasConnectivity: true,
       nextSaveRequestID: 0,
@@ -273,6 +271,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         avatar: youAvatar,
         pseudonym: nameForYou,
         name: "Bob Johnson",
+      },
+
+      pendingRichEditorData: {
+        // TODO: incorporate server data
+        [activeUserID]: { kind: quillDataKind, rawData: "" },
       },
     });
 
@@ -536,6 +539,23 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setState({ expandedThreads: newIsExpanded ? [threadKey] : [] });
   };
 
+  onSelectPrompt = (threadKey: ThreadKey, promptIndex: number) => {
+    const activity = this.state.activity;
+    if (!activity) {
+      throw "Shouldn't have been able to select a prompt without an activity.";
+    }
+
+    this.setState({
+      pendingRichEditorData: {
+        ...this.state.pendingRichEditorData,
+        [threadKey]: {
+          kind: quillDataKind,
+          rawData: activity.engagementPrompts[promptIndex],
+        },
+      },
+    });
+  };
+
   render = () => {
     if (!this.state.ready || !this.state.userID) {
       // TODO(andy): Implement loading page.
@@ -598,6 +618,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
     */
 
+    const threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
+      this.state.threads[threadKey] &&
+      Object.keys(this.state.threads[threadKey].posts).some(
+        postKey =>
+          this.state.threads[threadKey].posts[postKey].userID === userID,
+      );
+
     const getThreadDataProps = threadKey => {
       const threadData = this.state.threads[threadKey] || {};
       const posts = Object.keys(threadData.posts || {})
@@ -618,10 +645,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       <Thread
         key={threadKey}
         {...getThreadDataProps(threadKey)}
-        showPendingPost={
-          this.state.pendingRichEditorData[threadKey] ||
-          (isYou && !this.state.threads[threadKey])
-        }
         pendingAvatar={youAvatar}
         pendingDisplayName={pendingDisplayName}
         onChange={newData =>
@@ -630,15 +653,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         isExpanded={this.state.expandedThreads.includes(threadKey)}
         onSetIsExpanded={newIsExpanded =>
           this.onSetIsExpanded(threadKey, newIsExpanded)}
+        prompts={activity.engagementPrompts}
+        onSelectPrompt={promptIndex =>
+          this.onSelectPrompt(threadKey, promptIndex)}
+        canAddReply={!threadContainsPostFromUser(threadKey, userID)}
       />
     );
-
-    const threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
-      this.state.threads[threadKey] &&
-      Object.keys(this.state.threads[threadKey].posts).some(
-        postKey =>
-          this.state.threads[threadKey].posts[postKey].userID === userID,
-      );
 
     const partnerThreadElement = partnerElementIndex => {
       const partners = Object.keys(this.state.partners)
