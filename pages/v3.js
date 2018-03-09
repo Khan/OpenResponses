@@ -13,7 +13,7 @@ import PageContainer from "../lib/components/page-container";
 import Prompt from "../lib/components/prompt";
 import reportError from "../lib/error";
 import sharedStyles from "../lib/styles";
-import Thread from "../lib/components/thread";
+import Thread, { LockedThread } from "../lib/components/thread";
 import Welcome from "../lib/components/welcome";
 import { dataKind as quillDataKind } from "../lib/components/quill-rich-editor"; // TODO move
 import { signIn } from "../lib/auth";
@@ -659,6 +659,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
           <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
             {getThreadElement(userID, true, "Your response")}
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <LockedThread threadNumber={1} />
           </div>
           <div style={{ marginTop: 8 }}>{threadElements}</div>
         </PageContainer>
