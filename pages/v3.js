@@ -130,6 +130,74 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             },
           },
         },
+        b: {
+          posts: {
+            a: {
+              data: {
+                kind: quillDataKind,
+                rawData:
+                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+              },
+              submissionTimestamp: 1,
+              userID: "a",
+              userData: {
+                avatar: "marcimus-red",
+                pseudonym: "Another user",
+                name: "Bob Johnson",
+              },
+            },
+          },
+        },
+        c: {
+          posts: {
+            a: {
+              data: {
+                kind: quillDataKind,
+                rawData:
+                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+              },
+              submissionTimestamp: 1,
+              userID: "a",
+              userData: {
+                avatar: "marcimus-red",
+                pseudonym: "Another user",
+                name: "Bob Johnson",
+              },
+            },
+          },
+        },
+        d: {
+          posts: {
+            a: {
+              data: {
+                kind: quillDataKind,
+                rawData:
+                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+              },
+              submissionTimestamp: 1,
+              userID: "a",
+              userData: {
+                avatar: "marcimus-red",
+                pseudonym: "Another user",
+                name: "Bob Johnson",
+              },
+            },
+            b: {
+              data: {
+                kind: quillDataKind,
+                rawData:
+                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+              },
+              submissionTimestamp: 2,
+              userID: "b",
+              userData: {
+                avatar: "mr-pants",
+                pseudonym: "A differenter user",
+                name: "Jenny Jennerson",
+              },
+            },
+          },
+        },
       },
       pendingRichEditorData: {
         a: { kind: quillDataKind, rawData: "<p>...</p>" },
@@ -463,7 +531,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
-    // TODO TODO
     this.setState({ expandedThreads: newIsExpanded ? [threadKey] : [] });
   };
 
