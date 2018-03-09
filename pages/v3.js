@@ -13,7 +13,7 @@ import PageContainer from "../lib/components/page-container";
 import Prompt from "../lib/components/prompt";
 import reportError from "../lib/error";
 import sharedStyles from "../lib/styles";
-import Thread, { LockedThread } from "../lib/components/thread";
+import Thread, { PlaceholderThread } from "../lib/components/thread";
 import Welcome from "../lib/components/welcome";
 import { dataKind as quillDataKind } from "../lib/components/quill-rich-editor"; // TODO move
 import { signIn } from "../lib/auth";
@@ -647,21 +647,33 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       const isUnlocked =
         partnerElementIndex === 0
           ? threadContainsPostFromUser(userID, userID)
-          : threadContainsPostFromUser(
+          : partners.length >= partnerElementIndex &&
+            threadContainsPostFromUser(
               partners[partnerElementIndex - 1].userID,
               userID,
             );
       if (isUnlocked) {
-        return getThreadElement(
-          partners[partnerElementIndex].userID,
-          false,
-          "Your reply",
-        );
+        if (partners[partnerElementIndex]) {
+          return getThreadElement(
+            partners[partnerElementIndex].userID,
+            false,
+            "Your reply",
+          );
+        } else {
+          return (
+            <PlaceholderThread
+              key={partnerElementIndex}
+              imageURL="/static/waiting.png"
+              title={`Waiting for another classmate to submit their response…`}
+            />
+          );
+        }
       } else {
         return (
-          <LockedThread
+          <PlaceholderThread
             key={partnerElementIndex}
-            threadNumber={partnerElementIndex + 1}
+            imageURL="/static/lock.png"
+            title={`Partner #${partnerElementIndex + 1}`}
           />
         );
       }
