@@ -42,6 +42,11 @@ const youAvatar = "aqualine-sapling"; // TODO
 
 const engagementCardCount = 3;
 
+//============================================================================================
+// * TEST STAGE HERE *
+const testStage = 0;
+//============================================================================================
+
 type UserID = string;
 type ThreadKey = UserID; // for now...
 
@@ -264,20 +269,91 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       });
     }
 
-    this.setState({
-      ready: true,
-      userID: activeUserID,
-      userData: {
-        avatar: youAvatar,
-        pseudonym: nameForYou,
-        name: "Bob Johnson",
-      },
+    this.setState(
+      {
+        ready: true,
+        userID: activeUserID,
+        userData: {
+          avatar: youAvatar,
+          pseudonym: nameForYou,
+          name: "Bob Johnson",
+        },
 
-      pendingRichEditorData: {
-        // TODO: incorporate server data
-        [activeUserID]: { kind: quillDataKind, rawData: "" },
+        pendingRichEditorData: {
+          // TODO: incorporate server data
+          [activeUserID]: { kind: quillDataKind, rawData: "" },
+        },
       },
-    });
+      () => {
+        let newState = {};
+        if (testStage >= 1) {
+          newState = {
+            threads: {
+              ...this.state.threads,
+              [activeUserID]: {
+                posts: {
+                  a: {
+                    data: {
+                      kind: quillDataKind,
+                      rawData:
+                        "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                    },
+                    submissionTimestamp: 1,
+                    userID: activeUserID,
+                    userData: this.state.userData,
+                  },
+                },
+              },
+            },
+          };
+        }
+        if (testStage >= 2) {
+          newState = {
+            threads: {
+              ...newState.threads,
+              a: {
+                posts: {
+                  ...newState.threads["a"].posts,
+                  za: {
+                    data: {
+                      kind: quillDataKind,
+                      rawData:
+                        "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                    },
+                    submissionTimestamp: 1,
+                    userID: activeUserID,
+                    userData: this.state.userData,
+                  },
+                },
+              },
+            },
+          };
+        }
+        if (testStage >= 3) {
+          newState = {
+            threads: {
+              ...newState.threads,
+              b: {
+                posts: {
+                  ...newState.threads["b"].posts,
+                  za: {
+                    data: {
+                      kind: quillDataKind,
+                      rawData:
+                        "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                    },
+                    submissionTimestamp: 1,
+                    userID: activeUserID,
+                    userData: this.state.userData,
+                  },
+                },
+              },
+            },
+          };
+        }
+        this.setState(newState, () => this.expandThreadForFlowStage());
+      },
+    );
 
     // TODO
     /*
@@ -443,6 +519,51 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     */
   };
 
+  threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
+    this.state.threads[threadKey] &&
+    Object.keys(this.state.threads[threadKey].posts).some(
+      postKey => this.state.threads[threadKey].posts[postKey].userID === userID,
+    );
+
+  isInWorldMap = () => {
+    const { userID, activity } = this.state;
+    if (!activity) {
+      throw "Can't evaluate whether user is in world map without a valid activity.";
+    }
+    if (!userID) {
+      throw "Can't evaluate whether user is in world map without a valid user ID.";
+    }
+
+    return (
+      Object.keys(this.state.partners).length >= activity.revieweeCount &&
+      Object.keys(this.state.partners).every(partnerKey =>
+        this.threadContainsPostFromUser(
+          this.state.partners[partnerKey].userID,
+          userID,
+        ),
+      )
+    );
+  };
+
+  expandThreadForFlowStage = () => {
+    const { userID, partners } = this.state;
+    if (!userID) {
+      throw "Can't expand thread without a valid user ID";
+    }
+    const sequence = [
+      userID,
+      ...Object.keys(partners)
+        .sort()
+        .map(partnerKey => partners[partnerKey].userID),
+    ];
+    const threadToExpand = sequence.find(
+      threadKey => !this.threadContainsPostFromUser(threadKey, userID),
+    );
+    this.setState({
+      expandedThreads: threadToExpand !== undefined ? [threadToExpand] : [],
+    });
+  };
+
   onChange = (index: number, newInputs: Object) => {
     if (!this.state.activity) {
       throw "Can't commit changes for a null activity";
@@ -511,28 +632,33 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     const { avatar, pseudonym, name } = this.state.userData;
 
-    this.setState({
-      pendingRichEditorData: newPendingRichEditorData,
-      threads: {
-        ...this.state.threads,
-        [threadKey]: {
-          ...(this.state.threads[threadKey] || {}),
-          posts: {
-            ...((this.state.threads[threadKey] || {}).posts || {}),
-            [postKey]: {
-              data: submittedRichEditorData,
-              submissionTimestamp: timestamp,
-              userID: this.state.userID,
-              userData: {
-                avatar,
-                pseudonym,
-                name,
+    this.setState(
+      {
+        pendingRichEditorData: newPendingRichEditorData,
+        threads: {
+          ...this.state.threads,
+          [threadKey]: {
+            ...(this.state.threads[threadKey] || {}),
+            posts: {
+              ...((this.state.threads[threadKey] || {}).posts || {}),
+              [postKey]: {
+                data: submittedRichEditorData,
+                submissionTimestamp: timestamp,
+                userID: this.state.userID,
+                userData: {
+                  avatar,
+                  pseudonym,
+                  name,
+                },
               },
             },
           },
         },
       },
-    });
+      () => {
+        this.expandThreadForFlowStage();
+      },
+    );
   };
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
@@ -618,13 +744,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
     */
 
-    const threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
-      this.state.threads[threadKey] &&
-      Object.keys(this.state.threads[threadKey].posts).some(
-        postKey =>
-          this.state.threads[threadKey].posts[postKey].userID === userID,
-      );
-
     const getThreadDataProps = threadKey => {
       const threadData = this.state.threads[threadKey] || {};
       const posts = Object.keys(threadData.posts || {})
@@ -656,7 +775,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         prompts={activity.engagementPrompts}
         onSelectPrompt={promptIndex =>
           this.onSelectPrompt(threadKey, promptIndex)}
-        canAddReply={!threadContainsPostFromUser(threadKey, userID)}
+        canAddReply={!this.threadContainsPostFromUser(threadKey, userID)}
       />
     );
 
@@ -666,9 +785,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         .map(partnerKey => this.state.partners[partnerKey]);
       const isUnlocked =
         partnerElementIndex === 0
-          ? threadContainsPostFromUser(userID, userID)
+          ? this.threadContainsPostFromUser(userID, userID)
           : partners.length >= partnerElementIndex &&
-            threadContainsPostFromUser(
+            this.threadContainsPostFromUser(
               partners[partnerElementIndex - 1].userID,
               userID,
             );
@@ -729,11 +848,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             {getThreadElement(userID, true, "Your response")}
           </div>
           <div style={{ marginTop: 8 }}>
-            {Array(activity.revieweeCount)
-              .fill(null)
-              .map((dummy, index) => partnerThreadElement(index))}
+            {this.isInWorldMap()
+              ? threadElements
+              : Array(activity.revieweeCount)
+                  .fill(null)
+                  .map((dummy, index) => partnerThreadElement(index))}
           </div>
-          {null /*<div style={{ marginTop: 8 }}>{threadElements}</div>*/}
         </PageContainer>
       </Fragment>
     );
