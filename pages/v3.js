@@ -775,10 +775,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         isExpanded={this.state.expandedThreads.includes(threadKey)}
         onSetIsExpanded={newIsExpanded =>
           this.onSetIsExpanded(threadKey, newIsExpanded)}
-        prompts={activity.engagementPrompts}
+        prompts={
+          isYou ? activity.reflectionPrompts : activity.engagementPrompts
+        }
         onSelectPrompt={promptIndex =>
           this.onSelectPrompt(threadKey, promptIndex)}
-        canAddReply={!this.threadContainsPostFromUser(threadKey, userID)}
+        canAddReply={
+          !this.threadContainsPostFromUser(threadKey, userID) || isYou
+        }
       />
     );
 
@@ -848,7 +852,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           />
 
           <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
-            {getThreadElement(userID, true, "Your response")}
+            {getThreadElement(
+              userID,
+              true,
+              this.threadContainsPostFromUser(userID, userID)
+                ? "Reflect on what you've learned"
+                : "Your response",
+            )}
           </div>
           <div style={{ marginTop: 8 }}>
             {this.isInWorldMap()
