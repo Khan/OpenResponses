@@ -631,6 +631,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const timestamp = 10; // TODO! use server timestamp
 
     const { avatar, pseudonym, name } = this.state.userData;
+    const wasInWorldMap = this.isInWorldMap();
 
     this.setState(
       {
@@ -656,7 +657,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         },
       },
       () => {
-        this.expandThreadForFlowStage();
+        if (!wasInWorldMap) {
+          this.expandThreadForFlowStage();
+        }
       },
     );
   };
