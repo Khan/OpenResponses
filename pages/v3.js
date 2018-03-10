@@ -5,6 +5,7 @@ import Router from "next/router";
 import shuffle from "lodash.shuffle";
 import throttle from "lodash.throttle";
 import scrollToComponent from "react-scroll-to-component";
+import { css, StyleSheet } from "aphrodite";
 import { resetKeyGenerator } from "slate";
 
 import activities from "../lib/activities";
@@ -851,7 +852,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             postStimuliPrompt={prompt.postStimuliPrompt}
           />
 
-          <div style={{ marginTop: 8, position: "sticky", top: 0 }}>
+          <div className={css(styles.yourThreadContainer)}>
             {getThreadElement(
               userID,
               true,
@@ -860,7 +861,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 : "Your response",
             )}
           </div>
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 8, marginBottom: 8 }}>
             {this.isInWorldMap()
               ? threadElements
               : Array(activity.revieweeCount)
@@ -872,3 +873,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     );
   };
 }
+
+const styles = StyleSheet.create({
+  yourThreadContainer: {
+    position: "sticky",
+    top: 0,
+    marginTop: 8,
+    marginBottom: 8,
+    zIndex: 100,
+  },
+});
