@@ -45,7 +45,7 @@ const engagementCardCount = 3;
 
 //============================================================================================
 // * TEST STAGE HERE *
-const testStage = 0;
+const testStage = 1;
 //============================================================================================
 
 type UserID = string;
@@ -110,8 +110,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             a: {
               data: {
                 kind: quillDataKind,
-                rawData:
-                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
               },
               submissionTimestamp: 1,
               userID: "a",
@@ -124,8 +123,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             b: {
               data: {
                 kind: quillDataKind,
-                rawData:
-                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
               },
               submissionTimestamp: 2,
               userID: "b",
@@ -142,8 +140,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             a: {
               data: {
                 kind: quillDataKind,
-                rawData:
-                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
+                <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
               },
               submissionTimestamp: 1,
               userID: "a",
@@ -160,8 +158,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             a: {
               data: {
                 kind: quillDataKind,
-                rawData:
-                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
               },
               submissionTimestamp: 1,
               userID: "a",
@@ -178,8 +175,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             a: {
               data: {
                 kind: quillDataKind,
-                rawData:
-                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
+                <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
               },
               submissionTimestamp: 1,
               userID: "a",
@@ -192,8 +189,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             b: {
               data: {
                 kind: quillDataKind,
-                rawData:
-                  "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
               },
               submissionTimestamp: 2,
               userID: "b",
@@ -296,8 +292,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                   a: {
                     data: {
                       kind: quillDataKind,
-                      rawData:
-                        "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                      rawData: `<p>I think the artist is in support of equal rights for freedmen because here are a number of reasons that are complex can this sysetm understand what I'm talking about or is this all jumbled oh dear what is happening.</p>`,
                     },
                     submissionTimestamp: 1,
                     userID: activeUserID,
@@ -318,8 +313,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                   za: {
                     data: {
                       kind: quillDataKind,
-                      rawData:
-                        "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                      rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
                     },
                     submissionTimestamp: 1,
                     userID: activeUserID,
@@ -340,8 +334,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                   za: {
                     data: {
                       kind: quillDataKind,
-                      rawData:
-                        "<p>This is a test.</p><p>Sint veniam adipisicing nostrud ut ut exercitation ad exercitation pariatur pariatur. Magna reprehenderit minim labore id elit proident Lorem exercitation anim ipsum est do do nostrud. Nulla consequat enim eu deserunt enim. Nisi mollit exercitation laborum eiusmod voluptate enim excepteur ullamco aliquip nulla. Qui esse est esse enim id pariatur anim tempor laborum consequat. Aliquip excepteur enim aliquip nisi ullamco tempor officia commodo qui ea. Amet amet ipsum ad ullamco dolor dolor ullamco excepteur quis.</p>",
+                      rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
                     },
                     submissionTimestamp: 1,
                     userID: activeUserID,
@@ -861,7 +854,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 : "Your response",
             )}
           </div>
-          <div style={{ marginTop: 8, marginBottom: 8 }}>
+          <div style={{ marginTop: 8, marginBottom: "100vh" }}>
             {this.isInWorldMap()
               ? threadElements
               : Array(activity.revieweeCount)
