@@ -891,5 +891,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
     zIndex: 100,
+    boxShadow: `0px 2px 5px rgba(33, 36, 44, 0.08)`,
   },
 });
