@@ -45,7 +45,7 @@ const engagementCardCount = 3;
 
 //============================================================================================
 // * TEST STAGE HERE *
-const testStage = 1;
+const testStage = 0;
 //============================================================================================
 
 type UserID = string;
@@ -662,7 +662,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setState({ expandedThreads: newIsExpanded ? [threadKey] : [] });
   };
 
-  onSelectPrompt = (threadKey: ThreadKey, promptIndex: number) => {
+  onSelectPrompt = (threadKey: ThreadKey, promptIndex: ?number) => {
     const activity = this.state.activity;
     if (!activity) {
       throw "Shouldn't have been able to select a prompt without an activity.";
@@ -673,7 +673,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         ...this.state.pendingRichEditorData,
         [threadKey]: {
           kind: quillDataKind,
-          rawData: activity.engagementPrompts[promptIndex],
+          rawData:
+            promptIndex == null ? "" : activity.engagementPrompts[promptIndex],
         },
       },
     });
