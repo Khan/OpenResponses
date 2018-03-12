@@ -819,8 +819,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           return (
             <PlaceholderThread
               key={partnerElementIndex}
-              imageURL="/static/waiting.png"
+              imageURL="/static/waiting@2x.png"
               title={`Waiting for another classmate to submit their response…`}
+              secondaryText={
+                partnerElementIndex === 0
+                  ? "You'll look at a classmate's work next."
+                  : undefined
+              }
             />
           );
         }
@@ -896,6 +901,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
     zIndex: 100,
-    boxShadow: `0px 2px 5px rgba(33, 36, 44, 0.08)`,
+    boxShadow: `0px 2px 3px rgba(33, 36, 44, 0.08)`,
   },
 });
