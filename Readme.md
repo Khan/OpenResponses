@@ -103,3 +103,8 @@ https://YOUR-SERVER.com/url_base?param1=value1&param2=value2&param3=value
 | `flowID` | Chooses which flow (activity) is being displayed. Corresponds to pages in `lib/flows`. |
 | `classCode` | Can be any arbitrary string. Creates isolated "pools" of students to set boundaries for peer exchange. |
 | `userID` | Set this to a user's ID to "impersonate" that user. |
+
+# Attributions
+
+Lock icon by Dima Lagunov from the Noun Project.
+Waiting icon by Leonardo Schneider from the Noun Project.

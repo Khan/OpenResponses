@@ -828,8 +828,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         return (
           <PlaceholderThread
             key={partnerElementIndex}
-            imageURL="/static/lock.png"
+            imageURL="/static/lock@2x.png"
             title={`Partner #${partnerElementIndex + 1}`}
+            secondaryText={
+              partnerElementIndex === 0
+                ? "You'll see a partner's work after you finish your own response."
+                : undefined
+            }
           />
         );
       }
