@@ -144,7 +144,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
               },
               submissionTimestamp: 1,
-              userID: "a",
+              userID: "b",
               userData: {
                 avatar: "marcimus-red",
                 pseudonym: "Another user",
@@ -161,7 +161,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
               },
               submissionTimestamp: 1,
-              userID: "a",
+              userID: "c",
               userData: {
                 avatar: "marcimus-red",
                 pseudonym: "Another user",
@@ -179,7 +179,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
               },
               submissionTimestamp: 1,
-              userID: "a",
+              userID: "d",
               userData: {
                 avatar: "marcimus-red",
                 pseudonym: "Another user",
@@ -742,10 +742,19 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
     */
 
-    const getThreadDataProps = threadKey => {
+    const getThreadDataProps = (
+      threadKey: ThreadKey,
+      shouldShowClassmateFeedback: boolean,
+    ) => {
       const threadData = this.state.threads[threadKey] || {};
       const posts = Object.keys(threadData.posts || {})
         .sort()
+        .filter(
+          postKey =>
+            shouldShowClassmateFeedback ||
+            threadData.posts[postKey].userID === userID ||
+            threadData.posts[postKey].userID === threadKey, // TODO will need a more sophisticated test here if/when we make ThreadKey != UserID
+        )
         .map(postKey => {
           const post = threadData.posts[postKey];
           return {
@@ -758,10 +767,15 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       return { posts, pendingRichEditorData };
     };
 
-    const getThreadElement = (threadKey, isYou, pendingDisplayName) => (
+    const getThreadElement = (
+      threadKey,
+      isYou,
+      pendingDisplayName,
+      shouldShowClassmateFeedback,
+    ) => (
       <Thread
         key={threadKey}
-        {...getThreadDataProps(threadKey)}
+        {...getThreadDataProps(threadKey, shouldShowClassmateFeedback)}
         pendingAvatar={youAvatar}
         pendingDisplayName={pendingDisplayName}
         onChange={newData =>
@@ -799,6 +813,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             partners[partnerElementIndex].userID,
             false,
             "Your reply",
+            false,
           );
         } else {
           return (
@@ -822,7 +837,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     const threadElements = Object.keys(this.state.threads)
       .filter(threadKey => threadKey !== userID)
-      .map(threadKey => getThreadElement(threadKey, false, "Your reply"));
+      .map(threadKey => getThreadElement(threadKey, false, "Your reply", true));
 
     return (
       <Fragment>
@@ -853,6 +868,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               this.threadContainsPostFromUser(userID, userID)
                 ? "Reflect on what you've learned"
                 : "Your response",
+              true,
             )}
           </div>
           <div style={{ marginTop: 8, marginBottom: "100vh" }}>
