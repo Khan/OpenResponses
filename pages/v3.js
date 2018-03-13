@@ -850,7 +850,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           return getThreadElement(
             partners[partnerElementIndex].userID,
             false,
-            "Your reply",
+            "Write a reply to your partner",
             false,
           );
         } else {
@@ -885,7 +885,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     const threadElements = Object.keys(this.state.threads)
       .filter(threadKey => threadKey !== userID)
-      .map(threadKey => getThreadElement(threadKey, false, "Your reply", true));
+      .map(threadKey =>
+        getThreadElement(
+          threadKey,
+          false,
+          "Write a reply to your classmate",
+          true,
+        ),
+      );
 
     return (
       <Fragment>
