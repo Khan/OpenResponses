@@ -827,6 +827,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           (!isYou && !this.threadContainsPostFromUser(threadKey, userID)) ||
           (isYou && this.isInWorldMap())
         }
+        shouldDisplayLookingForFeedbackMessage={
+          isYou && this.threadContainsPostFromUser(userID, userID)
+        }
       />
     );
 
