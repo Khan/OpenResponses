@@ -631,37 +631,28 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const { avatar, pseudonym, name } = this.state.userData;
     const wasInWorldMap = this.isInWorldMap();
 
-    this.setState(
-      {
-        pendingRichEditorData: newPendingRichEditorData,
-        threads: {
-          ...this.state.threads,
-          [threadKey]: {
-            ...(this.state.threads[threadKey] || {}),
-            posts: {
-              ...((this.state.threads[threadKey] || {}).posts || {}),
-              [postKey]: {
-                data: submittedRichEditorData,
-                submissionTimestamp: timestamp,
-                userID: this.state.userID,
-                userData: {
-                  avatar,
-                  pseudonym,
-                  name,
-                },
+    this.setState({
+      pendingRichEditorData: newPendingRichEditorData,
+      threads: {
+        ...this.state.threads,
+        [threadKey]: {
+          ...(this.state.threads[threadKey] || {}),
+          posts: {
+            ...((this.state.threads[threadKey] || {}).posts || {}),
+            [postKey]: {
+              data: submittedRichEditorData,
+              submissionTimestamp: timestamp,
+              userID: this.state.userID,
+              userData: {
+                avatar,
+                pseudonym,
+                name,
               },
             },
           },
         },
       },
-      () => {
-        setTimeout(() => {
-          if (!wasInWorldMap) {
-            this.expandThreadForFlowStage();
-          }
-        }, 100); // TODO remove blatant workaround for animation fighting with submit transition
-      },
-    );
+    });
   };
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
