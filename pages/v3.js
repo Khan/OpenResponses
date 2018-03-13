@@ -680,7 +680,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         [threadKey]: {
           kind: quillDataKind,
           rawData:
-            promptIndex == null ? "" : activity.engagementPrompts[promptIndex],
+            promptIndex == null
+              ? ""
+              : activity.engagementPrompts[promptIndex].replace(/…$/, "&nbsp;"),
         },
       },
     });
