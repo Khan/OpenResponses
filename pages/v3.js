@@ -301,10 +301,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 },
               },
             },
+            pendingRichEditorData: {},
           };
         }
         if (testStage >= 2) {
           newState = {
+            ...newState,
             threads: {
               ...newState.threads,
               a: {
@@ -326,6 +328,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         }
         if (testStage >= 3) {
           newState = {
+            ...newState,
             threads: {
               ...newState.threads,
               b: {
