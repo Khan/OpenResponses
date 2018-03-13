@@ -268,21 +268,22 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     this.setState(
       {
-        ready: true,
         userID: activeUserID,
         userData: {
           avatar: youAvatar,
           pseudonym: nameForYou,
           name: "Bob Johnson",
         },
-
-        pendingRichEditorData: {
-          // TODO: incorporate server data
-          [activeUserID]: { kind: quillDataKind, rawData: "" },
-        },
       },
       () => {
-        let newState = {};
+        this.expandThreadForFlowStage();
+        let newState = {
+          ready: true,
+          pendingRichEditorData: {
+            // TODO: incorporate server data
+            [activeUserID]: { kind: quillDataKind, rawData: "" },
+          },
+        };
         if (testStage >= 1) {
           newState = {
             threads: {
