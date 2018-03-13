@@ -283,9 +283,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             // TODO: incorporate server data
             [activeUserID]: { kind: quillDataKind, rawData: "" },
           },
+          threads: this.state.threads, // TODO remove
         };
         if (testStage >= 1) {
           newState = {
+            ...newState,
             threads: {
               ...this.state.threads,
               [activeUserID]: {
@@ -679,6 +681,37 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     });
   };
 
+  onChooseDifferentSentenceStarter = (threadKey: ThreadKey) => {
+    const { activity } = this.state;
+    if (!activity) {
+      throw "Can't choose different sentence starter with no activity.";
+    }
+
+    // Very hacky approach to figuring out whether the user has meaningfully modified the input.
+    const currentData = this.state.pendingRichEditorData[threadKey].rawData;
+    const matchingPrompt = [
+      ...activity.engagementPrompts,
+      ...activity.reflectionPrompts,
+    ].find(prompt => currentData.includes(prompt.replace(/…$/, "&nbsp;")));
+    const canSkipWarning =
+      currentData.length < 10 ||
+      (matchingPrompt && currentData.length < matchingPrompt.length + 15);
+
+    if (!canSkipWarning) {
+      if (
+        !window.confirm(
+          "You'll lose what you've written for this reply so far. Are you sure?",
+        )
+      ) {
+        return;
+      }
+    }
+
+    const { pendingRichEditorData } = this.state;
+    delete pendingRichEditorData[threadKey];
+    this.setState({ pendingRichEditorData });
+  };
+
   render = () => {
     if (!this.state.ready || !this.state.userID) {
       // TODO(andy): Implement loading page.
@@ -788,8 +821,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         }
         onSelectPrompt={promptIndex =>
           this.onSelectPrompt(threadKey, promptIndex)}
+        onChooseDifferentSentenceStarter={() =>
+          this.onChooseDifferentSentenceStarter(threadKey)}
         canAddReply={
-          !this.threadContainsPostFromUser(threadKey, userID) ||
+          (!isYou && !this.threadContainsPostFromUser(threadKey, userID)) ||
           (isYou && this.isInWorldMap())
         }
       />
