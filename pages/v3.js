@@ -651,9 +651,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         },
       },
       () => {
-        if (!wasInWorldMap) {
-          this.expandThreadForFlowStage();
-        }
+        setTimeout(() => {
+          if (!wasInWorldMap) {
+            this.expandThreadForFlowStage();
+          }
+        }, 100); // TODO remove blatant workaround for animation fighting with submit transition
       },
     );
   };
@@ -790,7 +792,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         onSelectPrompt={promptIndex =>
           this.onSelectPrompt(threadKey, promptIndex)}
         canAddReply={
-          !this.threadContainsPostFromUser(threadKey, userID) || isYou
+          !this.threadContainsPostFromUser(threadKey, userID) ||
+          (isYou && this.isInWorldMap())
         }
       />
     );
