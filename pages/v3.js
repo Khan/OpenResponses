@@ -116,7 +116,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               userID: "a",
               userData: {
                 avatar: "marcimus-red",
-                pseudonym: "Another user",
+                pseudonym: "Eclair",
                 name: "Bob Johnson",
               },
             },
@@ -129,7 +129,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               userID: "b",
               userData: {
                 avatar: "mr-pants",
-                pseudonym: "A differenter user",
+                pseudonym: "Bombolini",
                 name: "Jenny Jennerson",
               },
             },
@@ -146,8 +146,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               submissionTimestamp: 1,
               userID: "b",
               userData: {
-                avatar: "marcimus-red",
-                pseudonym: "Another user",
+                avatar: "duskpin-sapling",
+                pseudonym: "Cream puff",
                 name: "Bob Johnson",
               },
             },
@@ -163,8 +163,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               submissionTimestamp: 1,
               userID: "c",
               userData: {
-                avatar: "marcimus-red",
-                pseudonym: "Another user",
+                avatar: "purple-pi",
+                pseudonym: "Stollen",
                 name: "Bob Johnson",
               },
             },
@@ -181,8 +181,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               submissionTimestamp: 1,
               userID: "d",
               userData: {
-                avatar: "marcimus-red",
-                pseudonym: "Another user",
+                avatar: "mr-pink-blue",
+                pseudonym: "Strudel",
                 name: "Bob Johnson",
               },
             },
@@ -195,7 +195,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               userID: "b",
               userData: {
                 avatar: "mr-pants",
-                pseudonym: "A differenter user",
+                pseudonym: "Wheaties",
                 name: "Jenny Jennerson",
               },
             },
