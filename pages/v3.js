@@ -880,7 +880,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             postStimuliPrompt={prompt.postStimuliPrompt}
           />
 
-          <div className={css(styles.yourThreadContainer)}>
+          <div
+            className={css(
+              styles.yourThreadContainer,
+              this.isInWorldMap()
+                ? styles.stickyYourThreadContainer
+                : undefined,
+            )}
+          >
             {getThreadElement(
               userID,
               true,
@@ -905,10 +912,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
   yourThreadContainer: {
-    position: "sticky",
-    top: 0,
     marginTop: 8,
     marginBottom: 8,
+  },
+
+  stickyYourThreadContainer: {
+    position: "sticky",
+    top: 0,
     zIndex: 100,
     boxShadow: `0px 2px 3px rgba(33, 36, 44, 0.08)`,
   },
