@@ -26,6 +26,7 @@ import {
   submitPost,
   fetchThreads,
   watchPartners,
+  watchThread,
 } from "../lib/db";
 
 import type {
@@ -177,7 +178,7 @@ type State = {
   pendingSaveRequestIDs: { [key: mixed]: number },
   saveRequestTimeoutTime: number,
 
-  connectivitySubscriptionCancelFunction: ?(void) => void,
+  subscriptionFunctions: ((void) => void)[],
 
   congratsModalIsOpen: boolean,
 };
@@ -209,7 +210,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       pendingSaveRequestIDs: {},
       saveRequestTimeoutTime: 0,
 
-      connectivitySubscriptionCancelFunction: null,
+      subscriptionFunctions: [],
 
       congratsModalIsOpen: false,
     };
@@ -369,94 +370,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         }
       },
     );
-    await this.updateReviewees(initialPage);
 
     if (this.props.url.query.fallbackUser) {
       console.log("Creating fallback user");
       this.setUserState({ isFallbackUser: true });
     }*/
-  };
-
-  updateReviewees = async (currentPage: number) => {
-    if (!this.state.activity) {
-      throw "Can't update reviewees for null activity";
-    }
-    const activity = this.state.activity;
-
-    if (
-      this.state.reviewees &&
-      this.state.reviewees.length === activity.revieweeCount
-    ) {
-      return;
-    }
-
-    // TODO
-    /*
-    const thisUserJigsawGroup =
-      this.state.inputs[0] && this.state.inputs[0]._jigsawGroup;
-    const revieweeFetcher = findReviewees({
-      matchAtPageNumber: 1,
-      extractResponse: inputs =>
-        inputs[0]._jigsawGroup !== undefined
-          ? {
-              ...inputs[0].pendingCardData,
-              _jigsawGroup: inputs[0]._jigsawGroup,
-            }
-          : inputs[0].pendingCardData,
-      revieweePageNumberRequirement: 0,
-      sortReviewees: () => 0,
-      findReviewees: ({ inputs, userState }, fetcher) => {
-        const reviewees = [];
-        for (var i = 0; i < activity.revieweeCount; i++) {
-          const reviewee = fetcher(otherUserData => {
-            const revieweeIsNew =
-              reviewees.findIndex(
-                existingReviewee =>
-                  existingReviewee.userID === otherUserData.userID,
-              ) === -1;
-
-            const revieweeJigsawGroup = otherUserData.inputs[0]._jigsawGroup;
-            const revieweeIsDifferentEnough =
-              activity.prompt.type !== "jigsaw" ||
-              (thisUserJigsawGroup !== revieweeJigsawGroup &&
-                // No other existing reviewee has this jigsaw group
-                reviewees.findIndex(
-                  existingReviewee =>
-                    existingReviewee.submission._jigsawGroup ===
-                    revieweeJigsawGroup,
-                ) === -1);
-            return revieweeIsNew && revieweeIsDifferentEnough;
-          });
-          if (reviewee) {
-            reviewees.push(reviewee);
-          }
-        }
-        return reviewees;
-      },
-      flowName: getFlowIDFromURL(this.props.url),
-    }).fetcher;
-    const fetcherResponse = await revieweeFetcher(
-      [currentPage, [], undefined],
-      this.state.userID,
-      getClassCodeFromURL(this.props.url),
-      { inputs: this.state.inputs, userState: this.state.userState },
-      false,
-    );
-    if (fetcherResponse) {
-      const remoteData = fetcherResponse.remoteData || fetcherResponse;
-      const newUserState = fetcherResponse.newUserState;
-      this.setState({
-        reviewees: remoteData.responses,
-      });
-      if (newUserState) {
-        await this.setUserState(newUserState);
-      }
-
-      if (remoteData.responses.length < activity.revieweeCount) {
-        setTimeout(() => this.updateReviewees(this.state.currentPage), 1000);
-      }
-    }
-    */
   };
 
   threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
@@ -523,7 +441,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       const partnerSubscriptionCancelFunction = watchPartners(
         this.getFlowID(),
         this.getClassCode(),
-        this.state.userID,
+        userID,
         async partners => {
           this.setState({
             threads: await fetchThreads(this.getFlowID(), this.getClassCode()),
@@ -535,15 +453,30 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         },
       );
 
+      const yourThreadSubscriptionCancelFunction = watchThread(
+        this.getFlowID(),
+        this.getClassCode(),
+        userID,
+        newThreadData =>
+          this.setState({
+            threads: { ...this.state.threads, [userID]: newThreadData },
+          }),
+      );
+
       this.setState({
-        connectivitySubscriptionCancelFunction,
+        subscriptionFunctions: [
+          connectivitySubscriptionCancelFunction,
+          partnerSubscriptionCancelFunction,
+          yourThreadSubscriptionCancelFunction,
+        ],
       });
     })().catch(reportError);
   };
 
   componentWillUnmount = () => {
-    this.state.connectivitySubscriptionCancelFunction &&
-      this.state.connectivitySubscriptionCancelFunction();
+    for (let subscriptionFunction of this.state.subscriptionFunctions) {
+      subscriptionFunction();
+    }
   };
 
   onChangePendingRichEditorData = (
@@ -597,7 +530,15 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       () => {
         setTimeout(() => this.expandThreadForFlowStage(), 200); // TODO improve tremendous hack which lets a round of rendering happen so that the expansion animation looks reasonable
         if (!wasInWorldMap && this.isInWorldMap()) {
-          this.setState({ congratsModalIsOpen: true });
+          this.setState({ congratsModalIsOpen: true }, async () => {
+            // Refetch all threads for world map
+            this.setState({
+              threads: await fetchThreads(
+                this.getFlowID(),
+                this.getClassCode(),
+              ),
+            });
+          });
         }
       },
     );
@@ -876,7 +817,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               this.threadContainsPostFromUser(userID, userID)
                 ? "Reflect on what you've learned"
                 : "Your response",
-              true,
+              this.isInWorldMap(),
             )}
           </div>
           <div style={{ marginTop: 8, marginBottom: "100vh" }}>
