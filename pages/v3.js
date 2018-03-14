@@ -377,6 +377,22 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }*/
   };
 
+  // Due to race conditions on the server, we could conceivably end up with more partners than the activity calls for. Let's make sure we don't run afoul of that.
+  getEligiblePartners = () => {
+    const { activity } = this.state;
+    if (!activity) {
+      throw "Can't get partners without an activity";
+    }
+    let output = {};
+    for (let partnerKey of Object.keys(this.state.partners).slice(
+      0,
+      activity.revieweeCount,
+    )) {
+      output[partnerKey] = this.state.partners[partnerKey];
+    }
+    return output;
+  };
+
   threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
     this.state.threads[threadKey] &&
     Object.keys(this.state.threads[threadKey].posts).some(
@@ -392,13 +408,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       throw "Can't evaluate whether user is in world map without a valid user ID.";
     }
 
+    const partners = this.getEligiblePartners();
     return (
-      Object.keys(this.state.partners).length >= activity.revieweeCount &&
-      Object.keys(this.state.partners).every(partnerKey =>
-        this.threadContainsPostFromUser(
-          this.state.partners[partnerKey].userID,
-          userID,
-        ),
+      Object.keys(partners).length >= activity.revieweeCount &&
+      Object.keys(partners).every(partnerKey =>
+        this.threadContainsPostFromUser(partners[partnerKey].userID, userID),
       )
     );
   };
@@ -717,10 +731,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       />
     );
 
+    const eligiblePartners = this.getEligiblePartners();
     const partnerThreadElement = partnerElementIndex => {
-      const partners = Object.keys(this.state.partners)
+      const partners = Object.keys(eligiblePartners)
         .sort()
-        .map(partnerKey => this.state.partners[partnerKey]);
+        .map(partnerKey => eligiblePartners[partnerKey]);
       const isUnlocked =
         partnerElementIndex === 0
           ? this.threadContainsPostFromUser(userID, userID)
