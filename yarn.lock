@@ -187,6 +187,12 @@
   version "15.5.2"
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.5.2.tgz#3c6b8dceb2906cc87fe4358e809f9d20c8d59be1"
 
+"@types/react-modal@^3.1.2":
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/@types/react-modal/-/react-modal-3.1.2.tgz#773223ffaa47783f99ae2fbdd658366db32d23f3"
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-motion@0.0.24":
   version "0.0.24"
   resolved "https://registry.yarnpkg.com/@types/react-motion/-/react-motion-0.0.24.tgz#d935fe42935af75be1e33827939cd5e4ba5fe95a"

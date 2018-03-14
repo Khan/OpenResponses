@@ -21,12 +21,11 @@ import { dataKind as quillDataKind } from "../lib/components/quill-rich-editor";
 import { signIn } from "../lib/auth";
 import {
   setConnectivityHandler,
-  loadData,
-  saveData,
-  commitData,
-  saveUserState,
+  createUser,
+  fetchUserProfile,
 } from "../lib/db";
 
+import type { UserID, UserProfile } from "../lib/db";
 import type { PromptData, Activity } from "../lib/activities";
 import type { RichEditorData } from "../lib/components/rich-editor";
 
@@ -49,7 +48,6 @@ const engagementCardCount = 3;
 const testStage = 0;
 //============================================================================================
 
-type UserID = string;
 type ThreadKey = UserID; // for now...
 
 type ThreadData = {
@@ -73,7 +71,7 @@ type State = {
 
   activity: ?Activity,
 
-  userData: Object, // TODO
+  userProfile: ?UserProfile,
   threads: { [key: ThreadKey]: ThreadData },
   pendingRichEditorData: { [key: ThreadKey]: RichEditorData }, // TODO sync to serve
   expandedThreads: ThreadKey[],
@@ -105,7 +103,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
       activity: activities[getFlowIDFromURL(props.url)],
 
-      userData: {},
+      userProfile: null,
       // threads: {},
       threads: {
         a: {
@@ -220,18 +218,17 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     };
   }
 
-  onSubmitWelcome = ({
-    email,
-    name,
-    avatar,
-    realName,
-  }: {
-    email: string,
-    name: string,
-    avatar: string,
-    realName: ?string,
-  }) => {
-    this.setUserState({ email, profile: { name, avatar, realName } });
+  getFlowID = () => getFlowIDFromURL(this.props.url);
+  getClassCode = () => getClassCodeFromURL(this.props.url);
+
+  onSubmitWelcome = (userProfile: UserProfile) => {
+    createUser(
+      this.getFlowID(),
+      this.getClassCode(),
+      this.state.userID,
+      userProfile,
+    );
+    this.setState({ userProfile });
   };
 
   setUserState = (newUserState: Object) => {
@@ -271,14 +268,24 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       });
     }
 
+    // TODO extract
+    const dummyUserProfile = {
+      avatar: youAvatar,
+      pseudonym: nameForYou,
+      name: "Bob Johnson",
+      email: "test@test.com",
+    };
+
+    const userProfile = await fetchUserProfile(
+      this.getFlowID(),
+      this.getClassCode(),
+      activeUserID,
+    );
+
     this.setState(
       {
         userID: activeUserID,
-        userData: {
-          avatar: youAvatar,
-          pseudonym: nameForYou,
-          name: "Bob Johnson",
-        },
+        userProfile,
       },
       () => {
         this.expandThreadForFlowStage();
@@ -304,7 +311,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                     },
                     submissionTimestamp: 1,
                     userID: activeUserID,
-                    userData: this.state.userData,
+                    userData: dummyUserProfile,
                   },
                 },
               },
@@ -327,7 +334,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                     },
                     submissionTimestamp: 1,
                     userID: activeUserID,
-                    userData: this.state.userData,
+                    userData: dummyUserProfile,
                   },
                 },
               },
@@ -349,7 +356,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                     },
                     submissionTimestamp: 1,
                     userID: activeUserID,
-                    userData: this.state.userData,
+                    userData: dummyUserProfile,
                   },
                 },
               },
@@ -401,8 +408,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }*/
   };
 
-  throttledSaveToServer = throttle(
-    (index, newInputs) => {
+  // throttledSaveToServer = throttle(
+  // TODO
+  /*(index, newInputs) => {
       const saveDataAsync = async () => {
         const currentSaveRequestID = this.state.nextSaveRequestID;
         this.state.pendingSaveRequestIDs[currentSaveRequestID] =
@@ -439,8 +447,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       saveDataAsync().catch(reportError);
     },
     1000,
-    { trailing: false, leading: true },
-  );
+    { trailing: false, leading: true },*/
+  // );
 
   updateReviewees = async (currentPage: number) => {
     if (!this.state.activity) {
@@ -574,7 +582,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       throw "Can't commit changes for a null activity";
     }
 
-    this.throttledSaveToServer(index, newInputs);
+    // this.throttledSaveToServer(index, newInputs);
 
     // TODO
     /*
@@ -628,6 +636,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   onSubmit = (threadKey: ThreadKey) => {
+    const { userProfile } = this.state;
+    if (!userProfile) {
+      throw "Can't submit without user profile";
+    }
+
     const submittedRichEditorData = this.state.pendingRichEditorData[threadKey];
     const newPendingRichEditorData = { ...this.state.pendingRichEditorData };
     delete newPendingRichEditorData[threadKey];
@@ -635,7 +648,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const postKey = `z${Date.now()}`; // TODO! ref.push instead...
     const timestamp = 10; // TODO! use server timestamp
 
-    const { avatar, pseudonym, name } = this.state.userData;
+    const { avatar, pseudonym, name } = userProfile;
     const wasInWorldMap = this.isInWorldMap();
 
     this.setState(
@@ -759,9 +772,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       prompt = activity.prompt;
     }
 
-    /*
-    // TODO REENABLE
-    if (!this.state.userState.email) {
+    if (!this.state.userProfile) {
       return (
         <Fragment>
           <Head>
@@ -776,15 +787,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           <PageContainer>
             <Welcome
               onSubmit={this.onSubmitWelcome}
-              collectEmail
               title={this.state.activity.title}
-              requiresRealName
             />
           </PageContainer>
         </Fragment>
       );
     }
-    */
 
     const getThreadDataProps = (
       threadKey: ThreadKey,
