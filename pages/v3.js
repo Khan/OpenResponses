@@ -9,6 +9,7 @@ import { css, StyleSheet } from "aphrodite";
 import { resetKeyGenerator } from "slate";
 
 import activities from "../lib/activities";
+import CongratsModal from "../lib/components/congrats-modal";
 import findReviewees from "../lib/reviewee-requirement";
 import PageContainer from "../lib/components/page-container";
 import Prompt from "../lib/components/prompt";
@@ -84,6 +85,8 @@ type State = {
   saveRequestTimeoutTime: number,
 
   connectivitySubscriptionCancelFunction: ?(void) => void,
+
+  congratsModalIsOpen: boolean,
 };
 
 type Props = {
@@ -212,6 +215,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       saveRequestTimeoutTime: 0,
 
       connectivitySubscriptionCancelFunction: null,
+
+      congratsModalIsOpen: false,
     };
   }
 
@@ -633,28 +638,35 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const { avatar, pseudonym, name } = this.state.userData;
     const wasInWorldMap = this.isInWorldMap();
 
-    this.setState({
-      pendingRichEditorData: newPendingRichEditorData,
-      threads: {
-        ...this.state.threads,
-        [threadKey]: {
-          ...(this.state.threads[threadKey] || {}),
-          posts: {
-            ...((this.state.threads[threadKey] || {}).posts || {}),
-            [postKey]: {
-              data: submittedRichEditorData,
-              submissionTimestamp: timestamp,
-              userID: this.state.userID,
-              userData: {
-                avatar,
-                pseudonym,
-                name,
+    this.setState(
+      {
+        pendingRichEditorData: newPendingRichEditorData,
+        threads: {
+          ...this.state.threads,
+          [threadKey]: {
+            ...(this.state.threads[threadKey] || {}),
+            posts: {
+              ...((this.state.threads[threadKey] || {}).posts || {}),
+              [postKey]: {
+                data: submittedRichEditorData,
+                submissionTimestamp: timestamp,
+                userID: this.state.userID,
+                userData: {
+                  avatar,
+                  pseudonym,
+                  name,
+                },
               },
             },
           },
         },
       },
-    });
+      () => {
+        if (!wasInWorldMap && this.isInWorldMap) {
+          this.setState({ congratsModalIsOpen: true });
+        }
+      },
+    );
   };
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
@@ -941,6 +953,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                   .map((dummy, index) => partnerThreadElement(index))}
           </div>
         </PageContainer>
+        <CongratsModal
+          isOpen={this.state.congratsModalIsOpen}
+          onRequestClose={() => this.setState({ congratsModalIsOpen: false })}
+        />
       </Fragment>
     );
   };
