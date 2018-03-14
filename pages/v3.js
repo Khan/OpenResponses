@@ -444,7 +444,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         userID,
         async partners => {
           this.setState({
-            threads: await fetchThreads(this.getFlowID(), this.getClassCode()),
+            threads:
+              (await fetchThreads(this.getFlowID(), this.getClassCode())) || {},
           });
           this.setState(
             { partners: partners || {} },
@@ -533,10 +534,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           this.setState({ congratsModalIsOpen: true }, async () => {
             // Refetch all threads for world map
             this.setState({
-              threads: await fetchThreads(
-                this.getFlowID(),
-                this.getClassCode(),
-              ),
+              threads:
+                (await fetchThreads(this.getFlowID(), this.getClassCode())) ||
+                {},
             });
           });
         }
@@ -713,6 +713,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         shouldDisplayLookingForFeedbackMessage={
           isYou && this.threadContainsPostFromUser(userID, userID)
         }
+        shouldAutofocus={!isYou}
       />
     );
 
