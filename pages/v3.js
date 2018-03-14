@@ -46,8 +46,7 @@ const getFlowIDFromURL = url => {
 };
 
 const databaseVersion = 3;
-const nameForYou = "You"; // TODO: Needs to be student name.
-const youAvatar = "aqualine-sapling"; // TODO
+const nameForYou = "You";
 
 const engagementCardCount = 3;
 
@@ -151,6 +150,13 @@ const dummyThreads = {
 
 const dummyPartners = { za: { userID: "a" }, zb: { userID: "b" } };
 
+const dummyUserProfile = {
+  avatar: "aqualine-sapling",
+  pseudonym: nameForYou,
+  realName: "Bob Johnson",
+  email: "test@test.com",
+};
+
 //============================================================================================
 
 type State = {
@@ -221,24 +227,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setState({ userProfile });
   };
 
-  setUserState = (newUserState: Object) => {
-    /*
-    this.setState({ userState: { ...this.state.userState, ...newUserState } });
-
-    return (async () => {
-      const latestUserState = await saveUserState(
-        getFlowIDFromURL(this.props.url),
-        getClassCodeFromURL(this.props.url),
-        this.state.userID,
-        newUserState,
-      );
-      if (latestUserState) {
-        this.setState({ userState: latestUserState });
-      }
-    })().catch(reportError);
-    */
-  };
-
   fetchInitialData = async () => {
     const activity = this.state.activity;
     if (!activity) {
@@ -259,13 +247,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
 
     // TODO extract
-    const dummyUserProfile = {
-      avatar: youAvatar,
-      pseudonym: nameForYou,
-      realName: "Bob Johnson",
-      email: "test@test.com",
-    };
-
     const userProfile = await fetchUserProfile(
       this.getFlowID(),
       this.getClassCode(),
@@ -369,19 +350,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     // TODO
     /*
-    const flowID = getFlowIDFromURL(this.props.url);
-    const classCode = getClassCodeFromURL(this.props.url);
-    const { inputs, userState } =
-      (await loadData(flowID, classCode, activeUserID)) || {};
-
-    this.setState(
-      {
-        ready: true,
-        inputs: inputs || [],
-        userState: userState || {},
-        userID: activeUserID,
-      },
-      () => {
         if (
           activity.prompt.type === "jigsaw" &&
           (!inputs || !inputs[0] || inputs[0]._jigsawGroup === undefined)
@@ -407,48 +375,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       this.setUserState({ isFallbackUser: true });
     }*/
   };
-
-  // throttledSaveToServer = throttle(
-  // TODO
-  /*(index, newInputs) => {
-      const saveDataAsync = async () => {
-        const currentSaveRequestID = this.state.nextSaveRequestID;
-        this.state.pendingSaveRequestIDs[currentSaveRequestID] =
-          Date.now() + 1000;
-        this.setState({
-          nextSaveRequestID: currentSaveRequestID + 1,
-          pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
-        });
-        return saveData(
-          databaseVersion,
-          getFlowIDFromURL(this.props.url),
-          getClassCodeFromURL(this.props.url),
-          this.state.userID,
-          index,
-          newInputs,
-        )
-          .then(() => {
-            delete this.state.pendingSaveRequestIDs[currentSaveRequestID];
-            this.setState({
-              pendingSaveRequestIDs: this.state.pendingSaveRequestIDs,
-            });
-          })
-          .catch(error => {
-            console.error("Error on iteration ", currentSaveRequestID, error);
-          });
-      };
-
-      setTimeout(() => {
-        this.setState({
-          saveRequestTimeoutTime: Date.now(),
-        });
-      }, 1100);
-
-      saveDataAsync().catch(reportError);
-    },
-    1000,
-    { trailing: false, leading: true },*/
-  // );
 
   updateReviewees = async (currentPage: number) => {
     if (!this.state.activity) {
@@ -575,29 +501,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setState({
       expandedThreads: threadToExpand !== undefined ? [threadToExpand] : [],
     });
-  };
-
-  onChange = (index: number, newInputs: Object) => {
-    if (!this.state.activity) {
-      throw "Can't commit changes for a null activity";
-    }
-
-    // this.throttledSaveToServer(index, newInputs);
-
-    // TODO
-    /*
-    let { inputs } = this.state;
-    if (inputs.length < index) {
-      inputs = [...inputs, ...Array(index - inputs.length).fill({})];
-    }
-    this.setState({
-      inputs: [
-        ...inputs.slice(0, index),
-        newInputs,
-        ...inputs.slice(index + 1),
-      ],
-    });
-    */
   };
 
   componentWillMount = () => {
@@ -740,7 +643,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       // TODO(andy): Implement loading page.
       return null;
     }
-    const userID: string = this.state.userID;
+    const { userID, userProfile } = this.state;
 
     const flowID = getFlowIDFromURL(this.props.url);
     if (!flowID) {
@@ -770,7 +673,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       prompt = activity.prompt;
     }
 
-    if (!this.state.userProfile) {
+    if (!userProfile) {
       return (
         <Fragment>
           <Head>
@@ -827,7 +730,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       <Thread
         key={threadKey}
         {...getThreadDataProps(threadKey, shouldShowClassmateFeedback)}
-        pendingAvatar={youAvatar}
+        pendingAvatar={userProfile.avatar}
         pendingDisplayName={pendingDisplayName}
         onChange={newData =>
           this.onChangePendingRichEditorData(threadKey, newData)}
