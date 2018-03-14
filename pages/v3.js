@@ -23,9 +23,10 @@ import {
   setConnectivityHandler,
   createUser,
   fetchUserProfile,
+  submitPost,
 } from "../lib/db";
 
-import type { UserID, UserProfile } from "../lib/db";
+import type { UserID, ThreadKey, UserProfile, PostData } from "../lib/db";
 import type { PromptData, Activity } from "../lib/activities";
 import type { RichEditorData } from "../lib/components/rich-editor";
 
@@ -48,21 +49,8 @@ const engagementCardCount = 3;
 const testStage = 0;
 //============================================================================================
 
-type ThreadKey = UserID; // for now...
-
 type ThreadData = {
   posts: { [key: string]: PostData },
-};
-
-type PostData = {
-  data: RichEditorData,
-  submissionTimestamp: number,
-  userID: UserID,
-  userData: {
-    avatar: string,
-    pseudonym: string,
-    name: string,
-  },
 };
 
 type State = {
@@ -113,12 +101,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 kind: quillDataKind,
                 rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
               },
-              submissionTimestamp: 1,
               userID: "a",
-              userData: {
+              userProfile: {
                 avatar: "marcimus-red",
                 pseudonym: "Eclair",
-                name: "Bob Johnson",
+                realName: "Bob Johnson",
               },
             },
             b: {
@@ -126,12 +113,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 kind: quillDataKind,
                 rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
               },
-              submissionTimestamp: 2,
               userID: "b",
-              userData: {
+              userProfile: {
                 avatar: "mr-pants",
                 pseudonym: "Bombolini",
-                name: "Jenny Jennerson",
+                realName: "Jenny Jennerson",
               },
             },
           },
@@ -144,12 +130,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
                 <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
               },
-              submissionTimestamp: 1,
               userID: "b",
-              userData: {
+              userProfile: {
                 avatar: "duskpin-sapling",
                 pseudonym: "Cream puff",
-                name: "Bob Johnson",
+                realName: "Bob Johnson",
               },
             },
           },
@@ -161,12 +146,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 kind: quillDataKind,
                 rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
               },
-              submissionTimestamp: 1,
               userID: "c",
-              userData: {
+              userProfile: {
                 avatar: "purple-pi",
                 pseudonym: "Stollen",
-                name: "Bob Johnson",
+                realName: "Bob Johnson",
               },
             },
           },
@@ -179,12 +163,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
                 <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
               },
-              submissionTimestamp: 1,
               userID: "d",
-              userData: {
+              userProfile: {
                 avatar: "mr-pink-blue",
                 pseudonym: "Strudel",
-                name: "Bob Johnson",
+                realName: "Bob Johnson",
               },
             },
             b: {
@@ -192,12 +175,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 kind: quillDataKind,
                 rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
               },
-              submissionTimestamp: 2,
               userID: "b",
-              userData: {
+              userProfile: {
                 avatar: "mr-pants",
                 pseudonym: "Wheaties",
-                name: "Jenny Jennerson",
+                realName: "Jenny Jennerson",
               },
             },
           },
@@ -222,12 +204,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   getClassCode = () => getClassCodeFromURL(this.props.url);
 
   onSubmitWelcome = (userProfile: UserProfile) => {
-    createUser(
-      this.getFlowID(),
-      this.getClassCode(),
-      this.state.userID,
-      userProfile,
-    );
+    const { userID } = this.state;
+    if (!userID) {
+      throw "Can't submit new user without a userID";
+    }
+
+    createUser(this.getFlowID(), this.getClassCode(), userID, userProfile);
     this.setState({ userProfile });
   };
 
@@ -272,7 +254,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const dummyUserProfile = {
       avatar: youAvatar,
       pseudonym: nameForYou,
-      name: "Bob Johnson",
+      realName: "Bob Johnson",
       email: "test@test.com",
     };
 
@@ -309,9 +291,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                       kind: quillDataKind,
                       rawData: `<p>I think the artist is in support of equal rights for freedmen because here are a number of reasons that are complex can this sysetm understand what I'm talking about or is this all jumbled oh dear what is happening.</p>`,
                     },
-                    submissionTimestamp: 1,
                     userID: activeUserID,
-                    userData: dummyUserProfile,
+                    userProfile: dummyUserProfile,
                   },
                 },
               },
@@ -332,9 +313,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                       kind: quillDataKind,
                       rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
                     },
-                    submissionTimestamp: 1,
                     userID: activeUserID,
-                    userData: dummyUserProfile,
+                    userProfile: dummyUserProfile,
                   },
                 },
               },
@@ -354,9 +334,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                       kind: quillDataKind,
                       rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
                     },
-                    submissionTimestamp: 1,
                     userID: activeUserID,
-                    userData: dummyUserProfile,
+                    userProfile: dummyUserProfile,
                   },
                 },
               },
@@ -635,9 +614,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     });
   };
 
-  onSubmit = (threadKey: ThreadKey) => {
-    const { userProfile } = this.state;
-    if (!userProfile) {
+  onSubmit = async (threadKey: ThreadKey) => {
+    const { userProfile, userID } = this.state;
+    if (!userProfile || !userID) {
       throw "Can't submit without user profile";
     }
 
@@ -645,10 +624,16 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const newPendingRichEditorData = { ...this.state.pendingRichEditorData };
     delete newPendingRichEditorData[threadKey];
 
-    const postKey = `z${Date.now()}`; // TODO! ref.push instead...
-    const timestamp = 10; // TODO! use server timestamp
+    const { postKey, postData, promise } = submitPost(
+      this.getFlowID(),
+      this.getClassCode(),
+      userID,
+      userProfile,
+      threadKey,
+      submittedRichEditorData,
+    );
+    await promise;
 
-    const { avatar, pseudonym, name } = userProfile;
     const wasInWorldMap = this.isInWorldMap();
 
     this.setState(
@@ -660,22 +645,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             ...(this.state.threads[threadKey] || {}),
             posts: {
               ...((this.state.threads[threadKey] || {}).posts || {}),
-              [postKey]: {
-                data: submittedRichEditorData,
-                submissionTimestamp: timestamp,
-                userID: this.state.userID,
-                userData: {
-                  avatar,
-                  pseudonym,
-                  name,
-                },
-              },
+              [postKey]: postData,
             },
           },
         },
       },
       () => {
-        if (!wasInWorldMap && this.isInWorldMap) {
+        if (!wasInWorldMap && this.isInWorldMap()) {
           this.setState({ congratsModalIsOpen: true });
         }
       },
@@ -811,8 +787,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           const post = threadData.posts[postKey];
           return {
             data: post.data,
-            avatar: post.userData.avatar,
-            displayName: post.userData.pseudonym,
+            avatar: post.userProfile.avatar,
+            displayName: post.userProfile.pseudonym,
           };
         });
       const pendingRichEditorData = this.state.pendingRichEditorData[threadKey];
