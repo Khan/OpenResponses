@@ -24,9 +24,16 @@ import {
   createUser,
   fetchUserProfile,
   submitPost,
+  fetchThreads,
 } from "../lib/db";
 
-import type { UserID, ThreadKey, UserProfile, PostData } from "../lib/db";
+import type {
+  UserID,
+  ThreadKey,
+  UserProfile,
+  ThreadData,
+  PostData,
+} from "../lib/db";
 import type { PromptData, Activity } from "../lib/activities";
 import type { RichEditorData } from "../lib/components/rich-editor";
 
@@ -47,11 +54,104 @@ const engagementCardCount = 3;
 //============================================================================================
 // * TEST STAGE HERE *
 const testStage = 0;
-//============================================================================================
+const shouldUseDummyData = true;
 
-type ThreadData = {
-  posts: { [key: string]: PostData },
+const dummyThreads = {
+  a: {
+    posts: {
+      a: {
+        data: {
+          kind: quillDataKind,
+          rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
+        },
+        userID: "a",
+        userProfile: {
+          avatar: "marcimus-red",
+          pseudonym: "Eclair",
+          realName: "Bob Johnson",
+        },
+      },
+      b: {
+        data: {
+          kind: quillDataKind,
+          rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
+        },
+        userID: "b",
+        userProfile: {
+          avatar: "mr-pants",
+          pseudonym: "Bombolini",
+          realName: "Jenny Jennerson",
+        },
+      },
+    },
+  },
+  b: {
+    posts: {
+      a: {
+        data: {
+          kind: quillDataKind,
+          rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
+          <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
+        },
+        userID: "b",
+        userProfile: {
+          avatar: "duskpin-sapling",
+          pseudonym: "Cream puff",
+          realName: "Bob Johnson",
+        },
+      },
+    },
+  },
+  c: {
+    posts: {
+      a: {
+        data: {
+          kind: quillDataKind,
+          rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
+        },
+        userID: "c",
+        userProfile: {
+          avatar: "purple-pi",
+          pseudonym: "Stollen",
+          realName: "Bob Johnson",
+        },
+      },
+    },
+  },
+  d: {
+    posts: {
+      a: {
+        data: {
+          kind: quillDataKind,
+          rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
+          <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
+        },
+        userID: "d",
+        userProfile: {
+          avatar: "mr-pink-blue",
+          pseudonym: "Strudel",
+          realName: "Bob Johnson",
+        },
+      },
+      b: {
+        data: {
+          kind: quillDataKind,
+          rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
+        },
+        userID: "b",
+        userProfile: {
+          avatar: "mr-pants",
+          pseudonym: "Wheaties",
+          realName: "Jenny Jennerson",
+        },
+      },
+    },
+  },
 };
+
+const dummyPartners = { za: { userID: "a" }, zb: { userID: "b" } };
+
+//============================================================================================
 
 type State = {
   ready: boolean,
@@ -92,101 +192,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       activity: activities[getFlowIDFromURL(props.url)],
 
       userProfile: null,
-      // threads: {},
-      threads: {
-        a: {
-          posts: {
-            a: {
-              data: {
-                kind: quillDataKind,
-                rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
-              },
-              userID: "a",
-              userProfile: {
-                avatar: "marcimus-red",
-                pseudonym: "Eclair",
-                realName: "Bob Johnson",
-              },
-            },
-            b: {
-              data: {
-                kind: quillDataKind,
-                rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
-              },
-              userID: "b",
-              userProfile: {
-                avatar: "mr-pants",
-                pseudonym: "Bombolini",
-                realName: "Jenny Jennerson",
-              },
-            },
-          },
-        },
-        b: {
-          posts: {
-            a: {
-              data: {
-                kind: quillDataKind,
-                rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
-                <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
-              },
-              userID: "b",
-              userProfile: {
-                avatar: "duskpin-sapling",
-                pseudonym: "Cream puff",
-                realName: "Bob Johnson",
-              },
-            },
-          },
-        },
-        c: {
-          posts: {
-            a: {
-              data: {
-                kind: quillDataKind,
-                rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
-              },
-              userID: "c",
-              userProfile: {
-                avatar: "purple-pi",
-                pseudonym: "Stollen",
-                realName: "Bob Johnson",
-              },
-            },
-          },
-        },
-        d: {
-          posts: {
-            a: {
-              data: {
-                kind: quillDataKind,
-                rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
-                <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
-              },
-              userID: "d",
-              userProfile: {
-                avatar: "mr-pink-blue",
-                pseudonym: "Strudel",
-                realName: "Bob Johnson",
-              },
-            },
-            b: {
-              data: {
-                kind: quillDataKind,
-                rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
-              },
-              userID: "b",
-              userProfile: {
-                avatar: "mr-pants",
-                pseudonym: "Wheaties",
-                realName: "Jenny Jennerson",
-              },
-            },
-          },
-        },
-      },
+      threads: {},
       expandedThreads: [],
-      partners: { za: { userID: "a" }, zb: { userID: "b" } },
+      partners: {},
       pendingRichEditorData: {},
 
       hasConnectivity: true,
@@ -264,20 +272,33 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       activeUserID,
     );
 
+    let threads =
+      (await fetchThreads(this.getFlowID(), this.getClassCode())) || {};
+    if (shouldUseDummyData) {
+      threads = { ...dummyThreads, ...threads };
+    }
+
     this.setState(
       {
         userID: activeUserID,
         userProfile,
+        threads,
+        partners: shouldUseDummyData ? dummyPartners : {}, // TODO MAKE REAL
       },
       () => {
         this.expandThreadForFlowStage();
         let newState = {
           ready: true,
-          pendingRichEditorData: {
-            // TODO: incorporate server data
-            [activeUserID]: { kind: quillDataKind, rawData: "" },
-          },
           threads: this.state.threads, // TODO remove
+          pendingRichEditorData: this.threadContainsPostFromUser(
+            activeUserID,
+            activeUserID,
+          )
+            ? {}
+            : {
+                // TODO: incorporate server data
+                [activeUserID]: { kind: quillDataKind, rawData: "" },
+              },
         };
         if (testStage >= 1) {
           newState = {
@@ -844,7 +865,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               userID,
             );
       if (isUnlocked) {
-        if (partners[partnerElementIndex]) {
+        // TODO: Remove second clause here; shouldn't be necessary post real partner implementation.
+        if (
+          partners[partnerElementIndex] &&
+          this.state.threads[partners[partnerElementIndex].userID]
+        ) {
           return getThreadElement(
             partners[partnerElementIndex].userID,
             false,
