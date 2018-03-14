@@ -788,7 +788,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           return {
             data: post.data,
             avatar: post.userProfile.avatar,
-            displayName: post.userProfile.pseudonym,
+            displayName:
+              post.userID === userID ? nameForYou : post.userProfile.pseudonym,
           };
         });
       const pendingRichEditorData = this.state.pendingRichEditorData[threadKey];
