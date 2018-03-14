@@ -627,7 +627,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const newPendingRichEditorData = { ...this.state.pendingRichEditorData };
     delete newPendingRichEditorData[threadKey];
 
-    const postKey = "z"; // TODO! ref.push instead...
+    const postKey = `z${Date.now()}`; // TODO! ref.push instead...
     const timestamp = 10; // TODO! use server timestamp
 
     const { avatar, pseudonym, name } = this.state.userData;
