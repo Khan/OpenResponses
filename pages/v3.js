@@ -25,6 +25,7 @@ import {
   fetchUserProfile,
   submitPost,
   fetchThreads,
+  watchPartners,
 } from "../lib/db";
 
 import type {
@@ -53,7 +54,7 @@ const engagementCardCount = 3;
 //============================================================================================
 // * TEST STAGE HERE *
 const testStage = 0;
-const shouldUseDummyData = true;
+const shouldUseDummyData = false;
 
 const dummyThreads = {
   a: {
@@ -246,7 +247,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       });
     }
 
-    // TODO extract
+    // TODO get partners too
     const userProfile = await fetchUserProfile(
       this.getFlowID(),
       this.getClassCode(),
@@ -513,6 +514,25 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       const connectivitySubscriptionCancelFunction = setConnectivityHandler(
         newConnectivityValue =>
           this.setState({ hasConnectivity: newConnectivityValue }),
+      );
+
+      const { userID } = this.state;
+      if (!userID) {
+        throw "We should have logged in by now!";
+      }
+      const partnerSubscriptionCancelFunction = watchPartners(
+        this.getFlowID(),
+        this.getClassCode(),
+        this.state.userID,
+        async partners => {
+          this.setState({
+            threads: await fetchThreads(this.getFlowID(), this.getClassCode()),
+          });
+          this.setState(
+            { partners: partners || {} },
+            () => setTimeout(this.expandThreadForFlowStage, 200), // TODO fix ridiculous hack to force render before expanding to preserve decent animation
+          );
+        },
       );
 
       this.setState({

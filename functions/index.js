@@ -6,6 +6,140 @@ import activities from "./activities";
 
 const transporter = nodemailer.createTransport(functions.config().smtp.url);
 
+exports.findPartners = functions.database
+  .ref("/{flowID}/{cohortID}/threads/{userID}")
+  .onCreate(event => {
+    const { flowID, cohortID } = event.params;
+    const postingUserID = event.params.userID;
+    const usersRef = event.data.ref.parent.parent.child("users");
+    const postingUserRef = usersRef.child(postingUserID);
+    return postingUserRef
+      .child("hasPostedThread")
+      .set(true)
+      .then(() =>
+        // Claim as many partners as we can for ourselve.s
+        // Then distribute ourselves to any students who don't yet have enough partners.
+        usersRef.once("value").then(usersSnapshot => {
+          const promises = [];
+
+          const activity = activities[flowID];
+          const targetPartnerCount = activity.revieweeCount;
+          const allUsers = usersSnapshot.val();
+
+          const indexOfUserID = userID =>
+            Object.keys(allUsers).findIndex(
+              otherUserID => otherUserID === userID,
+            );
+
+          const thisUserIDIndex = indexOfUserID(postingUserID);
+
+          const validPartners = Object.keys(allUsers)
+            .filter(
+              partnerID =>
+                partnerID !== postingUserID &&
+                allUsers[partnerID].hasPostedThread,
+            )
+            .sort((a, b) => {
+              const aUserData = allUsers[a];
+              const bUserData = allUsers[b];
+
+              // Fallback users always come last among peers who made a particular choice.
+              if (!aUserData.isFallbackUser && bUserData.isFallbackUser) {
+                return -1;
+              } else if (
+                aUserData.isFallbackUser &&
+                !bUserData.isFallbackUser
+              ) {
+                return 1;
+              } else {
+                // Has one of these users been reviewed less than another?
+                if (
+                  (aUserData.reviewerCount || 0) <
+                  (bUserData.reviewerCount || 0)
+                ) {
+                  return -1;
+                } else if (
+                  (aUserData.reviewerCount || 0) >
+                  (bUserData.reviewerCount || 0)
+                ) {
+                  return 1;
+                } else {
+                  const aIndex = indexOfUserID(a);
+                  const bIndex = indexOfUserID(b);
+                  if (aIndex - thisUserIDIndex > 0) {
+                    if (bIndex - thisUserIDIndex > 0) {
+                      return aIndex - bIndex;
+                    } else {
+                      return -1;
+                    }
+                  } else {
+                    if (bIndex - thisUserIDIndex > 0) {
+                      return 1;
+                    } else {
+                      return aIndex - bIndex;
+                    }
+                  }
+                }
+              }
+            });
+
+          console.log("valid partners for ", postingUserID, validPartners);
+          const postingUserPartnersRef = postingUserRef.child("partners");
+          for (let partnerUserID of validPartners.slice(
+            0,
+            targetPartnerCount,
+          )) {
+            promises.push(
+              postingUserPartnersRef.push({
+                userID: partnerUserID,
+              }),
+            );
+            promises.push(
+              postingUserRef.parent
+                .child(partnerUserID)
+                .child("reviewerCount")
+                .transaction(oldReviewerCount => oldReviewerCount + 1),
+            );
+          }
+
+          const usersWithTooFewPartners = Object.keys(allUsers).filter(
+            userID =>
+              Object.keys(allUsers[userID].partners || {}) <
+                activity.revieweeCount &&
+              userID !== postingUserID &&
+              allUsers[userID].hasPostedThread,
+          );
+          console.log(
+            postingUserID,
+            "adding to partners list of ",
+            usersWithTooFewPartners,
+          );
+          for (let partnerUserID of usersWithTooFewPartners) {
+            promises.push(
+              postingUserRef.parent
+                .child(partnerUserID)
+                .child("partners")
+                .push({
+                  userID: postingUserID,
+                }),
+            );
+          }
+          if (usersWithTooFewPartners.length > 0) {
+            promises.push(
+              postingUserRef
+                .child("reviewerCount")
+                .transaction(
+                  oldReviewerCount =>
+                    oldReviewerCount + usersWithTooFewPartners.length,
+                ),
+            );
+          }
+
+          return promises;
+        }),
+      );
+  });
+
 exports.logRejection = functions.database
   .ref("/{flowID}/{cohortID}/{userID}/userState/pendingRejections")
   .onWrite(event => {
