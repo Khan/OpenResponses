@@ -651,6 +651,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         },
       },
       () => {
+        setTimeout(() => this.expandThreadForFlowStage(), 200); // TODO improve tremendous hack which lets a round of rendering happen so that the expansion animation looks reasonable
         if (!wasInWorldMap && this.isInWorldMap()) {
           this.setState({ congratsModalIsOpen: true });
         }
