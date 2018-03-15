@@ -587,10 +587,16 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   onSelectPrompt = (threadKey: ThreadKey, promptIndex: ?number) => {
-    const activity = this.state.activity;
+    const { activity, userID } = this.state;
     if (!activity) {
-      throw "Shouldn't have been able to select a prompt without an activity.";
+      throw "Shouldn't have been able to select a prompt without an activity or user ID.";
     }
+
+    // TODO: Will have to change this if your thread's key ever becomes not your user ID.
+    const prompts =
+      threadKey === userID
+        ? activity.reflectionPrompts
+        : activity.engagementPrompts;
 
     this.setState({
       pendingRichEditorData: {
@@ -600,7 +606,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           rawData:
             promptIndex == null
               ? ""
-              : activity.engagementPrompts[promptIndex].replace(/…$/, "&nbsp;"),
+              : prompts[promptIndex].replace(/…$/, "&nbsp;"),
         },
       },
     });
