@@ -722,38 +722,54 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     const getThreadElement = (
       threadKey,
-      isYou,
+      isYourThread,
       pendingDisplayName,
       shouldShowClassmateFeedback,
-    ) => (
-      <Thread
-        key={threadKey}
-        {...getThreadDataProps(threadKey, shouldShowClassmateFeedback)}
-        pendingAvatar={userProfile.avatar}
-        pendingDisplayName={pendingDisplayName}
-        onChange={newData =>
-          this.onChangePendingRichEditorData(threadKey, newData)}
-        onSubmit={() => this.onSubmit(threadKey)}
-        isExpanded={this.state.expandedThreads.includes(threadKey)}
-        onSetIsExpanded={newIsExpanded =>
-          this.onSetIsExpanded(threadKey, newIsExpanded)}
-        prompts={
-          isYou ? activity.reflectionPrompts : activity.engagementPrompts
+    ) => {
+      let shouldDisplayLookingForFeedbackMessage = false;
+      if (isYourThread && this.threadContainsPostFromUser(userID, userID)) {
+        if (this.isInWorldMap()) {
+          const threadPosts = this.state.threads[threadKey].posts;
+          shouldDisplayLookingForFeedbackMessage = Object.keys(
+            threadPosts,
+          ).every(postKey => threadPosts[postKey].userID === userID);
+        } else {
+          shouldDisplayLookingForFeedbackMessage = true; // We hide the feedback you receive until you're in the world map.
         }
-        onSelectPrompt={promptIndex =>
-          this.onSelectPrompt(threadKey, promptIndex)}
-        onChooseDifferentSentenceStarter={() =>
-          this.onChooseDifferentSentenceStarter(threadKey)}
-        canAddReply={
-          (!isYou && !this.threadContainsPostFromUser(threadKey, userID)) ||
-          (isYou && this.isInWorldMap())
-        }
-        shouldDisplayLookingForFeedbackMessage={
-          isYou && this.threadContainsPostFromUser(userID, userID)
-        }
-        shouldAutofocus={!isYou}
-      />
-    );
+      }
+      return (
+        <Thread
+          key={threadKey}
+          {...getThreadDataProps(threadKey, shouldShowClassmateFeedback)}
+          pendingAvatar={userProfile.avatar}
+          pendingDisplayName={pendingDisplayName}
+          onChange={newData =>
+            this.onChangePendingRichEditorData(threadKey, newData)}
+          onSubmit={() => this.onSubmit(threadKey)}
+          isExpanded={this.state.expandedThreads.includes(threadKey)}
+          onSetIsExpanded={newIsExpanded =>
+            this.onSetIsExpanded(threadKey, newIsExpanded)}
+          prompts={
+            isYourThread
+              ? activity.reflectionPrompts
+              : activity.engagementPrompts
+          }
+          onSelectPrompt={promptIndex =>
+            this.onSelectPrompt(threadKey, promptIndex)}
+          onChooseDifferentSentenceStarter={() =>
+            this.onChooseDifferentSentenceStarter(threadKey)}
+          canAddReply={
+            (!isYourThread &&
+              !this.threadContainsPostFromUser(threadKey, userID)) ||
+            (isYourThread && this.isInWorldMap())
+          }
+          shouldDisplayLookingForFeedbackMessage={
+            shouldDisplayLookingForFeedbackMessage
+          }
+          shouldAutofocus={!isYourThread}
+        />
+      );
+    };
 
     const eligiblePartners = this.getEligiblePartners();
     const partnerThreadElement = partnerElementIndex => {
