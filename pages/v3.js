@@ -266,7 +266,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         userID: activeUserID,
         userProfile,
         threads,
-        partners: shouldUseDummyData ? dummyPartners : {}, // TODO MAKE REAL
+        expandedThreads: this.props.url.query.expandThread
+          ? [this.props.url.query.expandThread]
+          : [],
       },
       () => {
         this.expandThreadForFlowStage();
@@ -431,9 +433,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     const threadToExpand = sequence.find(
       threadKey => !this.threadContainsPostFromUser(threadKey, userID),
     );
-    this.setState({
-      expandedThreads: threadToExpand !== undefined ? [threadToExpand] : [],
-    });
+    if (threadToExpand) {
+      this.setState({
+        expandedThreads: [...this.state.expandedThreads, threadToExpand],
+      });
+    }
   };
 
   componentWillMount = () => {
@@ -559,7 +563,16 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   };
 
   onSetIsExpanded = (threadKey: ThreadKey, newIsExpanded: boolean) => {
-    this.setState({ expandedThreads: newIsExpanded ? [threadKey] : [] });
+    const { expandedThreads } = this.state;
+    let newExpandedThreads = [...expandedThreads];
+    const threadKeyIndex = expandedThreads.indexOf(threadKey);
+    if (threadKeyIndex !== -1) {
+      newExpandedThreads.splice(threadKeyIndex, 1);
+    }
+    if (newIsExpanded) {
+      newExpandedThreads.push(threadKey);
+    }
+    this.setState({ expandedThreads: newExpandedThreads });
   };
 
   onSelectPrompt = (threadKey: ThreadKey, promptIndex: ?number) => {

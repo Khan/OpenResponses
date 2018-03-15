@@ -13,14 +13,15 @@ exports.findPartners = functions.database
     const postingUserID = event.params.userID;
     const usersRef = event.data.ref.parent.parent.child("users");
     const postingUserRef = usersRef.child(postingUserID);
+    // We'll begin by setting a denormalized flag for "this user has posted at least one thread"
     return postingUserRef
       .child("hasPostedThread")
       .set(true)
       .then(() =>
-        // Claim as many partners as we can for ourselve.s
-        // Then distribute ourselves to any students who don't yet have enough partners.
         usersRef.once("value").then(usersSnapshot => {
           const promises = [];
+
+          // Claim as many partners as we can for ourselves.
 
           const activity = activities[flowID];
           const targetPartnerCount = activity.revieweeCount;
@@ -102,6 +103,8 @@ exports.findPartners = functions.database
             );
           }
 
+          // Then distribute ourselves to any students who don't yet have enough partners.
+
           const usersWithTooFewPartners = Object.keys(allUsers).filter(
             userID =>
               Object.keys(allUsers[userID].partners || {}) <
@@ -138,6 +141,65 @@ exports.findPartners = functions.database
           return promises;
         }),
       );
+  });
+
+exports.notifyOnPost = functions.database
+  .ref("/{flowID}/{classCode}/threads/{threadKey}/posts/{postKey}")
+  .onCreate(event => {
+    const posterUserID = event.data.val().userID;
+    // TODO: If we ever flex from threadKey == authorUserID, we'll have to change this heuristic.
+    if (posterUserID === event.params.threadKey) {
+      return;
+    }
+
+    // Fetch the poster's email.
+    const threadAuthorUserID = event.params.threadKey;
+    const threadAuthorUserRef = event.data.ref.root
+      .child(event.params.flowID)
+      .child(event.params.classCode)
+      .child("users")
+      .child(threadAuthorUserID);
+    return threadAuthorUserRef.once("value").then(threadAuthorSnapshot => {
+      const threadAuthorUserData = threadAuthorSnapshot.val();
+      const { email, realName } = threadAuthorUserData.profile;
+      const { lastNotificationEmailTime } = threadAuthorUserData;
+
+      // Only send the email if we didn't send one recently.
+      if (
+        lastNotificationEmailTime &&
+        Date.now() - lastNotificationEmailTime < 60 * 60 * 12
+      ) {
+        console.log(
+          `Not emailing ${threadAuthorUserID} because we emailed them ${Date.now() -
+            lastNotificationEmailTime} seconds ago.`,
+        );
+        return;
+      }
+
+      console.log(
+        `Emailing ${threadAuthorUserID} at ${email} in response to feedback from ${posterUserID}`,
+      );
+
+      const humanReadableActivityName = activities[event.params.flowID].title;
+      const returnURL = `${functions.config().host.origin}/?flowID=${event
+        .params.flowID}&classCode=${event.params
+        .classCode}&userID=${threadAuthorUserID}#threadAuthorUserID`;
+      return transporter
+        .sendMail({
+          from: "Khan Academy <noreply@khanacademy.org>",
+          to: email,
+          subject: `You have new feedback available${humanReadableActivityName
+            ? ` on “${humanReadableActivityName}”`
+            : ""}!`,
+          text: `Hello, ${realName}! Another student has replied to what you wrote for "${humanReadableActivityName}".\n\nRead it and continue the activity here: ${returnURL}`,
+          html: `<p>Hello, ${realName}!</p><p>Another student has replied to what you wrote for &ldquo;${humanReadableActivityName}.&rdquo;</p><p><a href="${returnURL}">Click here</a> to read it!</p>`,
+        })
+        .then(() =>
+          threadAuthorUserRef
+            .child("lastNotificationEmailTime")
+            .set(admin.database.ServerValue.TIMESTAMP),
+        );
+    });
   });
 
 exports.logRejection = functions.database
