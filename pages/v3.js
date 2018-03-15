@@ -249,7 +249,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       });
     }
 
-    // TODO get partners too
     const userProfile = await fetchUserProfile(
       this.getFlowID(),
       this.getClassCode(),
@@ -275,7 +274,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         this.expandThreadForFlowStage();
         let newState = {
           ready: true,
-          threads: this.state.threads, // TODO remove
           pendingRichEditorData: this.threadContainsPostFromUser(
             activeUserID,
             activeUserID,
@@ -771,7 +769,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               userID,
             );
       if (isUnlocked) {
-        // TODO: Remove second clause here; shouldn't be necessary post real partner implementation.
         if (
           partners[partnerElementIndex] &&
           this.state.threads[partners[partnerElementIndex].userID]
