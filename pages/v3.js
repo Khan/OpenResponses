@@ -899,11 +899,13 @@ const styles = StyleSheet.create({
   },
 
   stickyYourThreadContainer: {
+    /*
     [mediaQueries.mdOrSmaller]: {
       position: "sticky",
       top: 0,
       zIndex: 100,
       boxShadow: `0px 2px 3px rgba(33, 36, 44, 0.08)`,
     },
+    */
   },
 });
