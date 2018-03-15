@@ -181,7 +181,8 @@ exports.notifyOnPost = functions.database
       );
 
       const humanReadableActivityName = activities[event.params.flowID].title;
-      const returnURL = `${functions.config().host.origin}/?flowID=${event
+      // TODO FIX AFTER DOGFOOD
+      const returnURL = `https://ka-free-response-v3.now.sh/v3?flowID=${event
         .params.flowID}&classCode=${event.params
         .classCode}&userID=${threadAuthorUserID}&expandThread=${threadAuthorUserID}`;
       return transporter
