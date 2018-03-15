@@ -107,7 +107,7 @@ exports.findPartners = functions.database
 
           const usersWithTooFewPartners = Object.keys(allUsers).filter(
             userID =>
-              Object.keys(allUsers[userID].partners || {}) <
+              Object.keys(allUsers[userID].partners || {}).length <
                 activity.revieweeCount &&
               userID !== postingUserID &&
               allUsers[userID].hasPostedThread,
