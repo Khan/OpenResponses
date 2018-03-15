@@ -183,7 +183,7 @@ exports.notifyOnPost = functions.database
       const humanReadableActivityName = activities[event.params.flowID].title;
       const returnURL = `${functions.config().host.origin}/?flowID=${event
         .params.flowID}&classCode=${event.params
-        .classCode}&userID=${threadAuthorUserID}#threadAuthorUserID`;
+        .classCode}&userID=${threadAuthorUserID}&expandThread=${threadAuthorUserID}`;
       return transporter
         .sendMail({
           from: "Khan Academy <noreply@khanacademy.org>",

@@ -461,14 +461,26 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         this.getClassCode(),
         userID,
         async partners => {
-          this.setState({
-            threads:
-              (await fetchThreads(this.getFlowID(), this.getClassCode())) || {},
-          });
           this.setState(
             { partners: partners || {} },
             () => setTimeout(this.expandThreadForFlowStage, 200), // TODO fix ridiculous hack to force render before expanding to preserve decent animation
           );
+          // Fetch threads for the partners if necessary.
+          if (
+            partners &&
+            Object.keys(partners).some(
+              partnerKey => !this.state.threads[partners[partnerKey].userID],
+            )
+          ) {
+            const threads =
+              (await fetchThreads(this.getFlowID(), this.getClassCode())) || {};
+            this.setState(
+              {
+                threads,
+              },
+              () => setTimeout(this.expandThreadForFlowStage, 200), // TODO fix ridiculous hack to force render before expanding to preserve decent animation
+            );
+          }
         },
       );
 
