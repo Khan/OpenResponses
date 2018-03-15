@@ -11,6 +11,7 @@ import { resetKeyGenerator } from "slate";
 import activities from "../lib/activities";
 import CongratsModal from "../lib/components/congrats-modal";
 import findReviewees from "../lib/reviewee-requirement";
+import mediaQueries from "../lib/media-queries";
 import PageContainer from "../lib/components/page-container";
 import Prompt from "../lib/components/prompt";
 import reportError from "../lib/error";
@@ -885,9 +886,11 @@ const styles = StyleSheet.create({
   },
 
   stickyYourThreadContainer: {
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-    boxShadow: `0px 2px 3px rgba(33, 36, 44, 0.08)`,
+    [mediaQueries.mdOrSmaller]: {
+      position: "sticky",
+      top: 0,
+      zIndex: 100,
+      boxShadow: `0px 2px 3px rgba(33, 36, 44, 0.08)`,
+    },
   },
 });
