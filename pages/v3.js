@@ -384,14 +384,18 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     if (!activity) {
       throw "Can't get partners without an activity";
     }
-    let output = {};
-    for (let partnerKey of Object.keys(this.state.partners).slice(
-      0,
-      activity.revieweeCount,
-    )) {
-      output[partnerKey] = this.state.partners[partnerKey];
+
+    if (Object.keys(this.state.partners).length <= activity.revieweeCount) {
+      return this.state.partners;
+    } else {
+      let output = {};
+      for (let partnerKey of Object.keys(this.state.partners)
+        .sort()
+        .slice(0, activity.revieweeCount)) {
+        output[partnerKey] = this.state.partners[partnerKey];
+      }
+      return output;
     }
-    return output;
   };
 
   threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
