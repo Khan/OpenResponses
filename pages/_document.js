@@ -1,6 +1,8 @@
 import Document, { Head, Main, NextScript } from "next/document";
 import { StyleSheetServer } from "aphrodite";
 
+import sharedStyles from "../lib/styles";
+
 export default class AphroditeDocument extends Document {
   static async getInitialProps({ renderPage }) {
     const { html, css } = StyleSheetServer.renderStatic(() => renderPage());
@@ -41,9 +43,13 @@ export default class AphroditeDocument extends Document {
               html, body {
                 margin: 0;
               }
-              * {
-                // font-family: Proxima Nova, Helvetica, sans-serif;
+
+              body {
+                background-color: ${sharedStyles.wbColors.offWhite};
               }
+              @font-face{font-family:Lato;font-style:normal;font-weight:900;src:url('/static/fonts/Lato/Lato-Black.ttf');}
+              @font-face{font-family:Lato;font-style:normal;font-weight:bold;src:url('/static/fonts/Lato/Lato-Bold.ttf');}
+              @font-face{font-family:Lato;font-style:normal;font-weight:normal;src:url('/static/fonts/Lato/Lato-Regular.ttf');}
               `}
           </style>
         </Head>

@@ -848,18 +848,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     return (
       <Fragment>
-        <Head>
-          <style>
-            {`
-            body {
-              background-color: ${sharedStyles.wbColors.offWhite};
-            }
-            @font-face{font-family:Lato;font-style:normal;font-weight:900;src:url('/static/fonts/Lato/Lato-Black.ttf');}
-            @font-face{font-family:Lato;font-style:normal;font-weight:bold;src:url('/static/fonts/Lato/Lato-Bold.ttf');}
-            @font-face{font-family:Lato;font-style:normal;font-weight:normal;src:url('/static/fonts/Lato/Lato-Regular.ttf');}
-          `}
-          </style>
-        </Head>
         <PageContainer>
           <Prompt
             title={activity.title}
