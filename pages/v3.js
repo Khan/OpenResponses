@@ -2,11 +2,7 @@
 import Head from "next/head";
 import React, { Fragment } from "react";
 import Router from "next/router";
-import shuffle from "lodash.shuffle";
-import throttle from "lodash.throttle";
-import scrollToComponent from "react-scroll-to-component";
 import { css, StyleSheet } from "aphrodite";
-import { resetKeyGenerator } from "slate";
 
 import activities from "../lib/activities";
 import CongratsModal from "../lib/components/congrats-modal";
@@ -441,10 +437,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         expandedThreads: [...this.state.expandedThreads, threadToExpand],
       });
     }
-  };
-
-  componentWillMount = () => {
-    resetKeyGenerator();
   };
 
   componentDidMount = () => {
