@@ -222,6 +222,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       throw "Can't submit new user without a userID";
     }
 
+    window.scroll(0, 0);
+
     createUser(this.getFlowID(), this.getClassCode(), userID, userProfile);
     this.setState({ userProfile });
   };
