@@ -730,15 +730,24 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       pendingDisplayName,
       shouldShowClassmateFeedback,
     ) => {
-      let shouldDisplayLookingForFeedbackMessage = false;
+      let waitingForFeedback = false;
       if (isYourThread && this.threadContainsPostFromUser(userID, userID)) {
-        if (this.isInWorldMap()) {
-          const threadPosts = this.state.threads[threadKey].posts;
-          shouldDisplayLookingForFeedbackMessage = Object.keys(
-            threadPosts,
-          ).every(postKey => threadPosts[postKey].userID === userID);
-        } else {
-          shouldDisplayLookingForFeedbackMessage = true; // We hide the feedback you receive until you're in the world map.
+        const threadPosts = this.state.threads[threadKey].posts;
+        const replyCount = Object.keys(threadPosts).filter(
+          postKey => threadPosts[postKey].userID !== userID,
+        ).length;
+        if (replyCount == 0) {
+          waitingForFeedback = true;
+        } else if (!this.isInWorldMap()) {
+          const partners = this.getEligiblePartners();
+          const pendingPartnerCount = Object.keys(partners).filter(
+            partnerKey =>
+              !this.threadContainsPostFromUser(
+                partners[partnerKey].userID,
+                userID,
+              ),
+          ).length;
+          waitingForFeedback = { hiddenCount: replyCount, pendingPartnerCount };
         }
       }
       return (
@@ -767,9 +776,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               !this.threadContainsPostFromUser(threadKey, userID)) ||
             (isYourThread && this.isInWorldMap())
           }
-          shouldDisplayLookingForFeedbackMessage={
-            shouldDisplayLookingForFeedbackMessage
-          }
+          waitingForFeedback={waitingForFeedback}
           shouldAutofocus={!isYourThread}
         />
       );
