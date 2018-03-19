@@ -70,6 +70,7 @@ export default class ReportPage extends React.Component<Props, State> {
         "report",
         "report-v2",
       );
+      return;
     }
 
     this.setState({
