@@ -273,6 +273,7 @@ export default class ReportPage extends React.Component<Props, State> {
                         canAddReply={false}
                         shouldDisplayLookingForFeedbackMessage={false}
                         shouldAutofocus={false}
+                        waitingForFeedback={false}
                       />
                     </div>
                   );
@@ -330,6 +331,7 @@ export default class ReportPage extends React.Component<Props, State> {
                         canAddReply={false}
                         shouldDisplayLookingForFeedbackMessage={false}
                         shouldAutofocus={false}
+                        waitingForFeedback={false}
                       />
                     </div>
                   );
@@ -368,6 +370,7 @@ export default class ReportPage extends React.Component<Props, State> {
                       canAddReply={false}
                       shouldDisplayLookingForFeedbackMessage={false}
                       shouldAutofocus={false}
+                      waitingForFeedback={false}
                     />
                   </div>
                   {partnerElements}
