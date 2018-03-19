@@ -47,6 +47,15 @@ const lastPostTimestampFromClassData = classData => {
   }
 };
 
+const countOfStudents = data => {
+  if (data.threads) {
+    // >= v3
+    return Object.keys(data.threads).length;
+  } else {
+    return Object.keys(data).length;
+  }
+};
+
 const Class = ({ activityKey, classCode, data }) => {
   const lastTimestamp = lastPostTimestampFromClassData(data);
   if (!lastTimestamp) {
@@ -64,7 +73,7 @@ const Class = ({ activityKey, classCode, data }) => {
         {classCode}
       </td>
       <td className={css(styles.cell)} style={{ width: 100 }}>
-        {Object.keys(data).length} students
+        {countOfStudents(data)} students
       </td>
       <td className={css(styles.cell)}>
         [<a href={`/report?flowID=${activityKey}&classCode=${classCode}`}>
