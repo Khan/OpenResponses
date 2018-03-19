@@ -52,7 +52,9 @@ const countOfStudents = data => {
     // >= v3
     return Object.keys(data.threads).length;
   } else {
-    return Object.keys(data).length;
+    return Object.keys(data).filter(
+      userID => data[userID].inputs && data[userID].inputs.submitted,
+    ).length;
   }
 };
 
