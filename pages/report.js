@@ -65,13 +65,6 @@ export default class ReportPage extends React.Component<Props, State> {
     const classCode = getClassCodeFromURL(this.props.url);
     const data = (await loadData(flowID, classCode)) || {};
     const { users, threads } = data;
-    if (Object.keys(data).length > 1 && !users && !threads) {
-      window.location.pathname = window.location.pathname.replace(
-        "report",
-        "report-v2",
-      );
-      return;
-    }
 
     this.setState({
       ready: true,
@@ -83,6 +76,14 @@ export default class ReportPage extends React.Component<Props, State> {
 
   componentDidMount = () => {
     (async () => {
+      if (this.state.activity && this.state.activity.flowVersion === 2) {
+        window.location.pathname = window.location.pathname.replace(
+          "report",
+          "report-v2",
+        );
+        return;
+      }
+
       await this.fetchInitialData();
     })().catch(reportError);
   };
