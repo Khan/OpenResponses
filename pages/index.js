@@ -45,115 +45,6 @@ const getFlowIDFromURL = url => {
 
 const nameForYou = "You";
 
-//============================================================================================
-// * TEST STAGE HERE *
-const testStage = 0;
-const shouldUseDummyData = false;
-
-const dummyThreads = {
-  a: {
-    posts: {
-      a: {
-        data: {
-          kind: quillDataKind,
-          rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
-        },
-        userID: "a",
-        userProfile: {
-          avatar: "marcimus-red",
-          pseudonym: "Eclair",
-          realName: "Bob Johnson",
-        },
-      },
-      b: {
-        data: {
-          kind: quillDataKind,
-          rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
-        },
-        userID: "b",
-        userProfile: {
-          avatar: "mr-pants",
-          pseudonym: "Bombolini",
-          realName: "Jenny Jennerson",
-        },
-      },
-    },
-  },
-  b: {
-    posts: {
-      a: {
-        data: {
-          kind: quillDataKind,
-          rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
-          <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
-        },
-        userID: "b",
-        userProfile: {
-          avatar: "duskpin-sapling",
-          pseudonym: "Cream puff",
-          realName: "Bob Johnson",
-        },
-      },
-    },
-  },
-  c: {
-    posts: {
-      a: {
-        data: {
-          kind: quillDataKind,
-          rawData: `<p>I'm not sure what "franchise" means, or means in this context. But it looks like the woman is auctioning off a slave, maybe? Her hair wreath makes me think maybe she's an Allegorical figure - is *she* "franchise?" Because he is missing a leg, which seems unpleasant/inconvenient, I would guess this is a negative portrayal of slavery, and so a pro-message for freedom for all.</p>`,
-        },
-        userID: "c",
-        userProfile: {
-          avatar: "purple-pi",
-          pseudonym: "Stollen",
-          realName: "Bob Johnson",
-        },
-      },
-    },
-  },
-  d: {
-    posts: {
-      a: {
-        data: {
-          kind: quillDataKind,
-          rawData: `<p>The man in the image is portrayed sympathetically, with the woman appearing to advocate for him. He is also missing a leg, to emphasize the sacrifices he's made. I would say the artist definitely supported equal rights for freedmen.</p>
-          <p>I'd say the message is "former slaves who fought in the civil war sacrificed much, and deserve more rights than they currently have".</p>`,
-        },
-        userID: "d",
-        userProfile: {
-          avatar: "mr-pink-blue",
-          pseudonym: "Strudel",
-          realName: "Bob Johnson",
-        },
-      },
-      b: {
-        data: {
-          kind: quillDataKind,
-          rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
-        },
-        userID: "b",
-        userProfile: {
-          avatar: "mr-pants",
-          pseudonym: "Wheaties",
-          realName: "Jenny Jennerson",
-        },
-      },
-    },
-  },
-};
-
-const dummyPartners = { za: { userID: "a" }, zb: { userID: "b" } };
-
-const dummyUserProfile = {
-  avatar: "aqualine-sapling",
-  pseudonym: nameForYou,
-  realName: "Bob Johnson",
-  email: "test@test.com",
-};
-
-//============================================================================================
-
 type State = {
   ready: boolean,
   userID: ?string,
@@ -251,9 +142,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     let threads =
       (await fetchThreads(this.getFlowID(), this.getClassCode())) || {};
-    if (shouldUseDummyData) {
-      threads = { ...dummyThreads, ...threads };
-    }
 
     this.setState(
       {
@@ -278,70 +166,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
                 [activeUserID]: { kind: quillDataKind, rawData: "" },
               },
         };
-        if (testStage >= 1) {
-          newState = {
-            ...newState,
-            threads: {
-              ...this.state.threads,
-              [activeUserID]: {
-                posts: {
-                  a: {
-                    data: {
-                      kind: quillDataKind,
-                      rawData: `<p>I think the artist is in support of equal rights for freedmen because here are a number of reasons that are complex can this sysetm understand what I'm talking about or is this all jumbled oh dear what is happening.</p>`,
-                    },
-                    userID: activeUserID,
-                    userProfile: dummyUserProfile,
-                  },
-                },
-              },
-            },
-            pendingRichEditorData: {},
-          };
-        }
-        if (testStage >= 2) {
-          newState = {
-            ...newState,
-            threads: {
-              ...newState.threads,
-              a: {
-                posts: {
-                  ...newState.threads["a"].posts,
-                  za: {
-                    data: {
-                      kind: quillDataKind,
-                      rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
-                    },
-                    userID: activeUserID,
-                    userProfile: dummyUserProfile,
-                  },
-                },
-              },
-            },
-          };
-        }
-        if (testStage >= 3) {
-          newState = {
-            ...newState,
-            threads: {
-              ...newState.threads,
-              b: {
-                posts: {
-                  ...newState.threads["b"].posts,
-                  za: {
-                    data: {
-                      kind: quillDataKind,
-                      rawData: `<p>A strength of this response is…it provides two different ways to interpret the same image depending on ones perspective.</p>`,
-                    },
-                    userID: activeUserID,
-                    userProfile: dummyUserProfile,
-                  },
-                },
-              },
-            },
-          };
-        }
-        this.setState(newState, () => this.expandThreadForFlowStage());
+        this.setState(newState);
       },
     );
 
