@@ -13,7 +13,8 @@ exports.findPartners = functions.database
     const postingUserID = event.params.userID;
     const usersRef = event.data.ref.parent.parent.child("users");
     const postingUserRef = usersRef.child(postingUserID);
-    // We'll begin by setting a denormalized flag for "this user has posted at least one thread"
+    // We'll begin by setting a denormalized flag for "this user has posted at least
+    // one thread"
     return postingUserRef
       .child("hasPostedThread")
       .set(true)
@@ -91,9 +92,7 @@ exports.findPartners = functions.database
             targetPartnerCount,
           )) {
             promises.push(
-              postingUserPartnersRef.push({
-                userID: partnerUserID,
-              }),
+              postingUserPartnersRef.push({ userID: partnerUserID }),
             );
             promises.push(
               postingUserRef.parent
@@ -122,9 +121,7 @@ exports.findPartners = functions.database
               postingUserRef.parent
                 .child(partnerUserID)
                 .child("partners")
-                .push({
-                  userID: postingUserID,
-                }),
+                .push({ userID: postingUserID }),
             );
           }
           if (usersWithTooFewPartners.length > 0) {
@@ -147,7 +144,8 @@ exports.notifyOnPost = functions.database
   .ref("/{flowID}/{classCode}/threads/{threadKey}/posts/{postKey}")
   .onCreate(event => {
     const posterUserID = event.data.val().userID;
-    // TODO: If we ever flex from threadKey == authorUserID, we'll have to change this heuristic.
+    // TODO: If we ever flex from threadKey == authorUserID, we'll have to change
+    // this heuristic.
     if (posterUserID === event.params.threadKey) {
       return;
     }
@@ -181,8 +179,7 @@ exports.notifyOnPost = functions.database
       );
 
       const humanReadableActivityName = activities[event.params.flowID].title;
-      // TODO FIX AFTER DOGFOOD
-      const returnURL = `https://ka-free-response-v3.now.sh/v3?flowID=${event
+      const returnURL = `${functions.config().host.origin}/?flowID=${event
         .params.flowID}&classCode=${event.params
         .classCode}&userID=${threadAuthorUserID}&expandThread=${threadAuthorUserID}`;
       return transporter
@@ -221,11 +218,13 @@ exports.logRejection = functions.database
         `${event.params.flowID}/${event.params.cohortID}/${rejectedID}`,
       );
       promises.push(
-        rejectedUserID.child("log").push({
-          type: "rejected",
-          time: admin.database.ServerValue.TIMESTAMP,
-          rejector: event.params.userID,
-        }),
+        rejectedUserID
+          .child("log")
+          .push({
+            type: "rejected",
+            time: admin.database.ServerValue.TIMESTAMP,
+            rejector: event.params.userID,
+          }),
       );
       promises.push(
         rejectedUserID
@@ -269,11 +268,13 @@ exports.logReviewers = functions.database
         `${event.params.flowID}/${event.params.cohortID}/${revieweeID}`,
       );
       promises.push(
-        revieweeRef.child("log").push({
-          type: "addReviewer",
-          time: admin.database.ServerValue.TIMESTAMP,
-          reviewer: event.params.userID,
-        }),
+        revieweeRef
+          .child("log")
+          .push({
+            type: "addReviewer",
+            time: admin.database.ServerValue.TIMESTAMP,
+            reviewer: event.params.userID,
+          }),
       );
       promises.push(
         revieweeRef
@@ -337,10 +338,7 @@ exports.logUserCreation = functions.database
     const user = event.data.ref.parent.parent;
     const log = user.child("log");
     return log
-      .push({
-        type: "creation",
-        time: admin.database.ServerValue.TIMESTAMP,
-      })
+      .push({ type: "creation", time: admin.database.ServerValue.TIMESTAMP })
       .then(() => {
         const humanReadableFlowName = activities[event.params.flowID].title;
 
