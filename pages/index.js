@@ -36,7 +36,7 @@ import type { PromptData, Activity } from "../lib/activities";
 import type { RichEditorData } from "../lib/components/rich-editor";
 
 const getClassCodeFromURL = url => {
-  return url.query.classCode;
+  return url.query.classCode || url.query.classID;
 };
 
 const getFlowIDFromURL = url => {
