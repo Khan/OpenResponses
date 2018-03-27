@@ -24,8 +24,8 @@ exports.findPartners = functions.database
 
           // Claim as many partners as we can for ourselves.
 
-          const activity = activities[flowID];
-          const targetPartnerCount = activity.revieweeCount;
+          const activity = activities[flowID] || {};
+          const targetPartnerCount = activity.revieweeCount || 2;
           const allUsers = usersSnapshot.val();
 
           const indexOfUserID = userID =>
@@ -107,7 +107,7 @@ exports.findPartners = functions.database
           const usersWithTooFewPartners = Object.keys(allUsers).filter(
             userID =>
               Object.keys(allUsers[userID].partners || {}).length <
-                activity.revieweeCount &&
+                targetPartnerCount &&
               userID !== postingUserID &&
               allUsers[userID].hasPostedThread,
           );
