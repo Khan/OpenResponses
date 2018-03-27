@@ -14,7 +14,7 @@ import { loadData } from "../lib/db";
 import type { Activity } from "../lib/activities";
 
 const getClassCodeFromURL = url => {
-  return url.query.classCode;
+  return url.query.classCode || url.query.classID;
 };
 
 const getFlowIDFromURL = url => {

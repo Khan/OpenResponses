@@ -200,6 +200,28 @@ exports.notifyOnPost = functions.database
     });
   });
 
+exports.copyTemplateUsers = functions.database
+  .ref("/{flowID}/{classCode}/users")
+  .onCreate(event => {
+    console.log("New class code!", event.params.flowID, event.params.classCode);
+    const classCodeRef = event.data.ref.parent;
+    return classCodeRef.parent
+      .child("TEMPLATE")
+      .once("value")
+      .then(templateSnapshot => {
+        if (!templateSnapshot) {
+          console.log(`No template found for ${flowID}`);
+          return;
+        }
+
+        const { users, threads } = templateSnapshot.val();
+        return Promise.all([
+          classCodeRef.child("users").update(users),
+          classCodeRef.child("threads").update(threads),
+        ]);
+      });
+  });
+
 exports.logRejection = functions.database
   .ref("/{flowID}/{cohortID}/{userID}/userState/pendingRejections")
   .onWrite(event => {
@@ -218,13 +240,11 @@ exports.logRejection = functions.database
         `${event.params.flowID}/${event.params.cohortID}/${rejectedID}`,
       );
       promises.push(
-        rejectedUserID
-          .child("log")
-          .push({
-            type: "rejected",
-            time: admin.database.ServerValue.TIMESTAMP,
-            rejector: event.params.userID,
-          }),
+        rejectedUserID.child("log").push({
+          type: "rejected",
+          time: admin.database.ServerValue.TIMESTAMP,
+          rejector: event.params.userID,
+        }),
       );
       promises.push(
         rejectedUserID
@@ -268,13 +288,11 @@ exports.logReviewers = functions.database
         `${event.params.flowID}/${event.params.cohortID}/${revieweeID}`,
       );
       promises.push(
-        revieweeRef
-          .child("log")
-          .push({
-            type: "addReviewer",
-            time: admin.database.ServerValue.TIMESTAMP,
-            reviewer: event.params.userID,
-          }),
+        revieweeRef.child("log").push({
+          type: "addReviewer",
+          time: admin.database.ServerValue.TIMESTAMP,
+          reviewer: event.params.userID,
+        }),
       );
       promises.push(
         revieweeRef
