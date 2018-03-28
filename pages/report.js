@@ -224,7 +224,7 @@ export default class ReportPage extends React.Component<Props, State> {
                 return null;
               }
 
-              const effectivePartners = Object.keys(partners)
+              const effectivePartners = Object.keys(partners || {})
                 .sort()
                 .slice(0, activity.revieweeCount)
                 .map(partnerKey => partners[partnerKey].userID);
