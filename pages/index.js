@@ -604,6 +604,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           }
           waitingForFeedback={waitingForFeedback}
           shouldAutofocus={!isYourThread}
+          shouldAllowCustomReply={this.isInWorldMap()}
         />
       );
     };
