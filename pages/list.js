@@ -9,7 +9,7 @@ import sharedStyles from "../lib/styles";
 import Thread from "../lib/components/thread";
 import { signIn } from "../lib/auth";
 
-import { _getDatabase } from "../lib/db";
+import { _getDatabase, starClassCode } from "../lib/db";
 
 type State = {
   ready: boolean,
@@ -58,17 +58,25 @@ const countOfStudents = data => {
   }
 };
 
-const Class = ({ activityKey, classCode, data }) => {
+const Class = ({ activityKey, classCode, data, onStar }) => {
   const lastTimestamp = lastPostTimestampFromClassData(data);
   if (!lastTimestamp) {
     return null;
   }
   return (
     <tr>
-      <td
-        className={css(styles.cell, styles.rightAlign)}
-        style={{ width: 100 }}
-      >
+      <td className={`star${!!data.starred ? " alwaysShow" : ""}`}>
+        <button
+          href="#"
+          onClick={e => {
+            onStar(!data.starred);
+            e.preventDefault();
+          }}
+        >
+          {data.starred ? `⭐` : "☆"}
+        </button>
+      </td>
+      <td className={css(styles.cell)} style={{ width: 100 }}>
         {new Date(lastTimestamp).toLocaleDateString()}
       </td>
       <td className={css(styles.cell)} style={{ width: 150 }}>
@@ -88,6 +96,26 @@ const Class = ({ activityKey, classCode, data }) => {
           firebase
         </a>]
       </td>
+      <style jsx>{`
+        tr .star {
+          width: 30px;
+          opacity: 0;
+        }
+
+        tr .star.alwaysShow {
+          opacity: 1;
+        }
+
+        tr:hover .star {
+          opacity: 1;
+        }
+
+        .star button {
+          border: none;
+          background: none;
+          cursor: pointer;
+        }
+      `}</style>
     </tr>
   );
 };
@@ -99,7 +127,7 @@ const sortedClassCodes = data =>
       lastPostTimestampFromClassData(data[a]),
   );
 
-const Activity = ({ activity, activityKey, data }) => {
+const Activity = ({ activity, activityKey, data, onStar }) => {
   const prompt =
     activity.prompt.type === "default"
       ? activity.prompt
@@ -111,13 +139,14 @@ const Activity = ({ activity, activityKey, data }) => {
       </div>
       <div className={css(styles.classData)}>
         <h1 className={css(styles.activityKey)}>{activityKey}</h1>
-        <table>
+        <table style={{ marginLeft: -36 }}>
           {sortedClassCodes(data).map(classCode => (
             <Class
               key={classCode}
               activityKey={activityKey}
               classCode={classCode}
               data={data[classCode]}
+              onStar={starred => onStar(classCode, starred)}
             />
           ))}
         </table>
@@ -166,7 +195,7 @@ export default class ReportPage extends React.Component<{}, State> {
 
     const lastTimestampByActivityKey = {};
     for (let activityKey of Object.keys(activities)) {
-      const activityData = this.state.data[activityKey];
+      const activityData = this.state.data[activityKey] || {};
       if (Object.keys(activityData).length === 0) {
         return 0;
       }
@@ -185,6 +214,21 @@ export default class ReportPage extends React.Component<{}, State> {
         activity={activities[activityKey]}
         activityKey={activityKey}
         data={this.state.data[activityKey]}
+        onStar={(classCode, starred) => {
+          this.setState({
+            data: {
+              ...this.state.data,
+              [activityKey]: {
+                ...this.state.data[activityKey],
+                [classCode]: {
+                  ...this.state.data[activityKey][classCode],
+                  starred,
+                },
+              },
+            },
+          });
+          starClassCode(activityKey, classCode, starred);
+        }}
       />
     ));
   };
@@ -198,7 +242,7 @@ const styles = StyleSheet.create({
 
   promptContainer: {
     width: 400,
-    marginRight: 32,
+    marginRight: 48,
   },
 
   classData: {
