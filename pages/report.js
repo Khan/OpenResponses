@@ -35,6 +35,7 @@ type State = {
   users: Object,
   threads: Object,
   activity: Activity,
+  anonymizeStudents: boolean,
 };
 
 type Props = {
@@ -55,6 +56,7 @@ export default class ReportPage extends React.Component<Props, State> {
       users: {},
       threads: {},
       activity: activities[flowID],
+      anonymizeStudents: false,
     };
   }
 
@@ -167,6 +169,10 @@ export default class ReportPage extends React.Component<Props, State> {
     return [response, ...replies];
   };
 
+  displayNameFromProfile = profile => {
+    return this.state.anonymizeStudents ? profile.pseudonym : profile.realName;
+  };
+
   getThreadDataProps = (threadKey: ThreadKey) => {
     const threadData = this.state.threads[threadKey] || {};
     const posts = Object.keys(threadData.posts || {})
@@ -177,7 +183,7 @@ export default class ReportPage extends React.Component<Props, State> {
         return {
           data: post.data,
           avatar: post.userProfile.avatar,
-          displayName: post.userProfile.realName,
+          displayName: this.displayNameFromProfile(post.userProfile),
           userID: post.userID,
         };
       });
@@ -196,7 +202,56 @@ export default class ReportPage extends React.Component<Props, State> {
       <Fragment>
         <div
           style={{
+            position: "fixed",
+            background: sharedStyles.wbColors.white,
+            borderBottom: `1px solid ${sharedStyles.wbColors.hairline}`,
+            width: "100%",
+            height: 80,
+            top: 0,
+            zIndex: 100,
             display: "flex",
+            alignItems: "center",
+            paddingLeft: 14,
+            paddingRight: 14,
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{ ...sharedStyles.wbTypography.headingLarge, flexGrow: 1 }}
+          >
+            {activity.title}
+          </div>
+          <label
+            style={{
+              ...sharedStyles.wbTypography.labelMedium,
+              flexGrow: 0,
+              justifySelf: "end",
+            }}
+          >
+            <input
+              type="checkbox"
+              style={{
+                width: 13,
+                height: 13,
+                verticalAlign: "bottom",
+                margin: 0,
+                marginRight: 2,
+                padding: 0,
+                position: "relative",
+                top: -2,
+              }}
+              checked={this.state.anonymizeStudents}
+              onChange={event => {
+                this.setState({ anonymizeStudents: event.target.checked });
+              }}
+            />{" "}
+            Anonymize students
+          </label>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            marginTop: 80,
           }}
         >
           {Object.keys(this.state.users)
@@ -262,8 +317,10 @@ export default class ReportPage extends React.Component<Props, State> {
                           ...sharedStyles.wbTypography.labelLarge,
                         }}
                       >
-                        {profile.realName}'s reply to{" "}
-                        {this.state.users[partnerUserID].profile.realName}{" "}
+                        {this.displayNameFromProfile(profile)}'s reply to{" "}
+                        {this.displayNameFromProfile(
+                          this.state.users[partnerUserID].profile,
+                        )}{" "}
                         (partner #{partnerIndex + 1})
                       </h3>
                       <Thread
@@ -320,8 +377,10 @@ export default class ReportPage extends React.Component<Props, State> {
                           ...sharedStyles.wbTypography.labelLarge,
                         }}
                       >
-                        {profile.realName}'s reply to{" "}
-                        {this.state.users[partnerUserID].profile.realName}{" "}
+                        {this.displayNameFromProfile(profile)}'s reply to{" "}
+                        {this.displayNameFromProfile(
+                          this.state.users[partnerUserID].profile,
+                        )}{" "}
                         (extra)
                       </h3>
                       <Thread
@@ -360,7 +419,7 @@ export default class ReportPage extends React.Component<Props, State> {
                       width: "100%",
                     }}
                   >
-                    {profile.realName}
+                    {this.displayNameFromProfile(profile)}
                   </h2>
                   <div>
                     <Thread
