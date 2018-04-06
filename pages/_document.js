@@ -56,6 +56,19 @@ export default class AphroditeDocument extends Document {
         <body>
           <Main />
           <NextScript />
+          <script
+            type="text/javascript"
+            dangerouslySetInnerHTML={{
+              __html: `
+              window._mfq = window._mfq || [];
+              (function() {
+                  var mf = document.createElement("script");
+                  mf.type = "text/javascript"; mf.async = true;
+                  mf.src = "//cdn.mouseflow.com/projects/${mouseFlowID}.js";
+                  document.getElementsByTagName("head")[0].appendChild(mf);
+              })();`,
+            }}
+          />
         </body>
       </html>
     );

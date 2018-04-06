@@ -11,4 +11,5 @@ module.exports = {
   },
   nodeEnvironment: process.env["NODE_ENV"],
   sentryDSN: process.env["SENTRY_DSN"],
+  mouseFlowID: process.env["MOUSE_FLOW_ID"],
 };
