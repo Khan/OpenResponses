@@ -103,6 +103,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
   getFlowID = () => getFlowIDFromURL(this.props.url);
   getClassCode = () => getClassCodeFromURL(this.props.url);
 
+  applyUserIDToURL = (userID: string) =>
+    Router.replace({
+      ...this.props.url,
+      query: { ...this.props.url.query, userID: userID },
+    });
+
   onSubmitWelcome = (userProfile: UserProfile) => {
     const { userID } = this.state;
     if (!userID) {
@@ -110,6 +116,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
 
     window.scroll(0, 0);
+    this.applyUserIDToURL(userID);
 
     createUser(this.getFlowID(), this.getClassCode(), userID, userProfile);
     this.setState({ userProfile });
@@ -128,10 +135,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       await signIn();
     } else {
       activeUserID = await signIn();
-      Router.replace({
-        ...this.props.url,
-        query: { ...this.props.url.query, userID: activeUserID },
-      });
     }
 
     const userProfile = await fetchUserProfile(
@@ -139,6 +142,9 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       this.getClassCode(),
       activeUserID,
     );
+    if (userProfile) {
+      this.applyUserIDToURL(activeUserID);
+    }
 
     let threads =
       (await fetchThreads(this.getFlowID(), this.getClassCode())) || {};
