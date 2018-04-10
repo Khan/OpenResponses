@@ -422,21 +422,26 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       throw "Shouldn't have been able to select a prompt without an activity or user ID.";
     }
 
-    // TODO: Will have to change this if your thread's key ever becomes not your user ID.
-    const prompts =
-      threadKey === userID
-        ? activity.reflectionPrompts
-        : activity.engagementPrompts;
+    let newThreadData = "";
+    // TODO: this predicate will have to change if your threadKey ever isn't userID
+    if (promptIndex === null && threadKey === userID) {
+      const threadPosts = this.state.threads[threadKey].posts;
+      newThreadData = threadPosts[Object.keys(threadPosts)[0]].data.rawData;
+    } else {
+      // TODO: Will have to change this if your thread's key ever becomes not your user ID.
+      const prompts =
+        threadKey === userID
+          ? activity.reflectionPrompts
+          : activity.engagementPrompts;
+      newThreadData = prompts[promptIndex].replace(/…$/, "&nbsp;");
+    }
 
     this.setState({
       pendingRichEditorData: {
         ...this.state.pendingRichEditorData,
         [threadKey]: {
           kind: quillDataKind,
-          rawData:
-            promptIndex == null
-              ? ""
-              : prompts[promptIndex].replace(/…$/, "&nbsp;"),
+          rawData: newThreadData,
         },
       },
     });
@@ -543,13 +548,28 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             threadData.posts[postKey].userID === userID ||
             threadData.posts[postKey].userID === threadKey, // TODO will need a more sophisticated test here if/when we make ThreadKey != UserID
         )
-        .map(postKey => {
+        .map((postKey, postIndex) => {
           const post = threadData.posts[postKey];
+          let displayName = post.userProfile.pseudonym;
+          if (post.userID === threadKey) {
+            if (post.userID === userID) {
+              displayName = nameForYou;
+            }
+            if (postIndex > 0) {
+              const authorPosts = Object.keys(threadData.posts)
+                .sort()
+                .filter(
+                  postKey => threadData.posts[postKey].userID === threadKey,
+                );
+              displayName = `${displayName} (draft #${authorPosts.indexOf(
+                postKey,
+              ) + 1})`;
+            }
+          }
           return {
             data: post.data,
             avatar: post.userProfile.avatar,
-            displayName:
-              post.userID === userID ? nameForYou : post.userProfile.pseudonym,
+            displayName,
           };
         });
       const pendingRichEditorData = this.state.pendingRichEditorData[threadKey];
@@ -596,8 +616,13 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             this.onSetIsExpanded(threadKey, newIsExpanded)}
           prompts={
             isYourThread
-              ? activity.reflectionPrompts
+              ? []
               : this.isInWorldMap() ? [] : activity.engagementPrompts
+          }
+          customReplyTitle={
+            isYourThread
+              ? "Revise your response"
+              : this.isInWorldMap() ? "Reply" : "Write a custom reply…"
           }
           onSelectPrompt={promptIndex =>
             this.onSelectPrompt(threadKey, promptIndex)}
@@ -701,7 +726,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               userID,
               true,
               this.threadContainsPostFromUser(userID, userID)
-                ? "Reflect on what you've learned"
+                ? "Revise your response"
                 : "Your response",
               this.isInWorldMap(),
             )}
