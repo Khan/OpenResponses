@@ -597,7 +597,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           prompts={
             isYourThread
               ? activity.reflectionPrompts
-              : activity.engagementPrompts
+              : this.isInWorldMap() ? [] : activity.engagementPrompts
           }
           onSelectPrompt={promptIndex =>
             this.onSelectPrompt(threadKey, promptIndex)}
