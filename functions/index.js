@@ -45,6 +45,12 @@ exports.findPartners = functions.database
               const aUserData = allUsers[a];
               const bUserData = allUsers[b];
 
+              if (a === "model") {
+                return -1;
+              } else if (b === "model") {
+                return 1;
+              }
+
               // Fallback users always come last among peers who made a particular choice.
               if (!aUserData.isFallbackUser && bUserData.isFallbackUser) {
                 return -1;
@@ -252,4 +258,3 @@ exports.logUserCreation = functions.database
         });
       });
   });
-s;

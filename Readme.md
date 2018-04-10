@@ -67,20 +67,24 @@ Add `&fallbackUser=true` to the URL to become a user whose answer can be shown m
 
 You can view a (very early) teacher-facing report at `http://YOUR-SERVER.com/report?flowID=FLOW_ID&classCode=CLASS_CODE`.
 
-# Auto-populating a new class code with fallback users.
+# Auto-populating a new class code with templated users.
 
-You can create a "fallback" class code full of a few students to use as "dummy" responses to bootstrap a new class code.
+You can create a `TEMPLATE` class code full of a few students to use as "dummy" responses to bootstrap a new class code.
 
-1. Visit `http://YOUR-SERVER.com/?flowID=FLOW_ID&classCode=FALLBACK&fallbackUser=true`
+1. Visit `http://YOUR-SERVER.com/?flowID=FLOW_ID&classCode=TEMPLATE`
 2. Fill in a "dummy" student response.
 3. Repeat #1 and #2 in an incognito window to make another dummy response if you like. Often we need one dummy response for each student category (e.g. a position on a historical argument).
 
-Now, to populate a new class code with those students:
+Any new class codes with the same `flowID` will include those students.
 
-1. Visit `http://YOUR-SERVER.com/manage?flowID=FLOW_ID&classCode=NEW_CLASS_CODE`
-2. Click "Populate this class code with fallback users."
-3. Type the class code you used for the fallback class (we usually just use `FALLBACK`).
-4. Refresh the page, and you'll see those students in place.
+## Model work
+
+You can optionally create a user which will be assigned as a partner for _all_ students. The system will apply this behavior to new students in class codes where there's a student with a `userID` of `model`. To make a model student:
+
+1. Visit `http://YOUR-SERVER.com/?flowID=FLOW_ID&classCode=SOME_CLASS_CODE&userID=model`
+2. Submit a response.
+
+If you'd like, you can use `TEMPLATE` as the class code to make a student whose work will become model work for all classes.
 
 # URL scheme reference
 
