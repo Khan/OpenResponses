@@ -11,6 +11,7 @@ import PageContainer from "../lib/components/page-container";
 import Prompt from "../lib/components/prompt";
 import reportError from "../lib/error";
 import sharedStyles from "../lib/styles";
+import SubwayProgress from "../lib/components/subway-progress";
 import Thread, { PlaceholderThread } from "../lib/components/thread";
 import Welcome from "../lib/components/welcome";
 import { dataKind as quillDataKind } from "../lib/components/quill-rich-editor"; // TODO move
@@ -704,6 +705,26 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         ),
       );
 
+    let stage = 0;
+    const countOfYourPostsInYourThread =
+      (this.state.threads[userID] &&
+        Object.keys(this.state.threads[userID].posts).filter(
+          postKey =>
+            this.state.threads[userID].posts[postKey].userID === userID,
+        ).length) ||
+      0;
+    if (countOfYourPostsInYourThread === 0) {
+      stage = 0;
+    } else if (countOfYourPostsInYourThread === 1) {
+      if (this.isInWorldMap()) {
+        stage = 2;
+      } else {
+        stage = 1;
+      }
+    } else if (countOfYourPostsInYourThread > 1) {
+      stage = 3;
+    }
+
     return (
       <Fragment>
         <PageContainer>
@@ -713,15 +734,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             stimuli={prompt.stimuli}
             postStimuliPrompt={prompt.postStimuliPrompt}
           />
+          <div className={css(styles.subwayProgressContainer)}>
+            <SubwayProgress stage={stage} />
+          </div>
 
-          <div
-            className={css(
-              styles.yourThreadContainer,
-              this.isInWorldMap()
-                ? styles.stickyYourThreadContainer
-                : undefined,
-            )}
-          >
+          <div className={css(styles.yourThreadContainer)}>
             {getThreadElement(
               userID,
               true,
@@ -754,14 +771,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  stickyYourThreadContainer: {
-    /*
-    [mediaQueries.mdOrSmaller]: {
-      position: "sticky",
-      top: 0,
-      zIndex: 100,
-      boxShadow: `0px 2px 3px rgba(33, 36, 44, 0.08)`,
+  subwayProgressContainer: {
+    marginTop: -14,
+    backgroundColor: sharedStyles.wbColors.white,
+    boxSizing: "border-box",
+    position: "sticky",
+    top: 0,
+    width: "100%",
+    zIndex: 1,
+    borderBottom: `1px solid ${sharedStyles.wbColors.hairline}`,
+
+    [mediaQueries.mdOrLarger]: {
+      border: `1px solid ${sharedStyles.wbColors.hairline}`,
+      borderTopWidth: 0,
+      borderRadius: sharedStyles.borderRadius,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
     },
-    */
   },
 });
