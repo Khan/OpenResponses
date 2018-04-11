@@ -544,10 +544,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       const posts = Object.keys(threadData.posts || {})
         .sort()
         .filter(
-          postKey =>
+          (postKey, postIndex) =>
             shouldShowClassmateFeedback ||
             threadData.posts[postKey].userID === userID ||
-            threadData.posts[postKey].userID === threadKey, // TODO will need a more sophisticated test here if/when we make ThreadKey != UserID
+            postIndex === 0, // TODO will need a more sophisticated test here if/when we make ThreadKey != UserID
         )
         .map((postKey, postIndex) => {
           const post = threadData.posts[postKey];
@@ -640,71 +640,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       );
     };
 
-    const eligiblePartners = this.getEligiblePartners();
-    const partnerThreadElement = partnerElementIndex => {
-      const partners = Object.keys(eligiblePartners)
-        .sort()
-        .map(partnerKey => eligiblePartners[partnerKey]);
-      const isUnlocked =
-        partnerElementIndex === 0
-          ? this.threadContainsPostFromUser(userID, userID)
-          : partners.length >= partnerElementIndex &&
-            this.threadContainsPostFromUser(
-              partners[partnerElementIndex - 1].userID,
-              userID,
-            );
-      if (isUnlocked) {
-        if (
-          partners[partnerElementIndex] &&
-          this.state.threads[partners[partnerElementIndex].userID]
-        ) {
-          return getThreadElement(
-            partners[partnerElementIndex].userID,
-            false,
-            "Write a reply to your partner",
-            false,
-          );
-        } else {
-          return (
-            <PlaceholderThread
-              key={partnerElementIndex}
-              imageURL="/static/waiting@2x.png"
-              title={`Waiting for another classmate to submit their response…`}
-              secondaryText={
-                partnerElementIndex === 0
-                  ? "You'll look at a classmate's work next."
-                  : undefined
-              }
-            />
-          );
-        }
-      } else {
-        return (
-          <PlaceholderThread
-            key={partnerElementIndex}
-            imageURL="/static/lock@2x.png"
-            title={`Partner #${partnerElementIndex + 1}`}
-            secondaryText={
-              partnerElementIndex === 0
-                ? "You'll see a partner's work after you finish your own response."
-                : undefined
-            }
-          />
-        );
-      }
-    };
-
-    const threadElements = Object.keys(this.state.threads)
-      .filter(threadKey => threadKey !== userID)
-      .map(threadKey =>
-        getThreadElement(
-          threadKey,
-          false,
-          "Write a reply to your classmate",
-          true,
-        ),
-      );
-
     let stage = 0;
     const countOfYourPostsInYourThread =
       (this.state.threads[userID] &&
@@ -724,6 +659,90 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     } else if (countOfYourPostsInYourThread > 1) {
       stage = 3;
     }
+
+    const eligiblePartners = this.getEligiblePartners();
+    const partnerThreadElement = partnerElementIndex => {
+      const partners = Object.keys(eligiblePartners)
+        .sort()
+        .map(partnerKey => eligiblePartners[partnerKey]);
+      const isUnlocked =
+        partnerElementIndex === 0
+          ? this.threadContainsPostFromUser(userID, userID)
+          : partners.length >= partnerElementIndex &&
+            this.threadContainsPostFromUser(
+              partners[partnerElementIndex - 1].userID,
+              userID,
+            );
+
+      if (isUnlocked) {
+        if (
+          partners[partnerElementIndex] &&
+          this.state.threads[partners[partnerElementIndex].userID]
+        ) {
+          return getThreadElement(
+            partners[partnerElementIndex].userID,
+            false,
+            "Write a reply to your partner",
+            false,
+          );
+        } else {
+          return (
+            <PlaceholderThread
+              key={partnerElementIndex}
+              imageURL="/static/waiting@2x.png"
+              title={`Looking for another classmate to be your partner…`}
+              secondaryText={
+                partnerElementIndex === 0
+                  ? "You may have to wait for another classmate to submit a response."
+                  : undefined
+              }
+            />
+          );
+        }
+      } else {
+        const shouldShowLabel =
+          partnerElementIndex === 0 ||
+          (partnerElementIndex === 1 &&
+            this.threadContainsPostFromUser(userID, userID)) ||
+          (partnerElementIndex >= 2 &&
+            partners.length >= partnerElementIndex &&
+            this.threadContainsPostFromUser(
+              partners[partnerElementIndex - 2].userID,
+              userID,
+            ));
+        const remainingPartners = activity.revieweeCount - partnerElementIndex;
+        return (
+          <Fragment>
+            {shouldShowLabel && (
+              <div className={css(styles.partnerLabel)}>
+                {partnerElementIndex === 0
+                  ? `Youʼll engage with ${activity.revieweeCount} partnersʼ responses after you submit your own.`
+                  : `Youʼll engage with ${remainingPartners} more ${remainingPartners >
+                    1
+                      ? "partnersʼ responses"
+                      : "partner's response"} after the one above.`}
+              </div>
+            )}
+            <PlaceholderThread
+              key={partnerElementIndex}
+              imageURL="/static/lock@2x.png"
+              title={`Partner #${partnerElementIndex + 1}`}
+            />
+          </Fragment>
+        );
+      }
+    };
+
+    const threadElements = Object.keys(this.state.threads)
+      .filter(threadKey => threadKey !== userID)
+      .map(threadKey =>
+        getThreadElement(
+          threadKey,
+          false,
+          "Write a reply to your classmate",
+          true,
+        ),
+      );
 
     return (
       <Fragment>
@@ -748,7 +767,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               this.isInWorldMap(),
             )}
           </div>
-          <div style={{ marginTop: 8, marginBottom: "100vh" }}>
+          <div style={{ marginBottom: "100vh" }}>
             {this.isInWorldMap()
               ? threadElements
               : Array(activity.revieweeCount)
@@ -767,8 +786,18 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
   yourThreadContainer: {
-    marginTop: 8,
+    marginTop: 24,
+    marginBottom: 24,
+  },
+
+  partnerLabel: {
+    marginTop: 16,
+    ...sharedStyles.wbTypography.labelSmall,
+    color: sharedStyles.wbColors.offBlack50,
     marginBottom: 8,
+    [mediaQueries.mdOrSmaller]: {
+      paddingLeft: 14,
+    },
   },
 
   subwayProgressContainer: {
@@ -781,7 +810,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     borderBottom: `1px solid ${sharedStyles.wbColors.hairline}`,
 
-    [mediaQueries.mdOrLarger]: {
+    [mediaQueries.lgOrLarger]: {
       border: `1px solid ${sharedStyles.wbColors.hairline}`,
       borderTopWidth: 0,
       borderRadius: sharedStyles.borderRadius,
