@@ -2,6 +2,7 @@
 import Head from "next/head";
 import React, { Fragment } from "react";
 import Router from "next/router";
+import scrollToComponent from "react-scroll-to-component";
 import { css, StyleSheet } from "aphrodite";
 
 import activities from "../lib/activities";
@@ -75,6 +76,8 @@ type Props = {
 };
 
 export default class NeueFlowPage extends React.Component<Props, State> {
+  threadRefs = {};
+
   constructor(props: Props) {
     super(props);
 
@@ -484,6 +487,42 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.setState({ pendingRichEditorData });
   };
 
+  onClickStage = (stage: "write" | "react" | "revise") => {
+    const { userID } = this.state;
+    if (!userID) {
+      throw "Can't navigate to stage without user ID";
+    }
+
+    let threadKey;
+    if (stage === "write" || stage === "revise") {
+      threadKey = userID;
+    } else if (stage === "react") {
+      const eligiblePartners = this.getEligiblePartners();
+      const partnerKeysWithoutPosts = Object.keys(eligiblePartners)
+        .sort()
+        .filter(
+          partnerKey =>
+            !this.threadContainsPostFromUser(
+              eligiblePartners[partnerKey].userID,
+              userID,
+            ),
+        );
+      const firstEligiblePartnerID =
+        eligiblePartners[
+          partnerKeysWithoutPosts[0] || Object.keys(eligiblePartners)[0]
+        ].userID;
+      threadKey = firstEligiblePartnerID;
+    }
+
+    scrollToComponent(this.threadRefs[threadKey], {
+      align: "top",
+      offset: -80,
+      duration: 400,
+      ease: "outExpo",
+    });
+    this.onSetIsExpanded(threadKey, true);
+  };
+
   render = () => {
     if (!this.state.ready || !this.state.userID) {
       // TODO(andy): Implement loading page.
@@ -611,6 +650,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       return (
         <Thread
           key={threadKey}
+          ref={ref => (this.threadRefs[threadKey] = ref)}
           {...getThreadDataProps(threadKey, shouldShowClassmateFeedback)}
           pendingAvatar={userProfile.avatar}
           pendingDisplayName={pendingDisplayName}
@@ -762,6 +802,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             <SubwayProgress
               stage={stage}
               partnerCount={activity.revieweeCount}
+              onClickStage={this.onClickStage}
             />
           </div>
 
