@@ -374,6 +374,11 @@ export default class NeueFlowPage extends React.Component<Props, State> {
 
     const wasInWorldMap = this.isInWorldMap();
 
+    // TODO: makes assumption that your thread key is your user ID, and that if you post to your own thread in the world map, you're revising
+    if (wasInWorldMap && threadKey === userID) {
+      this.setState({ congratsModalIsOpen: true });
+    }
+
     this.setState(
       {
         pendingRichEditorData: newPendingRichEditorData,
@@ -391,14 +396,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       () => {
         setTimeout(() => this.expandThreadForFlowStage(), 200); // TODO improve tremendous hack which lets a round of rendering happen so that the expansion animation looks reasonable
         if (!wasInWorldMap && this.isInWorldMap()) {
-          this.setState({ congratsModalIsOpen: true }, async () => {
+          (async () => {
             // Refetch all threads for world map
             this.setState({
               threads:
                 (await fetchThreads(this.getFlowID(), this.getClassCode())) ||
                 {},
             });
-          });
+          })();
         }
       },
     );
