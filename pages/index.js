@@ -714,14 +714,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         return (
           <Fragment>
             {shouldShowLabel && (
-              <div className={css(styles.partnerLabel)}>
+              <p className={css(styles.partnerLabel)}>
                 {partnerElementIndex === 0
                   ? `Youʼll engage with ${activity.revieweeCount} partnersʼ responses after you submit your own.`
                   : `Youʼll engage with ${remainingPartners} more ${remainingPartners >
                     1
                       ? "partnersʼ responses"
                       : "partner's response"} after the one above.`}
-              </div>
+              </p>
             )}
             <PlaceholderThread
               key={partnerElementIndex}
@@ -768,11 +768,23 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             )}
           </div>
           <div style={{ marginBottom: "100vh" }}>
-            {this.isInWorldMap()
-              ? threadElements
-              : Array(activity.revieweeCount)
+            {this.isInWorldMap() ? (
+              threadElements
+            ) : (
+              <Fragment>
+                {Array(activity.revieweeCount)
                   .fill(null)
-                  .map((dummy, index) => partnerThreadElement(index))}
+                  .map((dummy, index) => (
+                    <div style={{ marginTop: 8 }}>
+                      {partnerThreadElement(index)}
+                    </div>
+                  ))}
+                <div className={css(styles.partnerLabel)}>
+                  Youʼll be able to see your whole classʼs work after you reply
+                  to your partners.
+                </div>
+              </Fragment>
+            )}
           </div>
         </PageContainer>
         <CongratsModal
