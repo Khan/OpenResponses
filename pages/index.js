@@ -759,7 +759,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             postStimuliPrompt={prompt.postStimuliPrompt}
           />
           <div className={css(styles.subwayProgressContainer)}>
-            <SubwayProgress stage={stage} />
+            <SubwayProgress
+              stage={stage}
+              partnerCount={activity.revieweeCount}
+            />
           </div>
 
           <div className={css(styles.yourThreadContainer)}>
