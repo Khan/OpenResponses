@@ -613,23 +613,28 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         .map((postKey, postIndex) => {
           const post = threadData.posts[postKey];
           let displayName = post.userProfile.pseudonym;
+          let diffBaseData = null;
           if (post.userID === userID) {
             displayName = nameForYou;
           }
           if (post.userID === threadKey) {
             if (postIndex > 0) {
-              const authorPosts = Object.keys(threadData.posts)
+              const authorPostKeys = Object.keys(threadData.posts)
                 .sort()
                 .filter(
                   postKey => threadData.posts[postKey].userID === threadKey,
                 );
-              displayName = `${displayName} (draft #${authorPosts.indexOf(
+              displayName = `${displayName} (draft #${authorPostKeys.indexOf(
                 postKey,
               ) + 1})`;
+              diffBaseData =
+                threadData.posts[
+                  authorPostKeys[authorPostKeys.indexOf(postKey) - 1]
+                ].data.rawData;
             }
           }
           return {
-            data: post.data,
+            data: { ...post.data, diffBaseData },
             avatar: post.userProfile.avatar,
             displayName,
           };
