@@ -453,7 +453,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       );
       newThreadData =
         threadPosts[yourThreadPosts[yourThreadPosts.length - 1]].data.rawData;
-    } else {
+    } else if (promptIndex !== null) {
       // TODO: Will have to change this if your thread's key ever becomes not your user ID.
       const prompts =
         threadKey === userID
