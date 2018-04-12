@@ -227,6 +227,14 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     }
   };
 
+  countOfPostsByUserInThread = (threadKey: ThreadKey, userID: UserID) =>
+    (this.state.threads[userID] &&
+      Object.keys(this.state.threads[threadKey].posts).filter(
+        postKey =>
+          this.state.threads[threadKey].posts[postKey].userID === userID,
+      ).length) ||
+    0;
+
   threadContainsPostFromUser = (threadKey: ThreadKey, userID: UserID) =>
     this.state.threads[threadKey] &&
     Object.keys(this.state.threads[threadKey].posts).some(
@@ -373,12 +381,15 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       threadKey,
       submittedRichEditorData,
     );
-    await promise;
 
     const wasInWorldMap = this.isInWorldMap();
 
     // TODO: makes assumption that your thread key is your user ID, and that if you post to your own thread in the world map, you're revising
-    if (wasInWorldMap && threadKey === userID) {
+    if (
+      wasInWorldMap &&
+      threadKey === userID &&
+      this.countOfPostsByUserInThread(userID, userID) === 1
+    ) {
       this.setState({ congratsModalIsOpen: true });
     }
 
@@ -396,7 +407,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           },
         },
       },
-      () => {
+      async () => {
+        await promise;
         setTimeout(() => this.expandThreadForFlowStage(), 200); // TODO improve tremendous hack which lets a round of rendering happen so that the expansion animation looks reasonable
         if (!wasInWorldMap && this.isInWorldMap()) {
           (async () => {
@@ -435,7 +447,12 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     // TODO: this predicate will have to change if your threadKey ever isn't userID
     if (promptIndex === null && threadKey === userID) {
       const threadPosts = this.state.threads[threadKey].posts;
-      newThreadData = threadPosts[Object.keys(threadPosts)[0]].data.rawData;
+      // Find the last post by you in the thread.
+      const yourThreadPosts = Object.keys(threadPosts).filter(
+        postKey => threadPosts[postKey].userID === userID,
+      );
+      newThreadData =
+        threadPosts[yourThreadPosts[yourThreadPosts.length - 1]].data.rawData;
     } else {
       // TODO: Will have to change this if your thread's key ever becomes not your user ID.
       const prompts =
@@ -686,13 +703,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     };
 
     let stage = 0;
-    const countOfYourPostsInYourThread =
-      (this.state.threads[userID] &&
-        Object.keys(this.state.threads[userID].posts).filter(
-          postKey =>
-            this.state.threads[userID].posts[postKey].userID === userID,
-        ).length) ||
-      0;
+    const countOfYourPostsInYourThread = this.countOfPostsByUserInThread(
+      userID,
+      userID,
+    );
     if (countOfYourPostsInYourThread === 0) {
       stage = 0;
     } else if (countOfYourPostsInYourThread === 1) {
