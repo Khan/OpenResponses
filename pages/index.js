@@ -613,7 +613,6 @@ export default class NeueFlowPage extends React.Component<Props, State> {
         .map((postKey, postIndex) => {
           const post = threadData.posts[postKey];
           let displayName = post.userProfile.pseudonym;
-          let diffBaseData = null;
           if (post.userID === userID) {
             displayName = nameForYou;
           }
@@ -627,14 +626,16 @@ export default class NeueFlowPage extends React.Component<Props, State> {
               displayName = `${displayName} (draft #${authorPostKeys.indexOf(
                 postKey,
               ) + 1})`;
-              diffBaseData =
+
+              // Hackily mutating in place here to allow us to do simple pointer comparisons of the post data to avoid costly rerenders.
+              post.data.diffBaseData =
                 threadData.posts[
                   authorPostKeys[authorPostKeys.indexOf(postKey) - 1]
                 ].data.rawData;
             }
           }
           return {
-            data: { ...post.data, diffBaseData },
+            data: post.data,
             avatar: post.userProfile.avatar,
             displayName,
           };
