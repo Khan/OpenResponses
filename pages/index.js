@@ -692,9 +692,10 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           onChooseDifferentSentenceStarter={() =>
             this.onChooseDifferentSentenceStarter(threadKey)}
           canAddReply={
-            (!isYourThread &&
+            (!this.isInWorldMap() &&
+              !isYourThread &&
               !this.threadContainsPostFromUser(threadKey, userID)) ||
-            (isYourThread && this.isInWorldMap())
+            this.isInWorldMap()
           }
           waitingForFeedback={waitingForFeedback}
           shouldAutofocus={!isYourThread}
