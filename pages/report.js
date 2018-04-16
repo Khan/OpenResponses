@@ -21,14 +21,6 @@ const getFlowIDFromURL = url => {
   return url.query.flowID;
 };
 
-const databaseVersion = 2;
-const numberOfEngagementPages = 2;
-const nameForYou = "You"; // TODO: Needs to be student name.
-
-const title = "Reconstruction and life after the Civil War"; // TODO: Extract
-
-type Stage = "compose" | "engage" | "reflect" | "conclusion";
-
 type State = {
   ready: boolean,
   userID: ?string,
@@ -90,85 +82,6 @@ export default class ReportPage extends React.Component<Props, State> {
     })().catch(reportError);
   };
 
-  getCardList = (
-    userID,
-    highlightingUserID,
-    hideRepliesFromNonHighlightedUsers,
-    activity: Activity,
-  ) => {
-    const { userState, inputs, inbox, log } = this.state.users[userID];
-
-    console.log(userID, userState);
-    const response = {
-      studentName: this.getIdentityFromUserState(userState),
-      avatar: userState.profile.avatar,
-      data: inputs[0].pendingCardData,
-      placeholder: inputs[0].pendingCardData
-        ? undefined
-        : "[the student did not submit an answer]",
-      key: "compose",
-      highlight: userID === highlightingUserID,
-      subheading:
-        activity.prompt.type === "jigsaw"
-          ? `${activity.prompt.groupNameHeadingPrefix} ${activity.prompt.groups[
-              inputs[0]._jigsawGroup
-            ].name}`
-          : undefined,
-    };
-
-    let replies = [];
-    if (inbox) {
-      const sortedKeys = Object.keys(inbox).sort();
-      replies = sortedKeys
-        .reduce((accumulator, key) => {
-          const message = inbox[key];
-          return [...accumulator, message];
-        }, [])
-        .filter(
-          message =>
-            !hideRepliesFromNonHighlightedUsers ||
-            (hideRepliesFromNonHighlightedUsers &&
-              message.fromUserID === highlightingUserID),
-        )
-        .map((message, idx) => {
-          const sender = this.state.users[message.fromUserID];
-          const senderIdentity = sender
-            ? this.getIdentityFromUserState(sender.userState)
-            : "(unknown email)";
-          return {
-            studentName: senderIdentity,
-            avatar: message.profile.avatar,
-            data: message.submitted[message.fromModuleID].pendingCardData,
-            key: `reflectionFeedback${idx}`,
-            time: message.time,
-            highlight: message.fromUserID === highlightingUserID,
-          };
-        });
-    }
-
-    if (inputs.length > 1 && !inputs[inputs.length - 1].feedback) {
-      const timestampKey = Object.keys(log).find(logKey => {
-        const logEntry = log[logKey];
-        return (
-          logEntry.type === "submission" &&
-          Number.parseInt(logEntry.moduleID) === inputs.length - 1
-        );
-      });
-      const time = timestampKey && log[timestampKey].time;
-      replies.push({
-        studentName: this.getIdentityFromUserState(userState),
-        avatar: userState.profile.avatar,
-        data: inputs[inputs.length - 1].pendingCardData,
-        key: "reflection",
-        highlight: userID === highlightingUserID,
-        time: time,
-      });
-    }
-    replies.sort((a, b) => a.time - b.time);
-
-    return [response, ...replies];
-  };
-
   displayNameFromProfile = profile => {
     return this.state.anonymizeStudents ? profile.pseudonym : profile.realName;
   };
@@ -183,6 +96,7 @@ export default class ReportPage extends React.Component<Props, State> {
         return {
           data: post.data,
           avatar: post.userProfile.avatar,
+          timestamp: post.submissionTimestamp,
           displayName: this.displayNameFromProfile(post.userProfile),
           userID: post.userID,
         };
@@ -274,6 +188,7 @@ export default class ReportPage extends React.Component<Props, State> {
                 hasPostedThread,
                 isFallbackUser,
                 partners,
+                createdAt,
               } = this.state.users[userID];
               if (!profile || !hasPostedThread || isFallbackUser) {
                 return null;
@@ -420,6 +335,23 @@ export default class ReportPage extends React.Component<Props, State> {
                     }}
                   >
                     {this.displayNameFromProfile(profile)}
+                    <span
+                      style={{
+                        ...sharedStyles.wbTypography.labelSmall,
+                        color: sharedStyles.wbColors.offBlack50,
+                        fontWeight: "normal",
+                        marginLeft: 8,
+                      }}
+                    >
+                      started at{" "}
+                      {new Date(createdAt).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "numeric",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    </span>
                   </h2>
                   <div>
                     <Thread
