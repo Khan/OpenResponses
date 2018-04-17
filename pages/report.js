@@ -274,7 +274,6 @@ export default class ReportPage extends React.Component<Props, State> {
                   )
                 );
               });
-              console.log(participatingThreads);
               const bonusThreadElements = participatingThreads.map(
                 partnerUserID => {
                   const partnerThreadPosts = this.getThreadDataProps(
@@ -325,6 +324,19 @@ export default class ReportPage extends React.Component<Props, State> {
 
               const threadKey = userID;
 
+              const thisUserThreadPosts = this.state.threads[threadKey].posts;
+              const thisUserRevisionsPostKeys = Object.keys(thisUserThreadPosts)
+                .sort()
+                .filter(key => thisUserThreadPosts[key].userID === userID);
+              let lastRevisionTimestamp =
+                thisUserRevisionsPostKeys.length > 1
+                  ? thisUserThreadPosts[
+                      thisUserRevisionsPostKeys[
+                        thisUserRevisionsPostKeys.length - 1
+                      ]
+                    ].submissionTimestamp
+                  : null;
+
               return (
                 <div
                   style={{
@@ -339,20 +351,22 @@ export default class ReportPage extends React.Component<Props, State> {
                       ...sharedStyles.wbTypography.headingMedium,
                       backgroundColor: sharedStyles.wbColors.offWhite,
                       zIndex: 100,
-                      padding: "24px 0px",
+                      paddingTop: 24,
+                      paddingBottom: 4,
                       margin: 0,
                       width: "100%",
                     }}
                   >
                     {this.displayNameFromProfile(profile)}
-                    <span
+                  </h2>
+                  <div style={{ marginBottom: 16 }}>
+                    <div
                       style={{
                         ...sharedStyles.wbTypography.labelSmall,
                         color: sharedStyles.wbColors.offBlack50,
-                        fontWeight: "normal",
-                        marginLeft: 8,
                       }}
                     >
+                      {" "}
                       started at{" "}
                       {new Date(createdAt).toLocaleString("en-US", {
                         year: "numeric",
@@ -361,8 +375,32 @@ export default class ReportPage extends React.Component<Props, State> {
                         hour: "numeric",
                         minute: "numeric",
                       })}
-                    </span>
-                  </h2>
+                    </div>
+                    <div
+                      style={{
+                        ...sharedStyles.wbTypography.labelSmall,
+                        color: sharedStyles.wbColors.offBlack50,
+                        minHeight: "1em",
+                      }}
+                    >
+                      {" "}
+                      {lastRevisionTimestamp && (
+                        <Fragment>
+                          submitted revision #{thisUserRevisionsPostKeys.length - 1}{" "}
+                          at{" "}
+                          {new Date(
+                            lastRevisionTimestamp,
+                          ).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                          })}
+                        </Fragment>
+                      )}
+                    </div>
+                  </div>
                   <div>
                     <Thread
                       key={threadKey}
