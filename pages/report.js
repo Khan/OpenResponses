@@ -1,6 +1,7 @@
 // @flow
 import Head from "next/head";
 import React, { Fragment } from "react";
+import { css, StyleSheet } from "aphrodite";
 
 import activities from "../lib/activities";
 import PageContainer from "../lib/components/page-container";
@@ -59,6 +60,17 @@ export default class ReportPage extends React.Component<Props, State> {
     const classCode = getClassCodeFromURL(this.props.url);
     const data = (await loadData(flowID, classCode)) || {};
     const { users, threads } = data;
+
+    for (let threadKey of Object.keys(threads)) {
+      const thread = threads[threadKey];
+      for (let postKey of Object.keys(thread.posts)) {
+        const post = thread.posts[postKey];
+        for (let reaction of Object.values(post.reactions || {})) {
+          const keyName = reaction === "star" ? "starCount" : "downvoteCount";
+          users[post.userID][keyName] = (users[post.userID][keyName] || 0) + 1;
+        }
+      }
+    }
 
     this.setState({
       ready: true,
@@ -199,6 +211,8 @@ export default class ReportPage extends React.Component<Props, State> {
                 isFallbackUser,
                 partners,
                 createdAt,
+                starCount,
+                downvoteCount,
               } = this.state.users[userID];
               if (!profile || !hasPostedThread || isFallbackUser) {
                 return null;
@@ -346,58 +360,108 @@ export default class ReportPage extends React.Component<Props, State> {
                   }}
                   key={userID}
                 >
-                  <h2
+                  <div
                     style={{
-                      ...sharedStyles.wbTypography.headingMedium,
-                      backgroundColor: sharedStyles.wbColors.offWhite,
-                      zIndex: 100,
+                      marginBottom: 16,
+                      display: "flex",
+                      alignItems: "flex-start",
                       paddingTop: 24,
-                      paddingBottom: 4,
-                      margin: 0,
-                      width: "100%",
                     }}
                   >
-                    {this.displayNameFromProfile(profile)}
-                  </h2>
-                  <div style={{ marginBottom: 16 }}>
-                    <div
-                      style={{
-                        ...sharedStyles.wbTypography.labelSmall,
-                        color: sharedStyles.wbColors.offBlack50,
-                      }}
-                    >
-                      {" "}
-                      started at{" "}
-                      {new Date(createdAt).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                      })}
+                    <div style={{ flexGrow: 1 }}>
+                      <h2
+                        style={{
+                          ...sharedStyles.wbTypography.headingMedium,
+                          backgroundColor: sharedStyles.wbColors.offWhite,
+                          zIndex: 100,
+                          paddingBottom: 4,
+                          margin: 0,
+                          width: "100%",
+                        }}
+                      >
+                        {this.displayNameFromProfile(profile)}
+                      </h2>
+                      <div
+                        style={{
+                          ...sharedStyles.wbTypography.labelSmall,
+                          color: sharedStyles.wbColors.offBlack50,
+                        }}
+                      >
+                        {" "}
+                        started at{" "}
+                        {new Date(createdAt).toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "numeric",
+                        })}
+                      </div>
+                      <div
+                        style={{
+                          ...sharedStyles.wbTypography.labelSmall,
+                          color: sharedStyles.wbColors.offBlack50,
+                          minHeight: "1em",
+                        }}
+                      >
+                        {" "}
+                        {lastRevisionTimestamp && (
+                          <Fragment>
+                            submitted revision #{thisUserRevisionsPostKeys.length - 1}{" "}
+                            at{" "}
+                            {new Date(
+                              lastRevisionTimestamp,
+                            ).toLocaleString("en-US", {
+                              year: "numeric",
+                              month: "numeric",
+                              day: "numeric",
+                              hour: "numeric",
+                              minute: "numeric",
+                            })}
+                          </Fragment>
+                        )}
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        ...sharedStyles.wbTypography.labelSmall,
-                        color: sharedStyles.wbColors.offBlack50,
-                        minHeight: "1em",
-                      }}
-                    >
-                      {" "}
-                      {lastRevisionTimestamp && (
-                        <Fragment>
-                          submitted revision #{thisUserRevisionsPostKeys.length - 1}{" "}
-                          at{" "}
-                          {new Date(
-                            lastRevisionTimestamp,
-                          ).toLocaleString("en-US", {
-                            year: "numeric",
-                            month: "numeric",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "numeric",
-                          })}
-                        </Fragment>
+                    <div style={{ paddingTop: 4 }}>
+                      {starCount > 0 && (
+                        <div>
+                          <div
+                            style={{
+                              pointerEvents: "none",
+                            }}
+                            className={css(
+                              styles.voteButton,
+                              styles.starButtonActive,
+                            )}
+                          >
+                            <img
+                              src={"/static/star-filled.png"}
+                              style={{ width: 18, height: 18 }}
+                            />
+                            <span style={{ marginLeft: 8 }}>{starCount}</span>
+                          </div>
+                        </div>
+                      )}
+                      {downvoteCount > 0 && (
+                        <div>
+                          <div
+                            style={{
+                              pointerEvents: "none",
+                            }}
+                            className={css(
+                              styles.voteButton,
+                              styles.downvoteButtonActive,
+                            )}
+                          >
+                            <img
+                              src={"/static/thumbsdown-filled.png"}
+                              style={{ width: 18, height: 18 }}
+                            />
+                            <span style={{ marginLeft: 8 }}>
+                              {downvoteCount}
+                            </span>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -423,3 +487,43 @@ export default class ReportPage extends React.Component<Props, State> {
     );
   };
 }
+
+const styles = StyleSheet.create({
+  voteButton: {
+    ...sharedStyles.wbTypography.labelMedium,
+    padding: 0,
+    border: "none",
+    background: "none",
+    margin: "-8px -12px",
+    padding: "8px 12px",
+    marginRight: 8,
+    color: sharedStyles.wbColors.offBlack50,
+    boxSizing: "border-box",
+    userSelect: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    height: 36,
+    outline: "none",
+
+    [":hover"]: {
+      borderRadius: sharedStyles.borderRadius,
+      backgroundColor: sharedStyles.wbColors.white,
+      boxShadow:
+        "0 2px 4px 0 rgba(33, 36, 44, 0.16), 0 0 0 1px rgba(33, 36, 44, 0.08)",
+    },
+
+    [":active"]: {
+      backgroundColor: "#dae6fd",
+    },
+  },
+
+  starButtonActive: {
+    color: sharedStyles.wbColors.productGold,
+    fontWeight: "bold",
+  },
+
+  downvoteButtonActive: {
+    color: sharedStyles.wbColors.productRed,
+    fontWeight: "bold",
+  },
+});
