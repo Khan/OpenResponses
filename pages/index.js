@@ -25,6 +25,7 @@ import {
   fetchThreads,
   watchPartners,
   watchThread,
+  recordReaction,
 } from "../lib/db";
 
 import type {
@@ -35,6 +36,7 @@ import type {
   PostData,
 } from "../lib/db";
 import type { PromptData, Activity } from "../lib/activities";
+import type { Reaction } from "../lib/components/thread";
 import type { RichEditorData } from "../lib/components/rich-editor";
 
 const getClassCodeFromURL = url => {
@@ -540,6 +542,39 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     this.onSetIsExpanded(threadKey, true);
   };
 
+  onReact = (threadKey: ThreadKey, postKey: string, reaction: ?Reaction) => {
+    const { threads, userID } = this.state;
+    if (!userID) {
+      throw "Can't react before logged in";
+    }
+    this.setState({
+      threads: {
+        ...threads,
+        [threadKey]: {
+          ...threads[threadKey],
+          posts: {
+            ...threads[threadKey].posts,
+            [postKey]: {
+              ...threads[threadKey].posts[postKey],
+              reactions: {
+                ...(threads[threadKey].posts[postKey].reactions || {}),
+                [userID]: reaction,
+              },
+            },
+          },
+        },
+      },
+    });
+    recordReaction(
+      this.getFlowID(),
+      this.getClassCode(),
+      userID,
+      threadKey,
+      postKey,
+      reaction,
+    );
+  };
+
   render = () => {
     if (!this.state.ready || !this.state.userID) {
       // TODO(andy): Implement loading page.
@@ -597,6 +632,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       );
     }
 
+    const isInWorldMap = this.isInWorldMap();
+
     const getThreadDataProps = (
       threadKey: ThreadKey,
       shouldShowClassmateFeedback: boolean,
@@ -635,9 +672,21 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             }
           }
           return {
+            postKey,
             data: post.data,
             avatar: post.userProfile.avatar,
             displayName,
+            reactions: isInWorldMap ? post.reactions : undefined,
+            isStarActive: post.reactions
+              ? post.reactions[userID] === "star"
+              : false,
+            isDownvoteActive: post.reactions
+              ? post.reactions[userID] === "downvote"
+              : false,
+            reactionDisplayStyle:
+              post.userID === userID
+                ? isInWorldMap ? "yourPost" : "excluded"
+                : "normal",
           };
         });
       const pendingRichEditorData = this.state.pendingRichEditorData[threadKey];
@@ -705,6 +754,8 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           }
           waitingForFeedback={waitingForFeedback}
           shouldAutofocus={!isYourThread}
+          onReact={(postKey, reaction) =>
+            this.onReact(threadKey, postKey, reaction)}
         />
       );
     };

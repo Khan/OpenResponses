@@ -112,3 +112,4 @@ https://YOUR-SERVER.com/url_base?param1=value1&param2=value2&param3=value
 
 Lock icon by Dima Lagunov from the Noun Project.
 Waiting icon by Leonardo Schneider from the Noun Project.
+Thumbs down icon by Gregor Cresnar from the Noun Project.

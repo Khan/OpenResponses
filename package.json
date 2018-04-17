@@ -59,6 +59,7 @@
     "react-portal": "^3.0.0",
     "react-scroll-to-component": "^1.0.2",
     "react-visibility-sensor": "^3.10.1",
+    "shallow-equal-explain": "^0.0.4",
     "slate": "^0.32",
     "slate-plain-serializer": "^0.5",
     "slate-react": "^0.11",

@@ -99,6 +99,8 @@ export default class ReportPage extends React.Component<Props, State> {
           timestamp: post.submissionTimestamp,
           displayName: this.displayNameFromProfile(post.userProfile),
           userID: post.userID,
+          reactions: post.reactions,
+          reactionDisplayStyle: "report",
         };
       });
     return { posts };
