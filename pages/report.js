@@ -88,21 +88,29 @@ export default class ReportPage extends React.Component<Props, State> {
 
   getThreadDataProps = (threadKey: ThreadKey) => {
     const threadData = this.state.threads[threadKey] || {};
-    const posts = Object.keys(threadData.posts || {})
-      .sort()
-      .filter(postKey => threadData.posts[postKey].userID)
-      .map(postKey => {
-        const post = threadData.posts[postKey];
-        return {
-          data: post.data,
-          avatar: post.userProfile.avatar,
-          timestamp: post.submissionTimestamp,
-          displayName: this.displayNameFromProfile(post.userProfile),
-          userID: post.userID,
-          reactions: post.reactions,
-          reactionDisplayStyle: "report",
-        };
-      });
+    const sortedPostKeys = Object.keys(threadData.posts || {}).sort();
+    const postKeysByAuthor = sortedPostKeys.filter(
+      postKey => threadData.posts[postKey].userID === threadKey,
+    );
+    const posts = sortedPostKeys.map((postKey, postIndex) => {
+      const post = threadData.posts[postKey];
+      let diffBaseData = null;
+      if (postIndex > 0 && post.userID === threadKey) {
+        post.data.diffBaseData =
+          threadData.posts[
+            postKeysByAuthor[postKeysByAuthor.indexOf(postKey) - 1]
+          ].data.rawData;
+      }
+      return {
+        data: post.data,
+        avatar: post.userProfile.avatar,
+        timestamp: post.submissionTimestamp,
+        displayName: this.displayNameFromProfile(post.userProfile),
+        userID: post.userID,
+        reactions: post.reactions,
+        reactionDisplayStyle: "report",
+      };
+    });
     return { posts };
   };
 
