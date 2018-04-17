@@ -1,6 +1,7 @@
 // @flow
 import Head from "next/head";
 import React, { Fragment } from "react";
+import VirtualList from "react-tiny-virtual-list";
 import { css, StyleSheet } from "aphrodite";
 
 import activities from "../lib/activities";
@@ -134,6 +135,20 @@ export default class ReportPage extends React.Component<Props, State> {
 
     const activity = this.state.activity;
 
+    const sortedUsers = Object.keys(this.state.users).sort((a, b) => {
+      const profileA = this.state.users[a].profile || {};
+      const profileB = this.state.users[b].profile || {};
+      const realNameA = (profileA.realName || "").toUpperCase();
+      const realNameB = (profileB.realName || "").toUpperCase();
+      if (realNameA < realNameB) {
+        return -1;
+      } else if (realNameB < realNameA) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
     return (
       <Fragment>
         <div
@@ -190,21 +205,15 @@ export default class ReportPage extends React.Component<Props, State> {
             marginTop: 80,
           }}
         >
-          {Object.keys(this.state.users)
-            .sort((a, b) => {
-              const profileA = this.state.users[a].profile || {};
-              const profileB = this.state.users[b].profile || {};
-              const realNameA = (profileA.realName || "").toUpperCase();
-              const realNameB = (profileB.realName || "").toUpperCase();
-              if (realNameA < realNameB) {
-                return -1;
-              } else if (realNameB < realNameA) {
-                return 1;
-              } else {
-                return 0;
-              }
-            })
-            .map(userID => {
+          <VirtualList
+            width="100%"
+            height="1000vh"
+            itemCount={sortedUsers.length}
+            itemSize={428}
+            scrollDirection="horizontal"
+            overscanCount={8}
+            renderItem={({ index, style }) => {
+              const userID = sortedUsers[index];
               const {
                 profile,
                 hasPostedThread,
@@ -354,6 +363,7 @@ export default class ReportPage extends React.Component<Props, State> {
               return (
                 <div
                   style={{
+                    ...style,
                     width: 400,
                     flexShrink: 0,
                     margin: "0 14px",
@@ -405,7 +415,7 @@ export default class ReportPage extends React.Component<Props, State> {
                         }}
                       >
                         {" "}
-                        {lastRevisionTimestamp && (
+                        {lastRevisionTimestamp ? (
                           <Fragment>
                             submitted revision #{thisUserRevisionsPostKeys.length - 1}{" "}
                             at{" "}
@@ -419,6 +429,12 @@ export default class ReportPage extends React.Component<Props, State> {
                               minute: "numeric",
                             })}
                           </Fragment>
+                        ) : (
+                          <span
+                            style={{ color: sharedStyles.wbColors.productRed }}
+                          >
+                            never submitted revision
+                          </span>
                         )}
                       </div>
                     </div>
@@ -481,7 +497,8 @@ export default class ReportPage extends React.Component<Props, State> {
                   {bonusThreadElements}
                 </div>
               );
-            })}
+            }}
+          />
         </div>
       </Fragment>
     );

@@ -58,6 +58,7 @@
     "react-pointable": "^1.0",
     "react-portal": "^3.0.0",
     "react-scroll-to-component": "^1.0.2",
+    "react-tiny-virtual-list": "^2.1.4",
     "react-visibility-sensor": "^3.10.1",
     "shallow-equal-explain": "^0.0.4",
     "slate": "^0.32",
