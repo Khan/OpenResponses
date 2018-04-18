@@ -93,10 +93,10 @@ exports.findPartners = functions.database
 
           console.log("valid partners for ", postingUserID, validPartners);
           const postingUserPartnersRef = postingUserRef.child("partners");
-          for (let partnerUserID of validPartners.slice(
-            0,
-            targetPartnerCount,
-          )) {
+          const partnerSubset = validPartners
+            .slice(0, targetPartnerCount)
+            .reverse(); // **** HACK FOR NEAL ****
+          for (let partnerUserID of partnerSubset) {
             promises.push(
               postingUserPartnersRef.push({ userID: partnerUserID }),
             );
