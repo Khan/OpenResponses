@@ -135,19 +135,23 @@ export default class ReportPage extends React.Component<Props, State> {
 
     const activity = this.state.activity;
 
-    const sortedUsers = Object.keys(this.state.users).sort((a, b) => {
-      const profileA = this.state.users[a].profile || {};
-      const profileB = this.state.users[b].profile || {};
-      const realNameA = (profileA.realName || "").toUpperCase();
-      const realNameB = (profileB.realName || "").toUpperCase();
-      if (realNameA < realNameB) {
-        return -1;
-      } else if (realNameB < realNameA) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
+    const sortedUsers = Object.keys(this.state.users)
+      .sort((a, b) => {
+        const profileA = this.state.users[a].profile || {};
+        const profileB = this.state.users[b].profile || {};
+        const realNameA = (profileA.realName || "").toUpperCase();
+        const realNameB = (profileB.realName || "").toUpperCase();
+        if (realNameA < realNameB) {
+          return -1;
+        } else if (realNameB < realNameA) {
+          return 1;
+        } else {
+          return 0;
+        }
+      })
+      .filter(
+        u => this.state.users[u].profile && !this.state.users[u].isFallbackUser,
+      );
 
     return (
       <Fragment>
@@ -223,7 +227,7 @@ export default class ReportPage extends React.Component<Props, State> {
                 starCount,
                 downvoteCount,
               } = this.state.users[userID];
-              if (!profile || !hasPostedThread || isFallbackUser) {
+              if (!profile || isFallbackUser) {
                 return null;
               }
 
@@ -347,7 +351,10 @@ export default class ReportPage extends React.Component<Props, State> {
 
               const threadKey = userID;
 
-              const thisUserThreadPosts = this.state.threads[threadKey].posts;
+              const thisUserThreadPosts =
+                (this.state.threads[threadKey] &&
+                  this.state.threads[threadKey].posts) ||
+                {};
               const thisUserRevisionsPostKeys = Object.keys(thisUserThreadPosts)
                 .sort()
                 .filter(key => thisUserThreadPosts[key].userID === userID);
@@ -433,7 +440,10 @@ export default class ReportPage extends React.Component<Props, State> {
                           <span
                             style={{ color: sharedStyles.wbColors.productRed }}
                           >
-                            never submitted revision
+                            never submitted{" "}
+                            {this.state.threads[threadKey]
+                              ? "revision"
+                              : "response"}
                           </span>
                         )}
                       </div>
@@ -481,18 +491,20 @@ export default class ReportPage extends React.Component<Props, State> {
                       )}
                     </div>
                   </div>
-                  <div>
-                    <Thread
-                      key={threadKey}
-                      {...this.getThreadDataProps(threadKey)}
-                      isExpanded
-                      prompts={[]}
-                      canAddReply={false}
-                      shouldDisplayLookingForFeedbackMessage={false}
-                      shouldAutofocus={false}
-                      waitingForFeedback={false}
-                    />
-                  </div>
+                  {this.state.threads[threadKey] && (
+                    <div>
+                      <Thread
+                        key={threadKey}
+                        {...this.getThreadDataProps(threadKey)}
+                        isExpanded
+                        prompts={[]}
+                        canAddReply={false}
+                        shouldDisplayLookingForFeedbackMessage={false}
+                        shouldAutofocus={false}
+                        waitingForFeedback={false}
+                      />
+                    </div>
+                  )}
                   {partnerElements}
                   {bonusThreadElements}
                 </div>
