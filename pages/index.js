@@ -365,7 +365,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
     });
   };
 
-  onSubmit = async (threadKey: ThreadKey) => {
+  onSubmit = async (threadKey: ThreadKey, confidence: ?number) => {
     const { userProfile, userID } = this.state;
     if (!userProfile || !userID) {
       throw "Can't submit without user profile";
@@ -382,6 +382,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
       userProfile,
       threadKey,
       submittedRichEditorData,
+      confidence,
     );
 
     const wasInWorldMap = this.isInWorldMap();
@@ -675,6 +676,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
             postKey,
             data: post.data,
             avatar: post.userProfile.avatar,
+            confidence: post.userID === userID ? post.confidence : null,
             displayName,
             reactions: isInWorldMap ? post.reactions : undefined,
             isStarActive: post.reactions
@@ -728,7 +730,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           pendingDisplayName={pendingDisplayName}
           onChange={newData =>
             this.onChangePendingRichEditorData(threadKey, newData)}
-          onSubmit={() => this.onSubmit(threadKey)}
+          onSubmit={confidence => this.onSubmit(threadKey, confidence)}
           isExpanded={this.state.expandedThreads.includes(threadKey)}
           onSetIsExpanded={newIsExpanded =>
             this.onSetIsExpanded(threadKey, newIsExpanded)}
@@ -756,6 +758,7 @@ export default class NeueFlowPage extends React.Component<Props, State> {
           shouldAutofocus={!isYourThread}
           onReact={(postKey, reaction) =>
             this.onReact(threadKey, postKey, reaction)}
+          shouldPromptForConfidence={isYourThread}
         />
       );
     };

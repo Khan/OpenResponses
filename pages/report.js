@@ -117,6 +117,7 @@ export default class ReportPage extends React.Component<Props, State> {
       return {
         data: post.data,
         avatar: post.userProfile.avatar,
+        confidence: post.confidence,
         timestamp: post.submissionTimestamp,
         displayName: this.displayNameFromProfile(post.userProfile),
         userID: post.userID,
