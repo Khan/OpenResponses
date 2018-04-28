@@ -368,6 +368,10 @@ export default class ReportPage extends React.Component<Props, State> {
                     ].submissionTimestamp
                   : null;
 
+              const confidences = thisUserRevisionsPostKeys.map(
+                postKey => thisUserThreadPosts[postKey].confidence,
+              );
+
               return (
                 <div
                   style={{
@@ -449,9 +453,37 @@ export default class ReportPage extends React.Component<Props, State> {
                         )}
                       </div>
                     </div>
-                    <div style={{ paddingTop: 4 }}>
+                    <div style={{ paddingTop: 0 }}>
+                      <div
+                        style={{
+                          textAlign: "right",
+                          lineHeight: 0,
+                          marginBottom: 2,
+                        }}
+                      >
+                        {confidences.map(
+                          (c, index) =>
+                            typeof c === "number" ? (
+                              <img
+                                key={index}
+                                src={`/static/confidence-icons/${c}.png`}
+                                style={{
+                                  width: 24,
+                                  height: 24,
+                                  marginLeft: index > 0 ? 4 : 0,
+                                }}
+                              />
+                            ) : null,
+                        )}
+                      </div>
                       {starCount > 0 && (
-                        <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "row-reverse",
+                            marginBottom: 4,
+                          }}
+                        >
                           <div
                             style={{
                               pointerEvents: "none",
@@ -470,7 +502,12 @@ export default class ReportPage extends React.Component<Props, State> {
                         </div>
                       )}
                       {downvoteCount > 0 && (
-                        <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "row-reverse",
+                          }}
+                        >
                           <div
                             style={{
                               pointerEvents: "none",
@@ -526,7 +563,6 @@ const styles = StyleSheet.create({
     background: "none",
     margin: "-8px -12px",
     padding: "8px 12px",
-    marginRight: 8,
     color: sharedStyles.wbColors.offBlack50,
     boxSizing: "border-box",
     userSelect: "none",
