@@ -8,10 +8,10 @@ const transporter = nodemailer.createTransport(functions.config().smtp.url);
 
 exports.findPartners = functions.database
   .ref("/{flowID}/{cohortID}/threads/{userID}")
-  .onCreate(event => {
-    const { flowID, cohortID } = event.params;
-    const postingUserID = event.params.userID;
-    const usersRef = event.data.ref.parent.parent.child("users");
+  .onCreate((data, context) => {
+    const { flowID, cohortID } = context.params;
+    const postingUserID = context.params.userID;
+    const usersRef = data.ref.parent.parent.child("users");
     const postingUserRef = usersRef.child(postingUserID);
     // We'll begin by setting a denormalized flag for "this user has posted at least
     // one thread"
@@ -148,19 +148,19 @@ exports.findPartners = functions.database
 
 exports.notifyOnPost = functions.database
   .ref("/{flowID}/{classCode}/threads/{threadKey}/posts/{postKey}")
-  .onCreate(event => {
-    const posterUserID = event.data.val().userID;
+  .onCreate((data, context) => {
+    const posterUserID = data.val().userID;
     // TODO: If we ever flex from threadKey == authorUserID, we'll have to change
     // this heuristic.
-    if (posterUserID === event.params.threadKey) {
+    if (posterUserID === context.params.threadKey) {
       return;
     }
 
     // Fetch the poster's email.
-    const threadAuthorUserID = event.params.threadKey;
-    const threadAuthorUserRef = event.data.ref.root
-      .child(event.params.flowID)
-      .child(event.params.classCode)
+    const threadAuthorUserID = context.params.threadKey;
+    const threadAuthorUserRef = data.ref.root
+      .child(context.params.flowID)
+      .child(context.params.classCode)
       .child("users")
       .child(threadAuthorUserID);
     return threadAuthorUserRef.once("value").then(threadAuthorSnapshot => {
@@ -184,9 +184,9 @@ exports.notifyOnPost = functions.database
         `Emailing ${threadAuthorUserID} at ${email} in response to feedback from ${posterUserID}`,
       );
 
-      const humanReadableActivityName = activities[event.params.flowID].title;
-      const returnURL = `${functions.config().host.origin}/?flowID=${event
-        .params.flowID}&classCode=${event.params
+      const humanReadableActivityName = activities[context.params.flowID].title;
+      const returnURL = `${functions.config().host.origin}/?flowID=${context
+        .params.flowID}&classCode=${context.params
         .classCode}&userID=${threadAuthorUserID}&expandThread=${threadAuthorUserID}`;
       return transporter
         .sendMail({
@@ -208,9 +208,13 @@ exports.notifyOnPost = functions.database
 
 exports.copyTemplateUsers = functions.database
   .ref("/{flowID}/{classCode}/users")
-  .onCreate(event => {
-    console.log("New class code!", event.params.flowID, event.params.classCode);
-    const classCodeRef = event.data.ref.parent;
+  .onCreate((data, context) => {
+    console.log(
+      "New class code!",
+      context.params.flowID,
+      context.params.classCode,
+    );
+    const classCodeRef = data.ref.parent;
     return classCodeRef.parent
       .child("TEMPLATE")
       .once("value")
@@ -230,24 +234,24 @@ exports.copyTemplateUsers = functions.database
 
 exports.logUserCreation = functions.database
   .ref("/{flowID}/{cohortID}/users/{userID}")
-  .onCreate(event => {
-    const { profile } = event.data.val();
+  .onCreate((data, context) => {
+    const { profile } = data.val();
     const { email } = profile || {};
-    return event.data.ref
+    return data.ref
       .update({ createdAt: admin.database.ServerValue.TIMESTAMP })
       .then(() => {
-        const humanReadableFlowName = activities[event.params.flowID].title;
+        const humanReadableFlowName = activities[context.params.flowID].title;
 
         if (
           !humanReadableFlowName ||
-          /stress/.test(event.params.cohortID) ||
-          /TEMPLATE/.test(event.params.cohortID)
+          /stress/.test(context.params.cohortID) ||
+          /TEMPLATE/.test(context.params.cohortID)
         ) {
           return;
         }
 
-        const returnURL = `${functions.config().host.origin}/?flowID=${event
-          .params.flowID}&classCode=${event.params.cohortID}&userID=${event
+        const returnURL = `${functions.config().host.origin}/?flowID=${context
+          .params.flowID}&classCode=${context.params.cohortID}&userID=${context
           .params.userID}`;
         return transporter.sendMail({
           from: "Khan Academy <noreply@khanacademy.org>",
